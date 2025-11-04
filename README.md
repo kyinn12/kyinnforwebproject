@@ -1,1 +1,1 @@
-# web-project
+# WEB project
