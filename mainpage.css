@@ -1,0 +1,168 @@
+/* =================== 배경 스타일 (로그인 페이지와 동일) =================== */
+body {
+    background-image: url('page bg.jpg'); /* 이미지 파일명 확인 */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* =================== 1. 네비게이션 바 스타일 =================== */
+.navbar {
+    display: flex;
+    justify-content: space-between; /* 양쪽 끝 정렬 */
+    align-items: center;
+    padding: 20px 50px;
+    
+    /* 네비게이션 바에도 투명한 유리 효과 적용 */
+    background-color: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative; /* z-index를 위해 설정 */
+    z-index: 50; /* 푸터 다음으로 위에 보이도록 설정 */
+}
+
+.logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #007bff; /* 로고 색상 */
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #333;
+    margin-left: 25px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: #007bff;
+}
+
+.login-button {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white !important;
+    border-radius: 5px;
+}
+
+/* =================== 2. 메인 콘텐츠 (Hero Section) 스타일 =================== */
+.hero-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; /* 뷰포트 높이의 80% 사용 */
+    text-align: center;
+}
+
+.content-box {
+    /* 이 요소는 메인 페이지의 중앙 텍스트 컨테이너입니다. */
+    /* 현재 HTML 구조에는 이 요소가 없으므로 영향을 주지 않습니다. */
+    width: 60%;
+    max-width: 800px;
+    padding: 40px;
+    
+    background-color: rgba(255, 255, 255, 0.3); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.content-box h1 {
+    font-size: 2.5em;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.content-box p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+/* =================== "Login" 버튼 스타일 (위치, 크기) =================== */
+
+.cta-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    padding: 18px 40px; 
+    font-size: 2em;
+    
+    /* 위치 지정 */
+    position: absolute; 
+    top: 50%; /* 화면 중앙에서 시작 */
+    left: 10%; /* 왼쪽에서 10% 위치 */
+    transform: translateY(-50%); /* 수직 중앙 정렬을 위한 조정 */
+    z-index: 20; /* 다른 요소보다 위에 보이도록 */
+    text-align: center;
+}
+
+.cta-button:hover { background-color: #0056b3; }
+
+/* =================== 움직이는 여성 캐릭터 스타일 (크기, 위치, z-index) =================== */
+.moving-character {
+    position: absolute; 
+    right: 200px; 
+    
+    /* 다리를 웨이브 안에 가리기 위한 최종 bottom 값 */
+    bottom: 100px; 
+    
+    width: 500px; 
+    height: auto;
+    z-index: 10; /* 웨이브보다 낮게 설정 */
+    
+    /* === 애니메이션 속성 추가 (여성이 움직이도록) === */
+    animation: 
+        characterMove 1s ease-in-out infinite alternate,
+        characterRotate 1s ease-in-out infinite alternate;
+}
+
+/* =================== 하단 웨이브 이미지 스타일 (z-index) =================== */
+.bottom-wave {
+    position: absolute; 
+    bottom: 0;
+    width: 100%;
+    
+    /* z-index가 여성 캐릭터(10)보다 높아야 다리를 가릴 수 있습니다. */
+    z-index: 11; 
+}
+
+/* =================== 애니메이션 정의 (Keyframes) =================== */
+@keyframes characterMove {
+    0% { transform: translateY(0) }
+    100% { transform: translateY(-20px) }
+}
+
+@keyframes characterRotate {
+    /* 이미 transform 속성이 겹치고 있으므로 rotate만 따로 지정합니다. */
+    /* 0%와 100%에 translateY가 없어도 괜찮습니다. */
+    0% { transform: rotate(-30deg) }
+    100% { transform: rotate(10deg) }
+}
+
+
+/* =================== 푸터 스타일 =================== */
+.footer {
+    text-align: center;
+    padding: 15px;
+    position: fixed; /* 푸터는 항상 하단에 고정 */
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(3px);
+    font-size: 0.9em;
+    color: #555;
+    z-index: 100; /* 푸터가 모든 요소 위에 보이도록 가장 높은 z-index */
+}

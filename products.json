@@ -1,0 +1,42 @@
+[
+    {
+        "id": 101,
+        "name": "Classic White T-Shirt",
+        "price": 25000,
+        "category": "Tops",
+        "tags": ["Basic", "Cotton"],
+        "stock": 50
+    },
+    {
+        "id": 102,
+        "name": "Slim Fit Denim Pants",
+        "price": 59000,
+        "category": "Bottoms",
+        "tags": ["Popular", "Daily"],
+        "stock": 15
+    },
+    {
+        "id": 103,
+        "name": "Lightweight Overfit Jacket",
+        "price": 88000,
+        "category": "Outerwear",
+        "tags": ["New Arrival", "Sale"],
+        "stock": 0
+    },
+    {
+        "id": 104,
+        "name": "Vintage Pattern Skirt",
+        "price": 42000,
+        "category": "Bottoms",
+        "tags": ["Women's", "Sale"],
+        "stock": 35
+    },
+    {
+        "id": 105,
+        "name": "Wool Knit Vest",
+        "price": 31000,
+        "category": "Tops",
+        "tags": ["Autumn", "Warm"],
+        "stock": 20
+    }
+]
