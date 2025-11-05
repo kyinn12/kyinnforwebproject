@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Còdelook : Login</title>
+    <link rel="stylesheet" href="login.css"> 
+</head>
+<body>
+    <div id="login-container">
+        <h2>LOGIN</h2>
+        
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter your ID">
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" placeholder="Enter your password">
+
+        <div class="role-selector">
+            <div class="radio-group">
+                <input type="radio" id="role-buyer" name="user-role" value="buyer" checked>
+                <label for="role-buyer">Buyer</label> 
+                
+                <input type="radio" id="role-seller" name="user-role" value="seller">
+                <label for="role-seller">Seller</label>
+            </div>
+        </div>
+
+        <button id="main-login-btn">LOGIN</button> 
+    </div>
+    
+    <script src="script.js"></script> 
+</body>
+</html>

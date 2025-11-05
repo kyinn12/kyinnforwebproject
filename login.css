@@ -1,0 +1,108 @@
+body {
+    font-family: Arial, sans-serif;
+    background-image:url('page bg.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+    height: 100vh;
+    margin: 0;
+}
+
+#login-container {
+    position: absolute;
+    top: 50%;
+    left: 20%;
+    transform: translateY(-50%);
+    background-color: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    -webkit-dackdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0,0,0.1);
+    padding: 30px;
+    border-radius: 12px;
+    width: 350px;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+#login-container h2 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+#login-container label {
+    display: block;
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#login-container input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #333;
+    border-radius: 6px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+}
+
+/* 역할 선택 (라디오 버튼) 스타일 */
+.role-selector {
+    margin: 20px 0;
+}
+
+.radio-group input[type="radio"] {
+    display: none;
+}
+
+.radio-group label {
+    display: inline-block;
+    padding: 8px 15px;
+    margin: 0 5px;
+    cursor: pointer;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    transition: all 0.2s;
+    font-weight: normal;
+}
+
+.radio-group input[type="radio"]:checked + label {
+    background-color: #000000;
+    color: white;
+    border-color: #000000;
+}
+
+#main-login-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2e93ff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+#main-login-btn:hover {
+    background-color: #3797ff;
+}
+
+/* Buyer/Seller Page Layout (임시 스타일) */
+header {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
