@@ -34,12 +34,12 @@
     }
     pre {
     background-color: #f4f4f4;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  overflow-x: auto;
-  margin: 10px 0;
-  font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-x: auto;
+    margin: 10px 0;
+    font-size: 15px;
     }
 
     .button-container {
@@ -156,66 +156,4 @@
     <li><code>undefined</code> — variable declared but not assigned.</li>
     <li><code>null</code> — intentionally empty value.</li>
     <li>Example:
-      <br><code>let x;<br>let y = null;</code>
-    </li>
-  </ul>
-
-  <h2>11. Arrays</h2>
-  <ul>
-    <li>Used to store multiple values in one variable.</li>
-    <li>Defined with square brackets <code>[ ]</code> and separated by commas.</li>
-    <li>Access elements by index (starting from 0): <code>colors[1]</code>.</li>
-    <li>Get array length: <code>colors.length</code>.</li>
-  </ul>
-
-  <h2>12. Symbols</h2>
-  <ul>
-    <li>Introduced in ES6 — a primitive data type ensuring unique identifiers.</li>
-    <li>Used as object property keys to avoid naming conflicts.</li>
-    <li>Example:
-      <br><code>let id = Symbol();<br>const member = { [id]: 123 };</code>
-    </li>
-  </ul>
-
-  <h2>13. Type Conversion</h2>
-  <ul>
-    <li>JavaScript automatically converts types when performing operations (implicit conversion).</li>
-    <li>Use built-in functions for explicit conversion:
-      <ul>
-        <li><code>Number("10")</code> → 10</li>
-        <li><code>parseInt("10.5")</code> → 10</li>
-        <li><code>parseFloat("10.5")</code> → 10.5</li>
-        <li><code>String(true)</code> → "true"</li>
-        <li><code>Boolean(0)</code> → false</li>
-      </ul>
-    </li>
-  </ul>
-
-  <h2>14. Practice Example – Fahrenheit to Celsius Converter</h2>
-  <ul>
-    <li>Formula: <code>C = (F - 32) / 1.8</code></li>
-    <li>Use <code>parseFloat()</code> to ensure decimal precision.</li>
-    <li>Use <code>toFixed()</code> to limit decimal places in results.</li>
-    <li>Example:
-      <pre>
-      let f = parseFloat(prompt("Enter temperature in Fahrenheit"));
-      let c = ((f - 32) / 1.8).toFixed(1);
-      alert(`Fahrenheit ${f}° equals Celsius ${c}°.`);
-      </pre>
-    </li>
-  </ul>
-
-  <div class="button-container">
-    <button class="home-button" onclick="window.location.href='Chapter1.html'">
-      Pevrious: Chapter 1
-    </button>
-    <button class="home-button" onclick="window.location.href='index.html'">
-      Go Back to Home Page
-    </button>
-    <button class="home-button" onclick="window.location.href='Chapter3.html'">
-      Next: Chapter 3
-    </button>
-  </div>
-
-</body>
-</html>
+      <br>
