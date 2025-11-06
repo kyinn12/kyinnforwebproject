@@ -1,159 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Chapter 2: Variables and Data Types - Summary</title>
-  <style>
-    body {
-      font-family: 'Times New Roman', Times, serif;
-      line-height: 1.8;
-      margin: 40px;
-      background-color: #fdfdfd;
-      color: #000;
-    }
-    h1 {
-      color: #1a1a1a;
-      text-align: center;
-      text-decoration: underline;
-    }
-    h2 {
-      color: #333333;
-      margin-top: 30px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 5px;
-    }
-    ul {
-      margin-left: 20px;
-    }
-    code {
-      background-color: #f4f4f4;
-      padding: 2px 5px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      font-family: monospace;
-    }
-    pre {
-    background-color: #f4f4f4;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    overflow-x: auto;
-    margin: 10px 0;
-    font-size: 15px;
-    }
+  <meta charset="UTF-8">
+  <title>Chapter 2: Variables and Data Types - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-x: auto;
+    margin: 10px 0;
+    font-size: 15px;
+    }
 
-    .button-container {
-      text-align: center;
-      margin-top: 50px;
-    }
-    .home-button {
-      background-color: #333;
-      color: #fff;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .home-button:hover {
-      background-color: #555;
-    }
-  </style>
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Chapter 2: Variables and Data Types - Summary</h1>
+  <h1>Chapter 2: Variables and Data Types - Summary</h1>
 
-  <h2>1. Input and Output Methods</h2>
-  <ul>
-    <li><strong>alert()</strong> — Displays a message box with text or variable values.</li>
-    <li><strong>confirm()</strong> — Shows a dialog box with “OK” and “Cancel.” Returns <code>true</code> if OK is clicked, <code>false</code> otherwise.</li>
-    <li><strong>prompt()</strong> — Displays an input box for user values, optionally with a default value. Returns <code>null</code> if canceled.</li>
-    <li><strong>console.log()</strong> — Outputs information to the browser console for debugging.</li>
-    <li><strong>document.write()</strong> — Displays text or variables directly on the web page.</li>
-  </ul>
+  <h2>1. Input and Output Methods</h2>
+  <ul>
+    <li><strong>alert()</strong> — Displays a message box with text or variable values.</li>
+    <li><strong>confirm()</strong> — Shows a dialog box with “OK” and “Cancel.” Returns <code>true</code> if OK is clicked, <code>false</code> otherwise.</li>
+    <li><strong>prompt()</strong> — Displays an input box for user values, optionally with a default value. Returns <code>null</code> if canceled.</li>
+    <li><strong>console.log()</strong> — Outputs information to the browser console for debugging.</li>
+    <li><strong>document.write()</strong> — Displays text or variables directly on the web page.</li>
+  </ul>
 
-  <h2>2. Variables</h2>
-  <ul>
-    <li>A <strong>variable</strong> is a named storage space for data values.</li>
-    <li>Acts as a “label” attached to memory where the value is stored.</li>
-    <li>Each variable must have a unique name to avoid conflicts.</li>
-  </ul>
+  <h2>2. Variables</h2>
+  <ul>
+    <li>A **variable** is a named storage space for data values.</li>
+    <li>Acts as a “label” attached to memory where the value is stored.</li>
+    <li>Each variable must have a unique name to avoid conflicts.</li>
+  </ul>
 
-  <h2>3. Naming Rules</h2>
-  <ul>
-    <li>Cannot start with a number or contain spaces.</li>
-    <li>Case-sensitive — <code>num</code>, <code>Num</code>, and <code>NUM</code> are different.</li>
-    <li>Common styles:
-      <ul>
-        <li><strong>snake_case:</strong> <code>current_year</code></li>
-        <li><strong>camelCase:</strong> <code>currentYear</code></li>
-      </ul>
-    </li>
-    <li>Reserved keywords (e.g., <code>let</code>, <code>const</code>) cannot be used as variable names.</li>
-  </ul>
+  <h2>3. Naming Rules</h2>
+  <ul>
+    <li>Cannot start with a number or contain spaces.</li>
+    <li>Case-sensitive — <code>num</code>, <code>Num</code>, and <code>NUM</code> are different.</li>
+    <li>Common styles:
+      <ul>
+        <li>**snake_case:** <code>current_year</code></li>
+        <li>**camelCase:** <code>currentYear</code></li>
+      </ul>
+    </li>
+    <li>Reserved keywords (e.g., <code>let</code>, <code>const</code>) cannot be used as variable names.</li>
+  </ul>
 
-  <h2>4. Declaring and Assigning Variables</h2>
-  <ul>
-    <li>Use <code>let</code> or <code>const</code> to declare variables.</li>
-    <li><strong>let</strong> allows reassignment; <strong>const</strong> defines constants that cannot be reassigned.</li>
-    <li>Examples:
-      <ul>
-        <li><code>let x = 10;</code></li>
-        <li><code>const pi = 3.14;</code></li>
-      </ul>
-    </li>
-  </ul>
+  <h2>4. Declaring and Assigning Variables</h2>
+  <ul>
+    <li>Use <code>let</code> or <code>const</code> to declare variables.</li>
+    <li>**let** allows reassignment; **const** defines constants that cannot be reassigned.</li>
+    <li>Examples:
+      <ul>
+        <li><code>let x = 10;</code></li>
+        <li><code>const pi = 3.14;</code></li>
+      </ul>
+    </li>
+  </ul>
 
-  <h2>5. Why Use Constants?</h2>
-  <ul>
-    <li>Constants store fixed values that don’t change, such as current year or DOM elements.</li>
-    <li>Improves readability and makes code easier to update.</li>
-    <li>Example:
-      <br><code>const currentYear = 2025;<br>let age = currentYear - birthYear + 1;</code>
-    </li>
-  </ul>
+  <h2>5. Why Use Constants?</h2>
+  <ul>
+    <li>Constants store fixed values that don’t change, such as current year or DOM elements.</li>
+    <li>Improves readability and makes code easier to update.</li>
+    <li>Example:
+      <br><code>const currentYear = 2025;<br>let age = currentYear - birthYear + 1;</code>
+    </li>
+  </ul>
 
-  <h2>6. var, let, and const</h2>
-  <ul>
-    <li><strong>var</strong> — older keyword (can be redeclared and reassigned).</li>
-    <li><strong>let</strong> — cannot be redeclared, but can be reassigned.</li>
-    <li><strong>const</strong> — cannot be redeclared or reassigned.</li>
-  </ul>
+  <h2>6. var, let, and const</h2>
+  <ul>
+    <li>**var** — older keyword (can be redeclared and reassigned).</li>
+    <li>**let** — cannot be redeclared, but can be reassigned.</li>
+    <li>**const** — cannot be redeclared or reassigned.</li>
+  </ul>
 
-  <h2>7. Data Types in JavaScript</h2>
-  <ul>
-    <li>Two main categories:
-      <ul>
-        <li><strong>Primitive types:</strong> number, string, boolean, undefined, null, symbol.</li>
-        <li><strong>Objects:</strong> arrays, functions, and user-defined objects.</li>
-      </ul>
-    </li>
-    <li>Check type using <code>typeof()</code>:
-      <br><code>typeof("Hello") // 'string'</code>
-    </li>
-  </ul>
+  <h2>7. Data Types in JavaScript</h2>
+  <ul>
+    <li>Two main categories:
+      <ul>
+        <li>**Primitive types:** number, string, boolean, undefined, null, symbol.</li>
+        <li>**Objects:** arrays, functions, and user-defined objects.</li>
+      </ul>
+    </li>
+    <li>Check type using <code>typeof()</code>:
+      <br><code>typeof("Hello") // 'string'</code>
+    </li>
+  </ul>
 
-  <h2>8. Numbers and Strings</h2>
-  <ul>
-    <li>JavaScript uses a single <strong>number</strong> type for both integers and floats.</li>
-    <li>Strings are enclosed in single (<code>' '</code>) or double (<code>" "</code>) quotes.</li>
-    <li>Escape special characters with backslashes (<code>\</code>), e.g. <code>\n</code> for new line.</li>
-    <li>Use <strong>template literals</strong> with backticks (<code>`</code>) for easy variable insertion:
-      <br><code>console.log(`${name}, welcome!`);</code>
-    </li>
-  </ul>
+  <h2>8. Numbers and Strings</h2>
+  <ul>
+    <li>JavaScript uses a single **number** type for both integers and floats.</li>
+    <li>Strings are enclosed in single (<code>' '</code>) or double (<code>" "</code>) quotes.</li>
+    <li>Escape special characters with backslashes (<code>\</code>), e.g. <code>\n</code> for new line.</li>
+    <li>Use **template literals** with backticks (<code>`</code>) for easy variable insertion:
+      <br><code>console.log(`${name}, welcome!`);</code>
+    </li>
+  </ul>
 
-  <h2>9. Booleans, Truthy & Falsy</h2>
-  <ul>
-    <li>Boolean values: <code>true</code> or <code>false</code>.</li>
-    <li><strong>Falsy values:</strong> <code>0</code>, <code>""</code>, <code>NaN</code>, <code>undefined</code>, <code>null</code>.</li>
-    <li>All other values are considered <strong>truthy</strong>.</li>
-  </ul>
+  <h2>9. Booleans, Truthy & Falsy</h2>
+  <ul>
+    <li>Boolean values: <code>true</code> or <code>false</code>.</li>
+    <li>**Falsy values:** <code>0</code>, <code>""</code>, <code>NaN</code>, <code>undefined</code>, <code>null</code>.</li>
+    <li>All other values are considered **truthy**.</li>
+  </ul>
 
-  <h2>10. undefined and null</h2>
-  <ul>
-    <li><code>undefined</code> — variable declared but not assigned.</li>
-    <li><code>null</code> — intentionally empty value.</li>
-    <li>Example:
-      <br>
+  <h2>10. undefined and null</h2>
+  <ul>
+    <li><code>undefined</code> — variable declared but not assigned.</li>
+    <li><code>null</code> — intentionally empty value.</li>
+    <li>Example:
+      <br><code>let x;<br>let y = null;</code>
+    </li>
+  </ul>
+
+  <h2>11. Arrays</h2>
+  <ul>
+    <li>Used to store multiple values in one variable.</li>
+    <li>Defined with square brackets <code>[ ]</code> and separated by commas.</li>
+    <li>Access elements by index (starting from 0): <code>colors[1]</code>.</li>
+    <li>Get array length: <code>colors.length</code>.</li>
+  </ul>
+
+  <h2>12. Symbols</h2>
+  <ul>
+    <li>Introduced in ES6 — a primitive data type ensuring unique identifiers.</li>
+    <li>Used as object property keys to avoid naming conflicts.</li>
+    <li>Example:
+      <br><code>let id = Symbol();<br>const member = { [id]: 123 };</code>
+    </li>
+  </ul>
+
+  <h2>13. Type Conversion</h2>
+  <ul>
+    <li>JavaScript automatically converts types when performing operations (implicit conversion).</li>
+    <li>Use built-in functions for explicit conversion:
+      <ul>
+        <li><code>Number("10")</code> → 10</li>
+        <li><code>parseInt("10.5")</code> → 10</li>
+        <li><code>parseFloat("10.5")</code> → 10.5</li>
+        <li><code>String(true)</code> → "true"</li>
+        <li><code>Boolean(0)</code> → false</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>14. Practice Example – Fahrenheit to Celsius Converter</h2>
+  <ul>
+    <li>Formula: <code>C = (F - 32) / 1.8</code></li>
+    <li>Use <code>parseFloat()</code> to ensure decimal precision.</li>
+    <li>Use <code>toFixed()</code> to limit decimal places in results.</li>
+    <li>Example:
+      <pre>
+      let f = parseFloat(prompt("Enter temperature in Fahrenheit"));
+      let c = ((f - 32) / 1.8).toFixed(1);
+      alert(`Fahrenheit ${f}° equals Celsius ${c}°.`);
+      </pre>
+    </li>
+  </ul>
+
+    <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>
