@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 3: Operators and Control Statements - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 3: Operators and Control Statements - Summary</h1>
+
+  <h2>1. Operators Overview</h2>
+  <ul>
+    <li>Operands are the data items acted on by operators.</li>
+    <li>Example: <code>age = currentYear - birthYear + 1</code> → operands: <code>age</code>, <code>currentYear</code>, <code>birthYear</code>, <code>1</code>.</li>
+  </ul>
+
+  <h2>2. Arithmetic Operators</h2>
+  <ul>
+    <li><code>/</code> — Division</li>
+    <li><code>%</code> — Remainder</li>
+    <li>Increment / Decrement examples:</li>
+  </ul>
+  <pre>
+let a = 10;
+console.log(a++); // prints 10, then a becomes 11
+console.log(++a); // a becomes 12, then prints 12
+  </pre>
+
+  <h2>3. Assignment Operators</h2>
+  <ul>
+    <li>Combine arithmetic and assignment for shorthand:</li>
+  </ul>
+  <pre>
+y += x;  // y = y + x
+y -= x;
+y *= x;
+y /= x;
+y %= x;
+  </pre>
+
+  <h2>4. String Concatenation Operator</h2>
+  <ul>
+    <li><code>+</code> connects strings and adds numbers.</li>
+    <li>If one operand is a string, concatenation occurs:</li>
+  </ul>
+  <pre><code>alert("Hello " + user + "!");</code></pre>
+
+  <h2>5. Comparison Operators</h2>
+  <ul>
+    <li>Return <code>true</code> or <code>false</code> based on comparison.</li>
+  </ul>
+  <table border="1" cellpadding="6" cellspacing="0">
+    <tr><th>Operator</th><th>Meaning</th></tr>
+    <tr><td><code>==</code>, <code>!=</code></td><td>Equal / not equal (type conversion allowed)</td></tr>
+    <tr><td><code>===</code>, <code>!==</code></td><td>Strict equal / not equal (no type conversion)</td></tr>
+    <tr><td><code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code></td><td>Comparison operators</td></tr>
+  </table>
+
+  <h2>6. Logical Operators</h2>
+  <ul>
+    <li><code>&amp;&amp;</code> — AND</li>
+    <li><code>||</code> — OR</li>
+    <li><code>!</code> — NOT</li>
+    <li>Commonly used for combining conditional statements.</li>
+  </ul>
+
+  <h2>7. Conditional Statements</h2>
+  <pre>
+if (age &lt; 20) {
+  alert("You are a minor.");
+} else if (age &gt;= 20) {
+  alert("Adult");
+} else {
+  alert("Not adult");
+}
+</pre>
+
+  <h2>8. Example: Multiple of 3</h2>
+  <pre>
+let num = prompt("Enter a number:");
+if (num !== null) {
+  num = parseInt(num);
+  if (num % 3 === 0) alert("Multiple of 3");
+  else alert("Not a multiple of 3");
+}
+</pre>
+
+  <h2>9. Truthy and Falsy Values</h2>
+  <ul>
+    <li>Falsy values: <code>0</code>, <code>""</code>, <code>null</code>, <code>undefined</code>, <code>NaN</code>.</li>
+    <li>All other values are truthy.</li>
+  </ul>
+
+  <h2>10. Ternary Operator</h2>
+  <code>
+let small = (num1 &lt; num2) ? num1 : num2;
+  </code>
+
+  <h2>11. Even / Odd Checker</h2>
+  <pre>
+let n = prompt("Enter a number:");
+if (n !== null) {
+  n = parseInt(n);
+  (n % 2 === 0) ? alert("Even") : alert("Odd");
+}
+</pre>
+
+  <h2>12. switch Statement</h2>
+  <pre>
+let subject = prompt("Choose: 1-HTML, 2-CSS, 3-JS");
+switch (subject) {
+  case "1": alert("HTML chosen"); break;
+  case "2": alert("CSS chosen"); break;
+  case "3": alert("JavaScript chosen"); break;
+  default: alert("Invalid input");
+}
+</pre>
+
+  <h2>13. Multiple Conditions</h2>
+  <ul>
+    <li><code>||</code> — true if either condition is true</li>
+    <li><code>&amp;&amp;</code> — true if both are true</li>
+    <li><code>!</code> — reverses a boolean</li>
+  </ul>
+
+  <h2>14. Loops Overview</h2>
+  <pre>
+for (let i = 1; i &lt;= 10; i++) {
+  console.log(i);
+}
+</pre>
+
+  <h2>15. Nested for Loops (Multiplication Table)</h2>
+  <pre>
+for (let i = 2; i &lt;= 9; i++) {
+  document.write(`&lt;h3&gt;${i}단&lt;/h3&gt;`);
+  for (let j = 1; j &lt;= 9; j++) {
+    document.write(`${i} × ${j} = ${i * j}&lt;br&gt;`);
+  }
+}
+  </pre>
+
+  <h2>16. while and do...while Loops</h2>
+  <pre>
+let n = 5;
+while (n &gt; 0) {
+  document.write("*");
+  n--;
+}
+
+do {
+  document.write("*");
+  n--;
+} while (n &gt; 0);
+  </pre>
+
+  <h2>17. break and continue</h2>
+  <pre>
+for (let i = 1; i &lt;= 10; i++) {
+  if (i === 5) break; // stop loop
+}
+  </pre>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>
