@@ -1,0 +1,150 @@
+body {
+    background-image: url('../resources/page\ bg.jpg'); 
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    padding: 20px 50px;
+    
+    background-color: rgba(255, 255, 255, 0.1); 
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative; 
+    z-index: 50; 
+}
+
+.logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #333;
+    margin-left: 25px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: #007bff;
+}
+
+.login-button {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white !important;
+    border-radius: 5px;
+}
+
+
+.hero-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; 
+    text-align: center;
+}
+
+.content-box {
+    
+    width: 60%;
+    max-width: 800px;
+    padding: 40px;
+    
+    background-color: rgba(255, 255, 255, 0.3); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.content-box h1 {
+    font-size: 2.5em;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.content-box p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+
+
+.cta-button {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    padding: 18px 40px; 
+    font-size: 2em;
+    
+   
+    position: absolute; 
+    top: 50%; 
+    left: 10%; 
+    transform: translateY(-50%); 
+    z-index: 20;
+    text-align: center;
+}
+
+.cta-button:hover { background-color: #0056b3; }
+
+.moving-character {
+    position: absolute; 
+    right: 200px; 
+    bottom: 100px; 
+    width: 500px; 
+    height: auto;
+    z-index: 10; 
+
+    animation: 
+        characterRotate 1s ease-in-out infinite alternate;
+}
+
+
+.bottom-wave {
+    position: absolute; 
+    bottom: 0;
+    width: 100%;
+    z-index: 11; 
+}
+
+
+
+@keyframes characterRotate {
+    
+    0% { transform: rotate(-30deg) }
+    100% { transform: rotate(10deg) }
+}
+
+
+.footer {
+    text-align: center;
+    padding: 15px;
+    position: fixed; 
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(3px);
+    font-size: 0.9em;
+    color: #555;
+    z-index: 100; 
+}
