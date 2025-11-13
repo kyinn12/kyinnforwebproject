@@ -21,8 +21,8 @@ const defaultProducts = [
       
     { "id": 105, "name": "Wool Knit Vest", "price": 31000, "category": "Tops", "tags": ["Autumn", "Warm"], "stock": 20, 
       "imageUrl": "https://i.imgur.com/ZR2u214.jpeg" },
-      
 ];
+
 
 function getProductsFromStorage() {
     const productsJson = localStorage.getItem(STORAGE_KEY);
@@ -38,18 +38,26 @@ function saveProductsToStorage(products) {
 function addNewProduct(newProduct) {
     let products = getProductsFromStorage();
     
+    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 101;
     
     const product = {
+        id: newId, 
+        name: newProduct.name, 
+        price: parseInt(newProduct.price), 
+        category: newProduct.category, 
+        tags: newProduct.tags.split(',').map(tag => tag.trim()), 
         stock: parseInt(newProduct.stock),
         
-    
         imageUrl: newProduct.image || 'https://via.placeholder.com/280x200?text=No+Image+Available' 
     };
 
     products.push(product); 
     saveProductsToStorage(products); 
     allProducts = products; 
+    
+    renderSellerProducts(); 
 }
+
 
 function deleteProduct(id) {
     let products = getProductsFromStorage();
@@ -80,7 +88,8 @@ function renderProducts(productsToRender) {
     }
     
     const productHtmlArray = productsToRender.map(product => {
-        const formattedPrice = product.price.toLocaleString('ko-KR') + '원';
+     
+        const formattedPrice = product.price.toLocaleString('ko-KR') + '원'; 
         const stockStatus = product.stock > 0 ? 'In Stock' : 'Sold Out';
         const buttonClass = product.stock > 0 ? 'btn-primary' : 'btn-disabled';
 
@@ -174,11 +183,10 @@ function filterProducts(category) {
 }
 
 
+
 document.addEventListener('DOMContentLoaded', () => {
-    
     if (!localStorage.getItem(STORAGE_KEY)) {
         saveProductsToStorage(defaultProducts);
     }
-    
     
 });
