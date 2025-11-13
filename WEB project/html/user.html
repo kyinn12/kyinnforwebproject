@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codélook: Buyer Main Page</title> 
+    
+    <link rel="stylesheet" href="../css/mainpage.css"> 
+    <link rel="stylesheet" href="../css/user.css"> 
+</head>
+<body>
+    
+    <header class="navbar">
+        <div class="logo">Codélook</div>
+        <nav>
+            <a href="../html/user.html">Shop</a>
+            <a href="#" id="wishlist-btn">Wishlist (0)</a>
+            <a href="#" id="cart-btn">Cart (0)</a>
+        </nav>
+        <button id="logout-btn" class="login-button">Logout</button>
+    </header>
+    
+    <div id="control-panel">
+        <button class="filter-btn" data-category="All">All</button>
+        <button class="filter-btn" data-category="Tops">Tops</button>
+        <button class="filter-btn" data-category="Bottoms">Bottoms</button>
+        <button class="filter-btn" data-category="Outerwear">Outerwear</button>
+        <button class="filter-btn" data-category="Accessories">Accessories</button>
+    </div>
+
+    <div id="product-list-container">
+        </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/data.js"></script>
+    <script src="../js/main.js"></script>
+    
+</body>
+</html>
