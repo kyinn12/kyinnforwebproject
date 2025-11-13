@@ -1,20 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>FilterFit: Seller Dashboard</title> 
-    <link rel="stylesheet" href="style.css">
-</head>
+    <title>Codélook: Seller Dashboard</title> 
+    <link rel="stylesheet" href="../css/mainpage.css">
+    <link rel="stylesheet" href="../css/partner_login.css"> </head>
 <body>
-    <header>
-        <h1>Seller Dashboard</h1>
-        <p>Product Listing and Management (Dummy Functions)</p>
-        <button id="logout-btn">Logout</button>
+    <header class="navbar">
+        <div class="logo">Codélook - Seller</div>
+        <button id="logout-btn" class="login-button">Logout</button>
     </header>
 
-    <div id="seller-product-list">
+    <main class="seller-main-content">
+        <div id="product-registration-form">
+            <h2>➕ Add New Product (Image URL Supported)</h2>
+            <form id="add-product-form">
+                <label for="p-name">Name:</label>
+                <input type="text" id="p-name" required>
+
+                <label for="p-image">Image URL:</label>
+                <input type="url" id="p-image" placeholder="Enter full image URL">
+
+                <label for="p-price">Price (KRW):</label>
+                <input type="number" id="p-price" required>
+
+                <label for="p-category">Category:</label>
+                <select id="p-category" required>
+                    <option value="Tops">Tops</option>
+                    <option value="Bottoms">Bottoms</option>
+                    <option value="Outerwear">Outerwear</option>
+                    <option value="Accessories">Accessories</option>
+                </select>
+
+                <label for="p-stock">Stock Quantity:</label>
+                <input type="number" id="p-stock" required>
+
+                <label for="p-tags">Tags (comma separated):</label>
+                <input type="text" id="p-tags" placeholder="e.g., basic, cotton, sale">
+
+                <button type="submit" id="submit-new-product" class="btn-seller-primary">Register Product</button>
+            </form>
         </div>
-    
-    <script src="../js/script.js"></script>
+        
+        <hr>
+
+        <div id="seller-product-list">
+            <h2>Product List Overview</h2>
+            <table id="product-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/data.js"></script>
+    <script src="../js/main.js"></script> 
 </body>
 </html>

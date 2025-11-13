@@ -1,6 +1,7 @@
+/* css/partner_login.css */
 
 body {
-    background-color: #A00000; 
+    background-color: #A00000; /* 판매자 테마 색상 */
     background-image: none; 
     font-family: Arial, sans-serif;
     color: #333;
@@ -23,7 +24,7 @@ body {
 
 
 #partner-login-container h2 {
-    color: #A00000; 
+    color: #A00000; /* 판매자 테마색 */
     margin-bottom: 25px;
 }
 
@@ -77,4 +78,84 @@ body {
 #partner-login-btn {
     background-color: #A00000;
     color: white;
+}
+
+#go-to-main-btn {
+    background-color: #eee;
+    color: #333;
+}
+
+/* css/partner_login.css (기존 파일에 아래 내용 추가) */
+
+/* 판매자 메인 콘텐츠 영역 스타일 */
+.seller-main-content {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+}
+
+/* 상품 등록 폼 스타일 */
+#product-registration-form {
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+#add-product-form input, #add-product-form select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#add-product-form label {
+    margin-top: 10px;
+    font-weight: bold;
+    display: block;
+    text-align: left;
+}
+
+.btn-seller-primary {
+    background-color: #A00000;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* 상품 목록 테이블 스타일 */
+#product-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+#product-table th, #product-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+#product-table th {
+    background-color: #A00000;
+    color: white;
+}
+
+.btn-seller-delete {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
 }

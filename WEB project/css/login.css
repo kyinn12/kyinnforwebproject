@@ -1,37 +1,28 @@
+/* css/login.css (일부 수정) */
+
 body {
-    font-family: Arial, sans-serif;
-    background-image:url('../resources/page\ bg.jpg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
+    /* 기존 배경 이미지를 제거하고 mainpage.css의 black을 사용 */
+    background-image: none; 
+    
+    /* ... (나머지 스타일 유지) ... */
+    
+    /* 화면 중앙 정렬 */
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    color: #333;
-    height: 100vh;
-    margin: 0;
 }
 
 #login-container {
-    position: absolute;
-    top: 50%;
-    left: 20%;
-    transform: translateY(-50%);
+    /* 🌟 중앙 정렬을 위해 top/left/transform 속성 제거 */
+    position: relative; /* relative로 변경 */
+    
     background-color: rgba(255,255,255,0.2);
     backdrop-filter: blur(10px);
-    -webkit-dackdrop-filter: blur(10px);
-    border-radius: 15px;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: 0 8px 32px 0 rgba(0, 0,0,0.1);
-    padding: 30px;
-    border-radius: 12px;
-    width: 350px;
-    text-align: center;
-    font-family: 'Arial', sans-serif;
+    /* ... (나머지 스타일 유지) ... */
 }
 
+/* ... (나머지 스타일 유지) ... */
 #login-container h2 {
     color: #333;
     margin-bottom: 30px;
@@ -50,12 +41,13 @@ body {
     padding: 10px;
     margin-bottom: 20px;
     background-color: rgba(255,255,255,0.5);
-    border: 1px solid rgba(255,255,255,0.4);
+    border: 2px solid rgba(0, 0, 0, 0.4);
     color: #333;
     border-radius: 6px;
     box-sizing: border-box;
 }
 
+/* 역할 선택 (라디오 버튼) 스타일 */
 .role-selector {
     margin: 20px 0;
 }
@@ -69,7 +61,7 @@ body {
     padding: 8px 15px;
     margin: 0 5px;
     cursor: pointer;
-    border: 2px solid #ddd;
+    border: 2px solid #000000;
     border-radius: 20px;
     transition: all 0.2s;
     font-weight: normal;
@@ -84,9 +76,9 @@ body {
 #main-login-btn {
     width: 100%;
     padding: 12px;
-    background-color: #2e93ff;
+    background-color: #000000;
     color: white;
-    border: none;
+    border: 1px solid black;
     border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
@@ -95,12 +87,13 @@ body {
 }
 
 #main-login-btn:hover {
-    background-color: #3797ff;
+    background-color: #ffffff;
+    color:black
 }
 
-header {
-    background-color: #333;
-    color: white;
-    padding: 20px;
-    text-align: center;
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
 }

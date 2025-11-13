@@ -1,150 +1,335 @@
+/* css/mainpage.css (FINAL FIXED VERSION - Multi-Slide Setup) */
+
+/* Define a new primary color variable for easy updating */
+:root {
+    --primary-color: #000000; /* Strict Black */
+    --secondary-color: #333333; /* Dark Gray for main text/accents */
+    --light-bg: #FFFFFF; /* White Background */
+    --light-gray: #F7F7F7; /* Very Light Gray for section breaks */
+    --border-color: #CCCCCC; /* Medium Gray for borders */
+}
+
+/* -------------------- 1. 기본 레이아웃 및 배경 -------------------- */
 body {
-    background-image: url('../resources/page\ bg.jpg'); 
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
+    background-image: none;
+    background-color: var(--light-bg); 
     min-height: 100vh;
-    font-family: Arial, sans-serif;
-    color: #333;
+    font-family: 'Arial', sans-serif; 
+    color: var(--secondary-color);
     margin: 0;
     padding: 0;
+    position: relative;
+    line-height: 1.6;
 }
 
-.navbar {
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
-    padding: 20px 50px;
-    
-    background-color: rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative; 
-    z-index: 50; 
-}
-
-.logo {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #007bff;
-}
-
-.navbar a {
-    text-decoration: none;
-    color: #333;
-    margin-left: 25px;
-    font-weight: 500;
-    transition: color 0.3s;
-}
-
-.navbar a:hover {
-    color: #007bff;
-}
-
-.login-button {
-    padding: 8px 15px;
-    background-color: #007bff;
-    color: white !important;
-    border-radius: 5px;
-}
-
-
-.hero-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80vh; 
-    text-align: center;
-}
-
-.content-box {
-    
-    width: 60%;
-    max-width: 800px;
-    padding: 40px;
-    
-    background-color: rgba(255, 255, 255, 0.3); 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-}
-
-.content-box h1 {
-    font-size: 2.5em;
-    color: #007bff;
-    margin-bottom: 10px;
-}
-
-.content-box p {
-    font-size: 1.2em;
+h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
     margin-bottom: 30px;
 }
 
+/* -------------------- 2. Nav Bar (Glass Effect) -------------------- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 50px;
+    height: 70px; 
 
-
-.cta-button {
-    display: inline-block;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: bold;
-    padding: 18px 40px; 
-    font-size: 2em;
+    /* --- GLASS EFFECT STYLES --- */
+    background-color: rgba(255, 255, 255, 0.5); 
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px); 
     
-   
-    position: absolute; 
-    top: 50%; 
-    left: 10%; 
-    transform: translateY(-50%); 
-    z-index: 20;
-    text-align: center;
-}
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+    /* -------------------------- */
 
-.cta-button:hover { background-color: #0056b3; }
-
-.moving-character {
-    position: absolute; 
-    right: 200px; 
-    bottom: 100px; 
-    width: 500px; 
-    height: auto;
-    z-index: 10; 
-
-    animation: 
-        characterRotate 1s ease-in-out infinite alternate;
-}
-
-
-.bottom-wave {
-    position: absolute; 
-    bottom: 0;
+    position: fixed;
+    top: 0;
     width: 100%;
-    z-index: 11; 
+    box-sizing: border-box;
+    z-index: 500;
+}
+
+.logo {
+    font-size: 2.0em;
+    font-weight: 700;
+    color: var(--primary-color); 
+}
+
+.navbar nav {
+    display: flex;
+    align-items: center;
+}
+
+/* Nav Bar internal links */
+.navbar nav a {
+    text-decoration: none;
+    color: var(--secondary-color); 
+    margin-left: 25px; 
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+}
+
+.navbar nav a:hover {
+    color: var(--primary-color);
+}
+
+/* Underline hover effect for main links */
+.navbar nav a:not(.login-button)::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -5px;
+    left: 0;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease-out;
+}
+
+.navbar nav a:not(.login-button):hover::after {
+    width: 100%;
 }
 
 
-
-@keyframes characterRotate {
+/* Login button style */
+.navbar .login-button {
+    margin-left: 40px; 
+    padding: 10px 20px;
     
-    0% { transform: rotate(-30deg) }
-    100% { transform: rotate(10deg) }
+    border: none;
+    border-radius: 10px; 
+    
+    background-color: var(--primary-color); 
+    color: white; 
+    
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar .login-button:hover {
+    background-color: var(--secondary-color); 
+    color: white; 
+    text-decoration: none;
+}
+
+/* -------------------- 3. Main Content Sections -------------------- */
+.hero-section {
+    padding-top: 70px; 
+    position: relative;
+}
+
+/* General Content Section Styling */
+.content-section {
+    padding: 80px 80px; 
+    margin-bottom: 0;
+}
+
+/* Home Section Styling */
+#home-section {
+    background-color: var(--light-gray); 
+    text-align: center;
+    padding: 80px 0; 
+}
+
+#home-section h2 {
+    color: var(--primary-color);
+    border-bottom: none;
+    padding: 0 80px; 
+}
+
+#home-section p {
+    font-size: 1.2em;
+    max-width: 800px;
+    margin: 20px auto 0;
+    padding: 0 80px;
+}
+
+.slider-container {
+    width: 100%; 
+    max-width: none; 
+    height: 450px; 
+    margin: 40px 0; 
+    overflow: hidden; 
+    border: none; 
+    border-radius: 0; 
+    box-shadow: none; 
+    position: relative;
+    
+    /* CRITICAL: Set display to flex to arrange slides horizontally */
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.slide-image {
+    /* CRITICAL: Each slide takes up 100% of the container width */
+    width: 100%; 
+    flex-shrink: 0; /* Prevents slides from shrinking */
+    height: 100%;
+    
+    /* Image Scaling Rules */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* Fix: Hide any residual text/content inside the div */
+    display: block; 
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    
+    /* Hide all slides by default, only showing the one JavaScript gives a class */
+    display: none;
+}
+
+/* --- New Rules for Multiple Banners --- */
+
+/* Show only the active slide - JavaScript will dynamically add/remove this class */
+.slide-image.current-slide {
+    display: block;
+}
+
+/* Set individual banner images */
+.banner-one {
+    background-image: url('https://i.imgur.com/NciOTKO.jpeg');
+}
+
+.banner-two {
+    background-image: url('https://i.imgur.com/36nZrb1.jpeg');
+}
+
+.banner-three {
+    /* Placeholder URL - REPLACE THIS WITH YOUR THIRD IMAGE LINK */
+    background-color: #EFEFEF;
+    background-image: none;
+}
+
+/* --- Navigation Arrow Styling --- */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 2.5em;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+    z-index: 10;
+}
+
+.nav-arrow:hover {
+    opacity: 1;
+}
+
+.prev-slide {
+    left: 20px;
+}
+
+.next-slide {
+    right: 20px;
 }
 
 
+/* About Us Section Styling */
+#about-section {
+    background-color: white;
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: wrap; 
+    gap: 50px;
+    justify-content: space-between;
+}
+
+#about-section h2 {
+    width: 100%;
+}
+
+/* --- Styles for In-Place Hover Effects (No Dividers) --- */
+
+/* Base Styles for all three blocks (promotions, benefits, advantages) */
+.info-block {
+    flex: 1; 
+    min-width: 280px; 
+    padding: 20px;
+    border-left: none; /* Removed vertical dividers */
+    position: relative; 
+    overflow: hidden; 
+}
+
+/* Style the trigger heading */
+.info-block .info-trigger {
+    color: var(--primary-color); 
+    text-decoration: underline;
+    cursor: pointer; 
+    margin-top: 0; 
+    font-weight: 700; 
+    font-size: 1.2em;
+}
+
+/* Hide the details block */
+.info-block .info-details {
+    display: none; 
+    position: initial; 
+    width: auto; 
+    padding: 0;
+    margin-top: 15px; 
+    background-color: transparent; 
+    border: none;
+    box-shadow: none;
+    text-align: left;
+}
+
+/* The Hover Effect: Show the details when the mouse is over the main container (.info-block) */
+.info-block:hover .info-details {
+    display: block;
+}
+
+/* Optional: style elements inside the popup */
+.info-details h4 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+.info-details ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.info-details li {
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.info-details li::before {
+    content: '▪'; 
+    margin-right: 10px;
+    color: var(--primary-color);
+    font-size: 1.2em;
+}
+
+
+/* -------------------- 4. 하단 푸터 (Footer) -------------------- */
 .footer {
     text-align: center;
-    padding: 15px;
-    position: fixed; 
-    bottom: 0;
+    padding: 20px 0;
+    background-color: var(--primary-color); 
+    border-top: none; 
+    color: white; 
+    font-size: 1.0em;
+    z-index: 100;
+
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(3px);
-    font-size: 0.9em;
-    color: #555;
-    z-index: 100; 
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center; 
+    align-items: center;
 }
