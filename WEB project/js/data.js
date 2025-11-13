@@ -1,9 +1,9 @@
 
+
 const productListContainer = document.getElementById('product-list-container');
 let allProducts = []; 
 
 const STORAGE_KEY = 'codedlookProducts';
-
 
 const defaultProducts = [
     { "id": 101, "name": "Classic White T-Shirt", "price": 25000, "category": "Tops", "tags": ["Basic", "Cotton"], "stock": 50, 
@@ -18,6 +18,7 @@ const defaultProducts = [
       "imageUrl": "https://i.imgur.com/ZR2u214.jpeg" },
     
 ];
+
 
 
 
