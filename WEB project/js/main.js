@@ -1,4 +1,5 @@
 
+
 function initSellerDashboard() {
     const form = document.getElementById('add-product-form');
     if (!form) return;
@@ -21,6 +22,7 @@ function initSellerDashboard() {
         form.reset(); 
     });
 
+    
     renderSellerProducts(); 
 }
 
@@ -29,12 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const currentPage = window.location.pathname.split('/').pop();
 
+    
     if (currentPage === 'login.html' || currentPage === 'partner_login.html') {
         handleRoleSwitch(); 
         handlePartnerLogin(); 
         handleMainPageRedirect();
     }
-
+    
+    
     else if (currentPage === 'user.html') {
         const hasAccess = handleAccessCheck('buyer', '../html/login.html'); 
         
@@ -45,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    
     else if (currentPage === 'seller.html') {
         const hasAccess = handleAccessCheck('seller', '../html/partner_login.html'); 
         
@@ -54,4 +59,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
-
