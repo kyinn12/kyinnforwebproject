@@ -1,26 +1,18 @@
 
+c// js/data.js (수정 및 보강 완료)
+
 const productListContainer = document.getElementById('product-list-container');
 let allProducts = []; 
 
 const STORAGE_KEY = 'codedlookProducts';
 
 
-
 const defaultProducts = [
-    { "id": 101, "name": "Classic White T-Shirt", "price": 25000, "category": "Tops", "tags": ["Basic", "Cotton"], "stock": 50, 
-      "imageUrl": "https://i.imgur.com/ihdmRZc.jpeg" }, 
-      
-    { "id": 102, "name": "Slim Fit Denim Pants", "price": 59000, "category": "Bottoms", "tags": ["Popular", "Daily"], "stock": 15, 
-      "imageUrl": "https://i.imgur.com/7Sgm2JG.jpeg" },
-      
-    { "id": 103, "name": "Lightweight Overfit Jacket", "price": 88000, "category": "Outerwear", "tags": ["New Arrival", "Sale"], "stock": 0, 
-      "imageUrl": "https://i.imgur.com/woVnJlu.jpeg" },
-      
-    { "id": 104, "name": "Vintage Pattern Skirt", "price": 42000, "category": "Bottoms", "tags": ["Women's", "Sale"], "stock": 35, 
-      "imageUrl": "https://i.imgur.com/Z1otbP1.jpeg" },
-      
-    { "id": 105, "name": "Wool Knit Vest", "price": 31000, "category": "Tops", "tags": ["Autumn", "Warm"], "stock": 20, 
-      "imageUrl": "https://i.imgur.com/ZR2u214.jpeg" },
+    { "id": 101, "name": "Classic White T-Shirt", "price": 25000, "category": "Tops", "tags": ["Basic", "Cotton"], "stock": 50, "imageUrl": "https://i.imgur.com/ihdmRZc.jpeg" }, 
+    { "id": 102, "name": "Slim Fit Denim Pants", "price": 59000, "category": "Bottoms", "tags": ["Popular", "Daily"], "stock": 15, "imageUrl": "https://i.imgur.com/7Sgm2JG.jpeg" },
+    { "id": 103, "name": "Lightweight Overfit Jacket", "price": 88000, "category": "Outerwear", "tags": ["New Arrival", "Sale"], "stock": 0, "imageUrl": "https://i.imgur.com/woVnJlu.jpeg" },
+    { "id": 104, "name": "Vintage Pattern Skirt", "price": 42000, "category": "Bottoms", "tags": ["Women's", "Sale"], "stock": 35, "imageUrl": "https://i.imgur.com/Z1otbP1.jpeg" },
+    { "id": 105, "name": "Wool Knit Vest", "price": 31000, "category": "Tops", "tags": ["Autumn", "Warm"], "stock": 20, "imageUrl": "https://i.imgur.com/ZR2u214.jpeg" },
 ];
 
 
@@ -188,5 +180,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!localStorage.getItem(STORAGE_KEY)) {
         saveProductsToStorage(defaultProducts);
     }
-    
 });
