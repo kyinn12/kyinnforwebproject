@@ -4,6 +4,26 @@ let allProducts = [];
 
 const STORAGE_KEY = 'codedlookProducts';
 
+
+
+const defaultProducts = [
+    { "id": 101, "name": "Classic White T-Shirt", "price": 25000, "category": "Tops", "tags": ["Basic", "Cotton"], "stock": 50, 
+      "imageUrl": "https://i.imgur.com/ihdmRZc.jpeg" }, 
+      
+    { "id": 102, "name": "Slim Fit Denim Pants", "price": 59000, "category": "Bottoms", "tags": ["Popular", "Daily"], "stock": 15, 
+      "imageUrl": "https://i.imgur.com/7Sgm2JG.jpeg" },
+      
+    { "id": 103, "name": "Lightweight Overfit Jacket", "price": 88000, "category": "Outerwear", "tags": ["New Arrival", "Sale"], "stock": 0, 
+      "imageUrl": "https://i.imgur.com/woVnJlu.jpeg" },
+      
+    { "id": 104, "name": "Vintage Pattern Skirt", "price": 42000, "category": "Bottoms", "tags": ["Women's", "Sale"], "stock": 35, 
+      "imageUrl": "https://i.imgur.com/Z1otbP1.jpeg" },
+      
+    { "id": 105, "name": "Wool Knit Vest", "price": 31000, "category": "Tops", "tags": ["Autumn", "Warm"], "stock": 20, 
+      "imageUrl": "https://i.imgur.com/ZR2u214.jpeg" },
+      
+];
+
 function getProductsFromStorage() {
     const productsJson = localStorage.getItem(STORAGE_KEY);
     return productsJson ? JSON.parse(productsJson) : defaultProducts;
@@ -18,16 +38,12 @@ function saveProductsToStorage(products) {
 function addNewProduct(newProduct) {
     let products = getProductsFromStorage();
     
-    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 101;
     
     const product = {
-        id: newId,
-        name: newProduct.name,
-        price: parseInt(newProduct.price),
-        category: newProduct.category,
-        tags: newProduct.tags.split(',').map(tag => tag.trim()),
         stock: parseInt(newProduct.stock),
-        imageUrl: newProduct.image || '../resources/default_item.jpg' 
+        
+    
+        imageUrl: newProduct.image || 'https://via.placeholder.com/280x200?text=No+Image+Available' 
     };
 
     products.push(product); 
@@ -85,8 +101,6 @@ function renderProducts(productsToRender) {
 
     productListContainer.innerHTML = productHtmlArray.join('');
 }
-
-
 
 
 function renderSellerProducts() {
@@ -161,7 +175,10 @@ function filterProducts(category) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+    
     if (!localStorage.getItem(STORAGE_KEY)) {
         saveProductsToStorage(defaultProducts);
     }
+    
+    
 });
