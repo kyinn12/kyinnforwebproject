@@ -174,16 +174,23 @@ h2 {
 }
 
 .banner-one {
-    background-image: url('https://i.imgur.com/NciOTKO.jpeg');
+    background-image: url('https://i.imgur.com/FRTPdpc.jpeg');
 }
 
 .banner-two {
-    background-image: url('https://i.imgur.com/36nZrb1.jpeg');
+    background-image: url('https://i.imgur.com/l0KA24B.jpeg');
 }
 
 .banner-three {
-    background-color: #EFEFEF;
-    background-image: none;
+    background-image: url('https://i.imgur.com/SxpgBj2.jpeg');
+}
+
+.banner-four {
+    background-image: url('https://i.imgur.com/BFRcfYX.jpeg')
+}
+
+.banner-five {
+    background-image: url('https://i.imgur.com/iZRHEHZ.jpeg')
 }
 
 .nav-arrow {
