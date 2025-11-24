@@ -13,7 +13,7 @@
     <header class="navbar">
         <div class="logo">Codélook</div>
         <nav>
-            <a href="../html/user.html">Shop</a>
+            <a href="user.html">Shop</a>
             <a href="#" id="wishlist-btn">Wishlist (0)</a>
             <a href="#" id="cart-btn">Cart (0)</a>
         </nav>
@@ -33,17 +33,38 @@
             <option value="price-desc">Price: High to Low</option>
             <option value="name-asc">Name: A to Z</option>
         </select>
+
         <input type="text" id="search-input" placeholder="Search products...">
-        
     </div>
 
-    <div id="product-list-container">
-        </div>
+    <div id="product-list-container"></div>
 
-    <script src="../js/auth.js"></script> 
-    <script src="../js/data.js"></script>  
-    
-    <script src="../js/main.js?v=1"></script>  
-    
+    <div id="app-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <div id="modal-list-container"></div>
+            <div id="modal-footer">
+                <div id="modal-summary"></div>
+                <button id="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/main.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeData();
+            loadEmbeddedProducts();
+            initFilterControls();
+            initSortControls();
+            initSearchControls();
+
+            updateWishlistCount(getWishlistIds().length);
+            updateCartCount(Object.keys(getCartItems()).length);
+        });
+    </script>
+
 </body>
 </html>
