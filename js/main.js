@@ -96,6 +96,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    const partnerLoginBtn = document.getElementById('partner-login-btn');
+    if (partnerLoginBtn && !partnerLoginBtn.hasAttribute('data-listener-attached')) {
+        console.log('Adding direct partner login button handler (fallback)');
+        partnerLoginBtn.setAttribute('data-listener-attached', 'true');
+        partnerLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username')?.value;
+            const password = document.getElementById('password')?.value;
+            if (username && password) {
+                authenticateAndRedirect('seller', username, password, '../html/seller.html');
+            } else {
+                alert('Please enter username and password');
+            }
+        });
+    }
+    
     else if (currentPage === 'user.html') {
         const hasAccess = handleAccessCheck('buyer', '../html/login.html'); 
         

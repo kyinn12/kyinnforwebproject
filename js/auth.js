@@ -30,12 +30,30 @@ function handleRoleSwitch() {
 
 function handlePartnerLogin() {
     const partnerLoginButton = document.getElementById('partner-login-btn');
+    console.log('handlePartnerLogin called, button found:', !!partnerLoginButton);
     if (partnerLoginButton) {
-        partnerLoginButton.addEventListener('click', () => {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            authenticateAndRedirect('seller', username, password, '../html/seller.html');
+        if (partnerLoginButton.hasAttribute('data-listener-attached')) {
+            console.log('Partner login button already has listener attached');
+            return;
+        }
+        partnerLoginButton.setAttribute('data-listener-attached', 'true');
+        partnerLoginButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Partner login button clicked');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const username = usernameInput ? usernameInput.value : '';
+            const password = passwordInput ? passwordInput.value : '';
+            console.log('Username:', username, 'Password:', password ? '***' : '');
+            if (username && password) {
+                authenticateAndRedirect('seller', username, password, '../html/seller.html');
+            } else {
+                alert('Please enter username and password');
+            }
         });
+        console.log('Partner login button listener attached successfully');
+    } else {
+        console.error('Partner login button not found!');
     }
 }
 
