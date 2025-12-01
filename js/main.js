@@ -45,23 +45,55 @@ function initSellerDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeData(); 
+    try {
+        initializeData();
+    } catch (err) {
+        console.error('Error initializing data:', err);
+    } 
     
-    const currentPage = window.location.pathname.split('/').pop();
+    const pathname = window.location.pathname;
+    const href = window.location.href;
+    let currentPage = pathname.split('/').pop();
+    
+    if (!currentPage || currentPage === '' || currentPage.includes('kyinnforwebproject')) {
+        const parts = pathname.split('/').filter(p => p && p.endsWith('.html'));
+        if (parts.length > 0) {
+            currentPage = parts[parts.length - 1];
+        }
+    }
+    
+    if (!currentPage || currentPage === '') {
+        if (href.includes('login.html')) currentPage = 'login.html';
+        else if (href.includes('partner_login.html')) currentPage = 'partner_login.html';
+        else if (href.includes('user.html')) currentPage = 'user.html';
+        else if (href.includes('seller.html')) currentPage = 'seller.html';
+    }
+    
+    console.log('Current page detected:', currentPage, 'from pathname:', pathname);
 
     const modalCloseBtn = document.getElementById('modal-close-btn');
     if (modalCloseBtn) {
         modalCloseBtn.addEventListener('click', closeModal);
     }
 
-    if (currentPage === 'login.html') {
-        handleRoleSwitch();
-        handleMainPageRedirect();
+    if (currentPage === 'login.html' || pathname.includes('login.html') || href.includes('login.html')) {
+        console.log('Setting up login page handlers');
+        try {
+            handleRoleSwitch();
+            handleMainPageRedirect();
+        } catch (err) {
+            console.error('Error setting up login handlers:', err);
+        }
     }
     
-    else if (currentPage === 'partner_login.html') {
-        handlePartnerLogin();
-        handleMainPageRedirect();
+    else if (currentPage === 'partner_login.html' || pathname.includes('partner_login.html') || href.includes('partner_login.html')) {
+        console.log('Setting up partner login page handlers');
+        try {
+            handlePartnerLogin();
+            handleMainPageRedirect();
+        } catch (err) {
+            console.error('Error setting up partner login handlers:', err);
+        }
     }
     
     else if (currentPage === 'user.html') {
