@@ -430,7 +430,12 @@ function initSortControls() {
 }
 
 function sortProducts(option) {
-    let productsToSort = getProductsFromStorage();
+    if (!allProducts || allProducts.length === 0) {
+        console.warn('No products available to sort');
+        return;
+    }
+    
+    let sortedProducts = [...allProducts];
     let sortedProducts = [...productsToSort]; 
 
     if (option === 'price-asc') {
@@ -455,7 +460,17 @@ function initSearchControls() {
 }
 
 function searchProducts(keyword) {
-    const productsToSearch = getProductsFromStorage();
+    if (!allProducts || allProducts.length === 0) {
+        console.warn('No products available to search');
+        return;
+    }
+    
+    if (!keyword.trim()) {
+        renderProducts(allProducts);
+        return;
+    }
+    
+    const searchResults = allProducts.filter(product => {
     
     if (!keyword.trim()) {
         renderProducts(productsToSearch);
