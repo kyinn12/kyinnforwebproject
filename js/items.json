@@ -1,0 +1,122 @@
+{
+  "products": [
+    {
+      "name": "Classic White T-Shirt",
+      "price": 25000,
+      "category": "Tops",
+      "tags": [
+        "Basic",
+        "Cotton"
+      ],
+      "stock": 50,
+      "imageUrl": "https://i.imgur.com/ihdmRZc.jpeg",
+      "id": "101"
+    },
+    {
+      "id": "102",
+      "name": "Slim Fit Denim Pants",
+      "price": 59000,
+      "category": "Bottoms",
+      "tags": [
+        "Popular",
+        "Daily"
+      ],
+      "stock": 15,
+      "imageUrl": "https://i.imgur.com/7Sgm2JG.jpeg"
+    },
+    {
+      "id": "103",
+      "name": "Lightweight Overfit Jacket",
+      "price": 88000,
+      "category": "Outerwear",
+      "tags": [
+        "New Arrival",
+        "Sale"
+      ],
+      "stock": 0,
+      "imageUrl": "https://i.imgur.com/woVnJlu.jpeg\""
+    },
+    {
+      "id": "104",
+      "name": "Vintage Pattern Skirt",
+      "price": 42000,
+      "category": "Bottoms",
+      "tags": [
+        "Women's",
+        "Sale"
+      ],
+      "stock": 35,
+      "imageUrl": "https://i.imgur.com/Z1otbP1.jpeg"
+    },
+    {
+      "id": "105",
+      "name": "Wool Knit Vest",
+      "price": 31000,
+      "category": "Tops",
+      "tags": [
+        "Autumn",
+        "Warm"
+      ],
+      "stock": 20,
+      "imageUrl": "https://i.imgur.com/ZR2u214.jpeg"
+    },
+    {
+      "id": "106",
+      "name": "Minimal Necklace",
+      "price": 18000,
+      "category": "Accessories",
+      "tags": [
+        "Jewelry",
+        "Gift"
+      ],
+      "stock": 40,
+      "imageUrl": "https://i.imgur.com/ZR2u214.jpeg"
+    },
+    {
+      "id": "107",
+      "name": "Corduroy Shirts",
+      "price": 55000,
+      "category": "Tops",
+      "tags": [
+        "Warm",
+        "Trendy"
+      ],
+      "stock": 10,
+      "imageUrl": "https://i.imgur.com/ihdmRZc.jpeg"
+    },
+    {
+      "id": "108",
+      "name": "Stylish Winter Coat",
+      "price": 120000,
+      "category": "Outerwear",
+      "tags": [
+        "Premium",
+        "Winter"
+      ],
+      "stock": 5,
+      "imageUrl": "https://i.imgur.com/ihdmRZc.jpeg"
+    },
+    {
+      "id": "109",
+      "name": "necklace",
+      "price": 5000,
+      "category": "Accessories",
+      "tags": [
+        "stainless steel"
+      ],
+      "stock": 21,
+      "imageUrl": "https://i.imgur.com/Z1otbP1.jpeg"
+    },
+    {
+      "id": "5d6a",
+      "name": "haha",
+      "price": 5000,
+      "category": "Tops",
+      "tags": [
+        "15"
+      ],
+      "stock": 52,
+      "imageUrl": "https://i.imgur.com/FRTPdpc.jpeg"
+    }
+  ]
+}
