@@ -33,11 +33,25 @@ async function fetchProductsFromApi() {
 
 async function fetchProductsFromFile() {
   try {
+    // Get the directory where this script is located
+    const scripts = document.getElementsByTagName('script');
+    let scriptPath = 'js';
+    for (let script of scripts) {
+      if (script.src && script.src.includes('data.js')) {
+        const url = new URL(script.src, window.location.href);
+        scriptPath = url.pathname.substring(0, url.pathname.lastIndexOf('/'));
+        break;
+      }
+    }
+    
+    // Try multiple paths - works for both local and GitHub Pages
     const paths = [
+      `${scriptPath}/items.json`,
       'js/items.json',
       '../js/items.json',
       '/js/items.json',
-      './js/items.json'
+      './js/items.json',
+      'kyinnforwebproject/js/items.json'
     ];
     
     let lastError = null;
@@ -47,7 +61,7 @@ async function fetchProductsFromFile() {
         if (res.ok) {
           const data = await res.json();
           const products = data.products || data;
-          console.log(`Successfully loaded products from ${path}`);
+          console.log(`✅ Successfully loaded ${products.length} products from ${path}`);
           return products.map(p => ({
             ...p,
             id: typeof p.id === 'string' ? parseInt(p.id) : p.id
