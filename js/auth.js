@@ -32,14 +32,10 @@ function handlePartnerLogin() {
     const partnerLoginButton = document.getElementById('partner-login-btn');
     console.log('handlePartnerLogin called, button found:', !!partnerLoginButton);
     if (partnerLoginButton) {
-        if (partnerLoginButton.hasAttribute('data-listener-attached')) {
-            console.log('Partner login button already has listener attached');
-            return;
-        }
-        partnerLoginButton.setAttribute('data-listener-attached', 'true');
         partnerLoginButton.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Partner login button clicked');
+            e.stopPropagation();
+            console.log('Partner login button clicked (handlePartnerLogin)');
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
             const username = usernameInput ? usernameInput.value : '';
@@ -50,7 +46,7 @@ function handlePartnerLogin() {
             } else {
                 alert('Please enter username and password');
             }
-        });
+        }, { once: false });
         console.log('Partner login button listener attached successfully');
     } else {
         console.error('Partner login button not found!');

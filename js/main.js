@@ -44,6 +44,21 @@ function initSellerDashboard() {
     renderSellerProducts(); 
 }
 
+window.handlePartnerLoginClick = function(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    console.log('Partner login button clicked (inline handler)');
+    const username = document.getElementById('username')?.value || '';
+    const password = document.getElementById('password')?.value || '';
+    if (username && password) {
+        authenticateAndRedirect('seller', username, password, '../html/seller.html');
+    } else {
+        alert('Please enter username and password');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     try {
         initializeData();
