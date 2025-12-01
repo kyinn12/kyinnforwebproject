@@ -8,17 +8,45 @@ const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
 const CART_KEY = 'codedlookCart';       
 const API_BASE_URL = 'http://localhost:4000';
+const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 
 async function fetchProductsFromApi() {
-  const res = await fetch(`${API_BASE_URL}/products`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch products from API');
+  if (USE_API) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/products`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch products from API');
+      }
+      const products = await res.json();
+      return products.map(p => ({
+        ...p,
+        id: typeof p.id === 'string' ? parseInt(p.id) : p.id
+      }));
+    } catch (err) {
+      console.warn('API not available, falling back to static JSON file');
+      return fetchProductsFromFile();
+    }
+  } else {
+    return fetchProductsFromFile();
   }
-  const products = await res.json();
-  return products.map(p => ({
-    ...p,
-    id: typeof p.id === 'string' ? parseInt(p.id) : p.id
-  }));
+}
+
+async function fetchProductsFromFile() {
+  try {
+    const res = await fetch('js/items.json');
+    if (!res.ok) {
+      throw new Error('Failed to load items.json');
+    }
+    const data = await res.json();
+    const products = data.products || data;
+    return products.map(p => ({
+      ...p,
+      id: typeof p.id === 'string' ? parseInt(p.id) : p.id
+    }));
+  } catch (err) {
+    console.error('Failed to load products from file:', err);
+    return getProductsFromStorage();
+  }
 }
 
 const defaultProducts = [];
@@ -52,13 +80,32 @@ async function addNewProduct(newProduct) {
       imageUrl: newProduct.image || 'https://i.imgur.com/FRTPdpc.jpeg',
     };
   
-    await fetch(`${API_BASE_URL}/products`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(productPayload),
-    });
+    if (USE_API) {
+      try {
+        await fetch(`${API_BASE_URL}/products`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(productPayload),
+        });
+        allProducts = await fetchProductsFromApi();
+      } catch (err) {
+        console.error('API not available, saving to localStorage only');
+        let products = getProductsFromStorage();
+        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 101;
+        productPayload.id = newId;
+        products.push(productPayload);
+        saveProductsToStorage(products);
+        allProducts = products;
+      }
+    } else {
+      let products = getProductsFromStorage();
+      const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 101;
+      productPayload.id = newId;
+      products.push(productPayload);
+      saveProductsToStorage(products);
+      allProducts = products;
+    }
   
-    allProducts = await fetchProductsFromApi();
     renderSellerProducts();
 }
 
@@ -72,23 +119,59 @@ async function updateProduct(id, updatedProduct) {
       imageUrl: updatedProduct.image || '',
     };
   
-    await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updated),
-    });
+    if (USE_API) {
+      try {
+        await fetch(`${API_BASE_URL}/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        });
+        allProducts = await fetchProductsFromApi();
+      } catch (err) {
+        console.error('API not available, updating localStorage only');
+        let products = getProductsFromStorage();
+        const index = products.findIndex(p => p.id === id);
+        if (index !== -1) {
+          products[index] = { ...products[index], ...updated };
+          saveProductsToStorage(products);
+          allProducts = products;
+        }
+      }
+    } else {
+      let products = getProductsFromStorage();
+      const index = products.findIndex(p => p.id === id);
+      if (index !== -1) {
+        products[index] = { ...products[index], ...updated };
+        saveProductsToStorage(products);
+        allProducts = products;
+      }
+    }
   
-    allProducts = await fetchProductsFromApi();
     renderSellerProducts();
 }
 
 async function deleteProduct(id) {
-    await fetch(`${API_BASE_URL}/products/${id}`, {
-      method: 'DELETE',
-    });
+    if (USE_API) {
+      try {
+        await fetch(`${API_BASE_URL}/products/${id}`, {
+          method: 'DELETE',
+        });
+        allProducts = await fetchProductsFromApi();
+      } catch (err) {
+        console.error('API not available, deleting from localStorage only');
+        let products = getProductsFromStorage();
+        products = products.filter(p => p.id !== id);
+        saveProductsToStorage(products);
+        allProducts = products;
+      }
+    } else {
+      let products = getProductsFromStorage();
+      products = products.filter(p => p.id !== id);
+      saveProductsToStorage(products);
+      allProducts = products;
+    }
   
     console.log(`Product ID ${id} deleted.`);
-    allProducts = await fetchProductsFromApi();
     renderSellerProducts();
 }
 
