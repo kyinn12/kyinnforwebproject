@@ -33,18 +33,36 @@ async function fetchProductsFromApi() {
 
 async function fetchProductsFromFile() {
   try {
-    const res = await fetch('js/items.json');
-    if (!res.ok) {
-      throw new Error('Failed to load items.json');
+    const paths = [
+      'js/items.json',
+      '../js/items.json',
+      '/js/items.json',
+      './js/items.json'
+    ];
+    
+    let lastError = null;
+    for (const path of paths) {
+      try {
+        const res = await fetch(path);
+        if (res.ok) {
+          const data = await res.json();
+          const products = data.products || data;
+          console.log(`Successfully loaded products from ${path}`);
+          return products.map(p => ({
+            ...p,
+            id: typeof p.id === 'string' ? parseInt(p.id) : p.id
+          }));
+        }
+      } catch (err) {
+        lastError = err;
+        continue;
+      }
     }
-    const data = await res.json();
-    const products = data.products || data;
-    return products.map(p => ({
-      ...p,
-      id: typeof p.id === 'string' ? parseInt(p.id) : p.id
-    }));
+    
+    throw lastError || new Error('Failed to load items.json from all paths');
   } catch (err) {
     console.error('Failed to load products from file:', err);
+    console.warn('Falling back to localStorage');
     return getProductsFromStorage();
   }
 }
