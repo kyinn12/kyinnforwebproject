@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 8: Built-in Objects - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 8: Built-in Objects - Summary</h1>
+
+  <h2>1. Built-in Objects and the `window` Object</h2>
+  <ul>
+    <li>**Built-in Objects** are pre-created objects provided for the user to utilize in JavaScript.</li>
+    <li>The **`window` object** is the **top-level and fundamental object** in the JavaScript object hierarchy. All other JavaScript objects are contained within it.</li>
+    <li>The `window` object is used to control the state of the web browser window itself.</li>
+    <li>**Access**: You can access its properties and methods using dot notation (e.g., `window.alert()`), but `window.` is often optional (e.g., `alert()`).</li>
+    <li>**Key `window` Methods**:
+      <ul>
+        <li>`alert()`, `confirm()`, `prompt()`: Display dialog boxes.</li>
+        <li>`open()`: Opens a new browser window or tab. Syntax: `window.open(path, windowName, options)`.</li>
+        <li>`close()`: Closes the current window.</li>
+        <li>`resizeTo()`, `moveTo()`: Dynamically adjust the size or position of the window.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>2. `screen` Object</h2>
+  <p>The `screen` object holds information about the user's monitor screen size and orientation.</p>
+  <ul>
+    <li>`screen.availWidth`, `screen.availHeight`: Returns the width/height of the available space on the screen, excluding persistent UI elements (like a taskbar). Used for centering popup windows.</li>
+    <li>`screen.width`, `screen.height`: Returns the total screen width/height, including UI elements.</li>
+  </ul>
+
+  <h2>3. `history` and `location` Objects</h2>
+  <ul>
+    <li>**`history` Object**: Stores the site addresses visited in the current browser window. It is read-only for security reasons.
+      <ul>
+        <li>`history.back()`: Navigates to the previous page in the history.</li>
+        <li>`history.forward()`: Navigates to the next page in the history.</li>
+        <li>`history.go(n)`: Navigates forward (`n > 0`) or backward (`n < 0`) by a relative number of pages.</li>
+      </ul>
+    </li>
+    <li>**`location` Object**: Contains information related to the current document's URL.
+      <ul>
+        <li>`location.href`: The entire URL. Changing this value redirects the user to the new address.</li>
+        <li>`location.reload()`: Reloads the current document.</li>
+        <li>`location.protocol`, `location.host`, `location.pathname`: Specific parts of the URL.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. `Date` Object</h2>
+  <p>The `Date` object controls information about the current or specified date and time.</p>
+  <ul>
+    <li>**Instance Creation**: To use the `Date` object, you must create an **instance** using the `new` keyword.
+      <br>Current Date: `let today = new Date();`
+      <br>Specific Date: `new Date("2025-02-25");` (YYYY-MM-DD format is common)</li>
+    <li>**Get Methods**: Used to retrieve time components (e.g., `getFullYear()`, `getMonth()` [0-11], `getDate()` [1-31], `getDay()` [0-6]).</li>
+    <li>**Set Methods**: Used to set time components (e.g., `setFullYear()`).</li>
+    <li>**Time Calculation**: The `getTime()` method returns the time since January 1, 1970, 00:00:00 UTC, in **milliseconds**. This is used to calculate the difference between two dates.
+      <br>Millisecond units: $1\text{s} = 1,000\text{ms}$, $1\text{day} = 86,400,000\text{ms}$.</li>
+  </ul>
+
+  <h2>5. `Math` Object</h2>
+  <p>The `Math` object contains functions for mathematical operations (trigonometric, logarithmic, etc.). You do not need to create an instance to use it.</p>
+  <ul>
+    <li>**Constants**: `Math.PI` (the value of Pi).</li>
+    <li>**Rounding Methods**:
+      <ul>
+        <li>`Math.round(x)`: Rounds to the nearest integer (standard rounding).</li>
+        <li>`Math.ceil(x)`: Rounds up to the smallest integer.</li>
+        <li>`Math.floor(x)`: Rounds down to the largest integer.</li>
+      </ul>
+    </li>
+    <li>**Random Numbers**: `Math.random()` returns a random floating-point number between 0 (inclusive) and 1 (exclusive).
+      <br>To get a random integer between 1 and $N$: `Math.floor(Math.random() * N) + 1;`</li>
+    <li>**Number Formatting**: The `toFixed(n)` method (a method of the `Number` object) converts a number to a string, rounding to $n$ digits after the decimal point.</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

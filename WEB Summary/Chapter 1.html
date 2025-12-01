@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 1: Getting Started with JavaScript - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 1: Getting Started with JavaScript - Summary</h1>
+
+  <h2>1. Core Characteristics (자바스크립트의 특징)</h2>
+  <ul>
+    <li>JavaScript works on **all web browsers**.</li>
+    <li>Execution results can be immediately confirmed in the web browser.</li>
+    <li>It can be used for **full-stack web development** and creating various types of programs.</li>
+    <li>It utilizes various public (open) APIs, libraries, and frameworks.</li>
+  </ul>
+
+  <h2>2. Standardization and Evolution</h2>
+  <ul>
+    <li>**JavaScript vs. Java**: They are completely different languages. JavaScript was originally called **LiveScript** and was renamed to capitalize on Java's popularity at the time.</li>
+    <li>**ECMAScript (ES)**: To standardize the competing script languages like JavaScript and JScript, ECMA International adopted the JavaScript-based standard named ECMAScript. JavaScript is the most famous language that adheres to the ECMAScript standard.</li>
+    <li>**ES6 (ECMAScript 2015)**: The language was expanded to handle complex concepts following the rise of HTML5, as JavaScript needed to evolve beyond simple dynamic effects. ECMAScript continues to be updated annually.</li>
+  </ul>
+
+  <h2>3. JavaScript in Web Development</h2>
+  <ul>
+    <li>**Client-Server Model**: Websites function by exchanging information between a **client** (the user's device/browser) and a **server**.</li>
+    <li>**Front-end Development**: Refers to everything the user sees and interacts with, including content creation, design, and responding to user actions.</li>
+    <li>JavaScript's role in front-end development is increasingly powerful, leading to the emergence of popular frameworks and libraries:
+      <ul>
+        <li>**React**: Facebook library for creating user interfaces.</li>
+        <li>**Vue.js**: Framework for creating web applications and user interfaces.</li>
+        <li>**Angular**: Google framework, suitable for large-scale web development.</li>
+      </ul>
+    </li>
+    <li>Major websites like Google, YouTube, and Facebook use **JavaScript** for client-side processing.</li>
+  </ul>
+
+  <h2>4. Development Environment</h2>
+  <ul>
+    <li>**Console Window**: The web browser contains a **JavaScript engine** that can execute code. Simple code can be run directly in the browser's Console window (accessible via shortcuts like `Ctrl/Option + Shift + J`).</li>
+    <li>**Code Editor**: **Visual Studio Code (VS Code)** is recommended for editing code.</li>
+    <li>**VS Code Setup**:
+      <ul>
+        <li>Install the D2Coding font, which supports Korean, and configure it in VS Code settings.</li>
+        <li>Install **Live Server** extension to automatically reload the browser when code is modified/saved.</li>
+        <li>Install **Prettier** to automatically format source code neatly.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>5. Writing JavaScript Code</h2>
+  <p>JavaScript code can be included in an HTML document in three ways:</p>
+  <ul>
+    <li>**Inline Script**: Written directly inside an HTML tag attribute, often for simple commands like showing an alert.
+      <br><code>&lt;button onclick="alert('Message!')"&gt;Click!&lt;/button&gt;</code></li>
+    <li>**Internal Script**: Written between `&lt;script&gt;` and `&lt;/script&gt;` tags anywhere in the HTML document, though typically placed before the `&lt;/body&gt;` tag.</li>
+    <li>**External Script (Recommended)**: JavaScript source code is saved in a separate **`.js`** file and linked to the HTML document using the `&lt;script&gt;` tag's `src` attribute.
+      <ul>
+        <li>**Advantages**: Allows code reuse across multiple documents and separates markup from script logic, making maintenance easier.</li>
+        <li>Example: <code>&lt;script src="js/changeBg.js"&gt;&lt;/script&gt;</code>.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>6. How Browsers Process JavaScript</h2>
+  <ol>
+    <li>The browser recognizes the document as a web document (`&lt;!DOCTYPE html&gt;`) and starts interpreting the HTML structure according to the standard.</li>
+    <li>It analyzes the order and inclusion relationships of all HTML tags.</li>
+    <li>It processes external stylesheets and internal styles and displays them on the screen.</li>
+    <li>When the browser encounters a **`&lt;script&gt;` tag**, it immediately passes the script source to the **JavaScript Interpreter**.</li>
+    <li>The JavaScript is executed.</li>
+  </ol>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

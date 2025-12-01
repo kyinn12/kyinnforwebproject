@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 16: Canvas Animation - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 16: Canvas Animation - Summary</h1>
+
+  <h2>1. Drawing Shapes Using Objects</h2>
+  <ul>
+    <li>To draw and manage multiple complex graphics (like circles) easily, it's efficient to define the graphic element as a **JavaScript object** (often using a constructor function or class).</li>
+    <li>The object (e.g., `Circle`) should contain all necessary properties, such as center coordinates (`this.x`, `this.y`), size (`this.radius`), and style (`this.color`).</li>
+    <li>The object should include a **method** (e.g., `this.draw()`) that contains the Canvas API code necessary to render itself on the screen.</li>
+    <li>**Instance Creation**: Once the object is defined, you can create many instances with different properties (e.g., `const circleOne = new Circle(x, y, r, c);`).</li>
+    <li>**Efficiency**: For drawing many similar elements, it is more efficient to use a loop to create an array of instances and then iterate through the array, calling the `draw()` method on each instance.</li>
+  </ul>
+
+  <h2>2. Creating Simple Animations</h2>
+  <ul>
+    <li>The simplest animation involves moving an element by constantly changing its coordinates (`x` and `y`).</li>
+    <li>To manage movement, properties are added to the object to control direction/speed (e.g., `this.dx`, `this.dy`).</li>
+    <li>**Animation Loop**: For continuous movement, the function that updates the coordinates and redraws the element must be run repeatedly. The standard method for smooth animation in the browser is `window.requestAnimationFrame()`.
+      <br><code>requestAnimationFrame(move);</code> (The `move` function calls itself recursively).</li>
+  </ul>
+
+  <h2>3. Smooth Movement (Frame Redrawing)</h2>
+  <p>To create the illusion of smooth movement, the canvas must be completely redrawn in every frame:</p>
+  <ol>
+    <li>**Clear Canvas**: Use `ctx.clearRect(0, 0, canvas.width, canvas.height)` at the beginning of the animation loop (`move()` or `update()`) to erase everything from the previous frame.</li>
+    <li>**Update Coordinates**: Change the element's position (e.g., `circle.x += circle.dx;`).</li>
+    <li>**Redraw Element**: Call the `draw()` method at the new coordinates.</li>
+  </ol>
+
+  <h2>4. Boundary Detection and Bouncing</h2>
+  <p>To keep an element within the canvas boundary and make it "bounce," you must check its position relative to the canvas edges and reverse its direction upon contact.</p>
+  <ul>
+    <li>**Collision Logic**: Check if the element's edge (center + radius) exceeds the canvas boundary (width/height) or falls below 0.
+      <pre><code>if (circle.x + circle.radius > canvas.width || circle.x - circle.radius < 0) {
+    circle.dx = -circle.dx; // Reverse horizontal direction
+}</code></pre>
+    </li>
+    <li>**Bouncing Animation**: For complex animations involving multiple objects (like bouncing balls), a main `update()` function handles the clearing and iterates through an array of objects, calling an `animate()` method on each object instance.</li>
+    <li>**`animate()` Method**: This method is part of the object definition (`Circle`) and handles two things:
+      <ol>
+        <li>Updating the object's position based on `this.dx` and `this.dy`.</li>
+        <li>Checking for boundary collisions and reversing `this.dx` or `this.dy` if necessary.</li>
+        <li>Calling `this.draw()` to render the object at its new position.</li>
+      </ol>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

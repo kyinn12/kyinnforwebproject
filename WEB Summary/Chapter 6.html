@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 6: Events and Event Handlers - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 6: Events and Event Handlers - Summary</h1>
+
+  <h2>1. Understanding Events</h2>
+  <ul>
+    <li>An **Event** is any action performed by a user (e.g., clicking a button) or the web browser (e.g., loading a page).</li>
+    <li>Events must occur within the web document's area.</li>
+    <li>**Key Event Categories**:
+      <ul>
+        <li>**Document Loading**: `load`, `unload`, `error`, `resize`, `scroll`.</li>
+        <li>**Mouse**: `click`, `dblclick`, `mousedown`, `mouseup`, `mousemove`, `mouseover`, `mouseout`.</li>
+        <li>**Keyboard**: `keydown` (while pressing), `keypress` (when pressed), `keyup` (when released).</li>
+        <li>**Form**: `focus`, `blur`, `change`, `submit`, `reset`.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>2. Event Handling Methods (이벤트 처리기)</h2>
+  <p>An **Event Handler** (or **Event Processor**) is the code that specifies the action to be performed when an event occurs.</p>
+  <ol>
+    <li>**Inline in HTML Tag**: Directly link a function in the HTML tag using `onEventName`.
+      <br><code>&lt;button onclick="alert('Click!')"&gt;</code>
+      <br><em>Note: This method is less flexible as HTML and JavaScript are mixed.</em></li>
+    <li>**Directly Connect Function to Web Element**: Connect a function using the element's property (`.onEventName`).
+      <br><code>element.onclick = function() { /* commands */ }</code>
+      <br><em>Note: Do not use parentheses `()` after the function name when assigning an existing function (e.g., `button.onclick = changeBackground;`).</em></li>
+    <li>**`addEventListener()` Method (Recommended)**: The standard and most flexible way to register an event handler on a DOM element.
+      <br><code>element.addEventListener(event, function, useCapture);</code>
+      <ul>
+        <li>**`event`**: The event type name **without** "on" (e.g., `click`, not `onclick`).</li>
+        <li>**`function`**: The function to run (can be a named function or an anonymous/arrow function).</li>
+        <li>**`useCapture`**: Boolean (optional). `true` for capturing, `false` (default) for bubbling.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>3. The `event` Object</h2>
+  <p>When an event occurs, an `event` object is automatically created, containing information about the event.</p>
+  <ul>
+    <li>**Key Properties**:
+      <ul>
+        <li>**`e.target`**: Returns the element where the event **first occurred**.</li>
+        <li>**`e.currentTarget`**: Returns the element where the event is **currently being processed** during propagation.</li>
+        <li>**Mouse Position**: `e.pageX`, `e.pageY` (relative to the document).</li>
+        <li>**Keyboard**: `e.code` (key code), `e.key` (key name).</li>
+        <li>**Modifier Keys**: `e.shiftKey`, `e.ctrlKey`, `e.altKey` (return boolean).</li>
+      </ul>
+    </li>
+    <li>**Key Method**:
+      <ul>
+        <li>**`e.preventDefault()`**: Cancels the default browser action for that event (if possible).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. Event Propagation (이벤트 전파)</h2>
+  <p>Event Propagation describes how an event, once triggered on an element, is passed to its parent elements.</p>
+  <ul>
+    <li>**Event Bubbling (버블링)**: The default method. The event starts at the element where it occurred and propagates upward to the parent elements (like bubbles rising).</li>
+    <li>**Event Capturing (캡처링)**: The event starts at the top-most element (`<html>`) and propagates downward to the element where it occurred.
+      <br>To enable capturing, the third option in `addEventListener()` must be set to `true`.
+      <br><code>element.addEventListener("click", function, **true**);</code></li>
+  </ul>
+
+  <h2>5. Practical Example: Creating a Carousel</h2>
+  <ul>
+    <li>A carousel is a sliding show for images or content.</li>
+    <li>Images are stored in an **array** in JavaScript, separate from the HTML markup.</li>
+    <li>The background image of the container is set using:
+      <br><code>container.style.backgroundImage = `url(images/${pics[i]})`;</code></li>
+    <li>The click event on the arrows uses **`e.target.id`** (e.g., `"left"` or `"right"`) to determine the action, and **conditional logic** handles image looping (going from the last image back to the first, and vice versa).</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 5: Introduction to DOM - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 5: Introduction to DOM - Summary</h1>
+
+  <h2>1. Document Object Model (DOM)</h2>
+  <ul>
+    <li>The **Document Object Model (DOM)** is a standard that organizes a web document using objects, allowing **JavaScript** to access and control the web document systematically.</li>
+    <li>It makes the web page dynamically responsive to user actions or other conditions.</li>
+    <li>The DOM structures the web document into a **DOM Tree** (a hierarchical structure).</li>
+    <li>A **Node** is any item in the DOM tree where a branch splits off. The **root node** is always the `<html>` element.</li>
+    <li>The DOM includes elements, their contents (text), and their attributes.</li>
+  </ul>
+
+  <h2>2. Accessing Web Elements</h2>
+  <p>To modify or control an element, you must first "access" it.</p>
+  <ul>
+    <li>**`querySelector(selector)`**: Returns the **first** element that matches the specified CSS selector.</li>
+    <li>**`querySelectorAll(selector)`**: Returns **all** matching elements as a **NodeList** (similar to an array).</li>
+    <li>**Legacy Access Methods (`getElement~`)**: Older methods that access elements by specific attributes:
+      <ul>
+        <li>`document.getElementById("idName")`.</li>
+        <li>`document.getElementsByClassName("className")`.</li>
+        <li>`document.getElementsByTagName("tagName")`.</li>
+      </ul>
+    </li>
+    <li>**`querySelector()` Advantage**: It can combine multiple selectors (e.g., `#detail > p`), which the legacy methods cannot.</li>
+  </ul>
+
+  <h2>3. Getting and Modifying Element Content</h2>
+  <p>These properties are used to get or set the text/HTML content of an accessed element.</p>
+  <ul>
+    <li>**`element.innerText`**: Gets or sets the element's content as **plain text** (reflecting what is visible on screen).</li>
+    <li>**`element.innerHTML`**: Gets or sets the element's content, including **HTML tags**.</li>
+    <li>**`element.textContent`**: Gets or sets the element's content as raw text, including content from hidden elements and all whitespace found in the source.</li>
+  </ul>
+
+  <h2>4. Modifying Styles and Attributes</h2>
+  <ul>
+    <li>**Inline Style Modification**: Use the `.style` property to access and modify CSS properties.
+      <ul>
+        <li>CSS properties using hyphens (e.g., `background-color`) must be converted to **camelCase** in JavaScript (e.g., `style.backgroundColor`).
+          <br><code>title.style.backgroundColor = "yellow";</code></li>
+      </ul>
+    </li>
+    <li>**Attribute Modification**: To change an element's attribute (like an image source), access the property directly.
+      <br><code>imageElement.src = "newImagePath.png";</code></li>
+  </ul>
+
+  <h2>5. Using `classList` Property</h2>
+  <p>The `classList` property holds information about the class styles applied to an element.</p>
+  <ul>
+    <li>**`element.classList.add("className")`**: Adds a new class style to the element.</li>
+    <li>**`element.classList.remove("className")`**: Removes an existing class style from the element.</li>
+    <li>**`element.classList.contains("className")`**: Checks if a specific class style is currently applied (returns `true` or `false`).</li>
+    <li>**`element.classList.toggle("className")`**: Toggles the class: if the class exists, it removes it; if it doesn't exist, it adds it.</li>
+  </ul>
+
+  <h2>6. Handling Form Elements</h2>
+  <ul>
+    <li>**Text Field Value**: To get the content a user entered into an input box, use the `.value` property.</li>
+    <li>**Access by Name Attribute**: If a `<form>` element has a `name` attribute, you can access form elements using dot notation:
+      <br><code>document.formName.elementName.value</code></li>
+    <li>**Access using Form Arrays**: All `<form>` tags in a document are stored in the **`document.forms`** property (as an array/collection).
+      <br>Elements within a form are stored in the **`.elements`** property.
+      <br><code>document.forms[0].elements[4]</code></li>
+  </ul>
+
+  <h2>7. Handling Select Lists</h2>
+  <ul>
+    <li>**Accessing Options**: The options within a `<select>` list can be accessed using the `.options` property.</li>
+    <li>**`selectedIndex`**: This property returns the **index value** of the currently selected option in the list.
+      <br>To get the text of the selected item: `selectMenu.options[selectMenu.selectedIndex].innerText`.</li>
+    <li>**Event**: The `.onchange` event is commonly used to execute a function when a new item is selected from the list.</li>
+  </ul>
+
+  <h2>8. Handling Radio Buttons and Checkboxes</h2>
+  <ul>
+    <li>These elements are grouped by the **`name`** attribute, which is used for accessing them.</li>
+    <li>Accessing them using the form name results in a **RadioNodeList**.</li>
+    <li>**Checking Selection**: The **`checked`** attribute (which becomes `true` when selected) is used to determine which item is active.
+      <ul>
+        <li>**Radio Buttons (Single Selection)**: Use `document.querySelector("input[name='subject']:checked")`.</li>
+        <li>**Checkboxes (Multiple Selection)**: Use `document.querySelectorAll("input[name='mailing']:checked")` as more than one can be selected.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

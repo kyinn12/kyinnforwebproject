@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 14: Drawing Graphics with Canvas - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 14: Drawing Graphics with Canvas - Summary</h1>
+
+  <h2>1. Introduction to Canvas</h2>
+  <ul>
+    <li>The **`&lt;canvas&gt;` tag** provides an area in the web document for drawing graphics, often referred to as the 'canvas'.</li>
+    <li>The **Canvas API**, integrated into HTML, allows drawing graphics directly onto the document using JavaScript.</li>
+    <li>Canvas draws graphics pixel by pixel, allowing for fine-grained control, making it ideal for **games** or detailed effects rather than simple UI or charts.</li>
+    <li>The **origin (0, 0)** point for canvas coordinates is the **top-left corner**. X-coordinates increase to the right, and Y-coordinates increase downward.</li>
+    <li>Angles in Canvas API methods are expressed in **radians** ($ \text{radians} = (\pi/180) \times \text{degrees} $).</li>
+  </ul>
+
+  <h2>2. Creating the Rendering Context</h2>
+  <ul>
+    <li>The `&lt;canvas&gt;` tag only creates the area. To start drawing, you must create a **rendering context**.</li>
+    <li>Use the `getContext()` method:
+      <br><code>const ctx = canvas.getContext("2d");</code> (For 2D graphics).</li>
+    <li>The `ctx` object holds all the drawing properties and methods.</li>
+  </ul>
+
+  <h2>3. Drawing Basic Shapes (사각형 및 경로)</h2>
+  <h3>Rectangle Methods (기본 도형)</h3>
+  <p>The rectangle is the only shape built directly into the Canvas API.</p>
+  <ul>
+    <li>`ctx.fillRect(x, y, width, height)`: Draws a **filled** rectangle.</li>
+    <li>`ctx.strokeRect(x, y, width, height)`: Draws a rectangle with only a **border**.</li>
+    <li>`ctx.clearRect(x, y, width, height)`: Clears a rectangular area.</li>
+  </ul>
+  <h3>Path Methods (경로를 이용한 도형)</h3>
+  <p>All other shapes (triangles, circles, curves) must be drawn using paths.</p>
+  <ul>
+    <li>`ctx.beginPath()`: Starts a new drawing path.</li>
+    <li>`ctx.moveTo(x, y)`: Moves the starting point of the path to a new coordinate.</li>
+    <li>`ctx.lineTo(x, y)`: Draws a straight line path from the current position to the new coordinate.</li>
+    <li>`ctx.closePath()`: Closes the path by drawing a line back to the starting point (optional for filling).</li>
+    <li>`ctx.stroke()`: Draws the path outline (border).</li>
+    <li>`ctx.fill()`: Fills the area enclosed by the path with color.</li>
+    <li>**`Path2D` Object**: Used to store complex paths for reuse or repetition. `let path = new Path2D();`</li>
+  </ul>
+  <h3>Style Properties</h3>
+  <ul>
+    <li>`ctx.fillStyle = "color"`: Sets the color used for filling shapes (`fillRect`, `fill`).</li>
+    <li>`ctx.strokeStyle = "color"`: Sets the color used for borders/lines (`strokeRect`, `stroke`).</li>
+    <li>Styles apply to all subsequent drawing commands until explicitly changed.</li>
+  </ul>
+
+  <h2>4. Drawing Circles, Ellipses, and Curves</h2>
+  <ul>
+    <li>**Circle/Arc**: `ctx.arc(x, y, radius, startAngle, endAngle, counterclockwise)`
+      <ul>
+        <li>Angles are in radians. Full circle: `0` to `Math.PI * 2`.</li>
+        <li>`counterclockwise` (Boolean): determines the rotation direction (defaults to `true`).</li>
+      </ul>
+    </li>
+    <li>**Ellipse**: `ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise)`
+      <ul>
+        <li>Requires separate horizontal (`radiusX`) and vertical (`radiusY`) radii.</li>
+        <li>`rotation`: Rotation amount in radians.</li>
+      </ul>
+    </li>
+    <li>**Bezier Curves**: Draws smooth curves using control points.
+      <ul>
+        <li>**Quadratic (2nd order)**: One control point. `ctx.quadraticCurveTo(cpx, cpy, x, y)`.</li>
+        <li>**Bezier (3rd order)**: Two control points. `ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)`.</li>
+      </ul>
+    </li>
+    <li>**Transformations**: The `ctx.scale(x, y)` method can be used to stretch or compress shapes (e.g., changing a circle into an ellipse).</li>
+  </ul>
+
+  <h2>5. Working with Images</h2>
+  <ul>
+    <li>**Loading an Image**:
+      <ol>
+        <li>Create an Image object: `let img = new Image();`.</li>
+        <li>Set the image source: `img.src = "filename.jpg";`.</li>
+        <li>Use the `onload` event to ensure the image is loaded before drawing.</li>
+      </ol>
+    </li>
+    <li>**Drawing Image**: Use the `drawImage()` method.
+      <ul>
+        <li>**Full Image, Default Size**: `ctx.drawImage(image, dx, dy)` (where to start drawing on canvas).</li>
+        <li>**Full Image, Resized**: `ctx.drawImage(image, dx, dy, dw, dh)` (draw width/height specified).</li>
+        <li>**Clipping/Slicing Source Image**: `ctx.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)` (specifies source crop area `sx, sy, sw, sh` and destination area `dx, dy, dw, dh`).</li>
+      </ul>
+    </li>
+    <li>**Image Clipping**: The `ctx.clip()` method hides any drawing outside the defined path, allowing images to be masked to a shape (e.g., a circle).</li>
+    <li>**Saving**: Graphics drawn on the canvas can be saved as an image file by right-clicking the canvas area in the browser and selecting "Save image as...".</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

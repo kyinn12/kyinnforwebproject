@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 7: Utilizing DOM - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 7: Utilizing DOM - Summary</h1>
+
+  <h2>1. DOM Tree and NodeList</h2>
+  <ul>
+    <li>The DOM is composed of various types of **Nodes**: **Element Nodes** (HTML tags), **Text Nodes** (content within tags), **Attribute Nodes** (attributes like `src` or `class`), and **Comment Nodes**.</li>
+    <li>The `<html>` element is the **Root Node** of the DOM Tree.</li>
+    <li>A **NodeList** is a collection of multiple nodes returned by methods like `document.querySelectorAll()`. It looks and acts like an array but is not a true JavaScript array.</li>
+  </ul>
+
+  <h2>2. Adding New Nodes (Text Content)</h2>
+  <p>To add a new element with text content to the DOM, follow these steps:</p>
+  <ol>
+    <li>**Create Element Node**: Use `document.createElement("tagName")` (e.g., `let newP = document.createElement("p");`).</li>
+    <li>**Create Text Node**: Use `document.createTextNode("text content")` (e.g., `let textNode = document.createTextNode("Typescript");`).</li>
+    <li>**Connect Nodes**: Append the text node as a child to the element node: `newP.appendChild(textNode);`.</li>
+    <li>**Add to DOM**: Append the new element node to the desired parent node in the document: `document.body.appendChild(newP);`.</li>
+  </ol>
+
+  <h2>3. Adding New Nodes (With Attributes)</h2>
+  <p>To add elements that require attributes (like an `<img>` tag):</p>
+  <ol>
+    <li>**Create Element Node**: `let newImg = document.createElement("img");`.</li>
+    <li>**Create Attribute Node**: `let srcNode = document.createAttribute("src");`.</li>
+    <li>**Set Attribute Value**: `srcNode.value = "images/wall.jpg";`.</li>
+    <li>**Connect Attribute to Element**: Use `element.setAttributeNode(attributeNode)`:
+      <br><code>newImg.setAttributeNode(srcNode);</code></li>
+    <li>**Add to DOM**: `document.body.appendChild(newImg);`.</li>
+  </ol>
+
+  <h2>4. Adding Nodes Before an Existing Node</h2>
+  <p>While <code>appendChild()</code> always adds a new node to the end of the parent’s children, <code>insertBefore()</code> allows insertion before a specific element.</p>
+  <ul>
+    <li>**Syntax**: `parentNode.insertBefore(newNode, referenceNode)`</li>
+    <li>The `referenceNode` is the existing child node before which the `newNode` will be inserted.</li>
+  </ul>
+
+  <h2>5. Removing Nodes</h2>
+  <ul>
+    <li>**`element.remove()`**: A modern method to remove the element directly.
+      <br><code>heading.remove();</code></li>
+    <li>**`parentNode.removeChild(childNode)`**: The older method, which requires accessing the parent node first, typically using the `parentNode` property.
+      <br><code>this.parentNode.removeChild(this);</code></li>
+    <li>**Accessing Parent Node**: Use the **`parentNode`** property: `nodeName.parentNode`.</li>
+  </ul>
+
+  <h2>6. Understanding `this` in Event Listeners</h2>
+  <ul>
+    <li>When using a traditional anonymous function (`function() { ... }`) as an event handler, the `this` keyword refers to the **element that triggered the event**. This is useful for deletion and modification.</li>
+    <li>When using an **arrow function** (`() => { ... }`), the `this` keyword refers to the top-level `window` object. Therefore, you **cannot** use `this` to refer to the clicked element inside an arrow function event handler.</li>
+  </ul>
+
+  <h2>7. Practical Example: Book List Program Concepts</h2>
+  <p>When creating an application that uses form submissions (like adding an item to a list):</p>
+  <ul>
+    <li>**Preventing Default Behavior**: A button inside a `<form>` defaults to submitting data and refreshing the page. You must stop this default action using:
+      <br><code>e.preventDefault();</code></li>
+    <li>**Clearing Input**: After data is captured, clear the input fields by setting their value to an empty string:
+      <br><code>title.value = "";</code></li>
+    <li>**Deletion Logic**: To delete an item (e.g., a `<li>` or `<p>`), you must navigate up the DOM tree from the clicked delete button (`<span>`):
+      <br><code>delButton.addEventListener("click", function () {</code>
+      <br><code>  this.parentNode.parentNode.removeChild(this.parentNode);</code>
+      <br><code>});</code>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

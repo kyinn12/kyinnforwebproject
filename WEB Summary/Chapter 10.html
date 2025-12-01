@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 10: Strings and Arrays - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 10: Strings and Arrays - Summary</h1>
+
+  <h2>1. Accessing and Checking Strings (문자열 접근 및 확인)</h2>
+  <ul>
+    <li>**Autoboxing**: Primitive types (string, number, boolean) can use properties and methods because they are **temporarily converted** to their corresponding Wrapper Objects (`String`, `Number`, `Boolean`) when a method is called.</li>
+    <li>**Length**: Use the `.length` property: `string.length`.</li>
+    <li>**Character Access**:
+      <ul>
+        <li>Bracket notation (ES6+): `string[position]`.</li>
+        <li>`charAt()` method: `string.charAt(position)`.</li>
+      </ul>
+    </li>
+    <li>**Position/Inclusion**:
+      <ul>
+        <li>`indexOf(substring, position)`: Returns the **first** starting index of the substring (or -1 if not found).</li>
+        <li>`includes(substring)` (ES6+): Returns `true` if the substring is found.</li>
+        <li>`startsWith(substring)`: Checks if the string begins with the substring (case-sensitive).</li>
+        <li>`endsWith(substring)`: Checks if the string ends with the substring (case-sensitive).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>2. Modifying Strings (문자열 수정)</h2>
+  <p>String methods do not modify the original string; they return a new string.</p>
+  <ul>
+    <li>**Whitespace Removal**: Removes common whitespace (space, tab, newline).
+      <ul>
+        <li>`string.trim()`: Removes spaces from **both ends**.</li>
+        <li>`string.trimStart()`: Removes spaces from the **start**.</li>
+        <li>`string.trimEnd()`: Removes spaces from the **end**.</li>
+      </ul>
+    </li>
+    <li>**Case Conversion**:
+      <ul>
+        <li>`string.toUpperCase()`: Converts all letters to **uppercase**.</li>
+        <li>`string.toLowerCase()`: Converts all letters to **lowercase**.</li>
+      </ul>
+    </li>
+    <li>**Substring Extraction**: Extracts a portion of the string.
+      <ul>
+        <li>`string.substring(start, end_before)`: Extracts from the start index up to (but not including) the end index.</li>
+        <li>`string.slice(start, end_before)`: Same as `substring()`, but **allows negative indices** (counting backward from the end).</li>
+      </ul>
+    </li>
+    <li>**Splitting**: `string.split(delimiter)`: Splits a string into an **array** of substrings based on a delimiter (e.g., splitting an email by `@`).</li>
+  </ul>
+
+  <h2>3. Regular Expressions (정규 표현식)</h2>
+  <ul>
+    <li>A powerful language for defining and searching for **specific patterns** (rules) in a string.</li>
+    <li>**Basic Structure**: `pattern[flags]`.</li>
+    <li>**Flags (Options)**:
+      <ul>
+        <li>`i`: Case-**insensitive** search.</li>
+        <li>`g`: **Global** search (finds all matches, not just the first).</li>
+      </ul>
+    </li>
+    <li>**RegExp Methods**:
+      <ul>
+        <li>`regex.test(string)`: Returns `true` if a match is found, `false` otherwise.</li>
+        <li>`regex.exec(string)`: Returns the match as an array or `null`.</li>
+      </ul>
+    </li>
+    <li>**String Methods using RegEx**: `string.match(regex)`, `string.replace(regex, replacement)`.</li>
+    <li>**Pattern Cheatsheet**:
+      <ul>
+        <li>`\d`: Digit (0-9). `\D`: Non-digit.</li>
+        <li>`\s`: Whitespace. `\S`: Non-whitespace.</li>
+        <li>`\w`: Word character (letters, digits, underscore). `\W`: Non-word character.</li>
+        <li>`^`: Start of the string (or NOT if inside `[]`).</li>
+        <li>`$`: End of the string.</li>
+        <li>`{n}`: Repeats pattern exactly `n` times. `pattern{n,}`: Repeats at least `n` times.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. String and Array Conversion</h2>
+  <ul>
+    <li>**Why Convert?**: Arrays have many methods for modifying elements that strings do not have. Strings are often converted to arrays to be manipulated, then converted back.</li>
+    <li>**String to Array**:
+      <ul>
+        <li>`string.split("")`: Splits into an array of individual characters.</li>
+        <li>Spread Operator: `[...string]`.</li>
+        <li>`Array.from(string)`.</li>
+      </ul>
+    </li>
+    <li>**Array to String**:
+      <ul>
+        <li>`array.join(delimiter)`: Joins all elements into a single string using the specified delimiter (e.g., `array.join("")` for no space).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>5. Using Arrays Efficiently (배열 활용)</h2>
+  <ul>
+    <li>**Creating Arrays**: Use literal notation (`let arr = ["a", "b"]`) or the `Array` constructor.</li>
+    <li>**Iteration (Looping)**:
+      <ul>
+        <li>`for` loop (allows `break`).</li>
+        <li>`forEach()` (must iterate through the entire array; cannot `break`).
+          <br>Syntax: `array.forEach((value, index, array) => { ... });`</li>
+      </ul>
+    </li>
+    <li>**Combining**:
+      <ul>
+        <li>`array1.concat(array2, value)`: Creates a new array by concatenating existing arrays/values.</li>
+        <li>**Spread Operator (ES6+)**: `[...array1, ...array2]` (Commonly used).</li>
+      </ul>
+    </li>
+    <li>**Sorting/Reversing**:
+      <ul>
+        <li>`array.reverse()`: Reverses the order of elements (in place).</li>
+        <li>`array.sort()`: Sorts elements (requires a separate comparison function for numbers).</li>
+      </ul>
+    </li>
+    <li>**Adding/Removing from Ends**:
+      <ul>
+        <li>**End**: `array.push(value)` (adds), `array.pop()` (removes last).</li>
+        <li>**Start**: `array.unshift(value)` (adds), `array.shift()` (removes first).
+          <br>*(Note: `shift`/`unshift` can be slower than `push`/`pop` for large arrays as indices must be renumbered.)*</li>
+      </ul>
+    </li>
+    <li>**Adding/Removing Anywhere**:
+      <ul>
+        <li>**`array.splice(start, count, item1, ...)`**: Deletes `count` elements starting at `start`, and optionally inserts new items. **Modifies the original array**.</li>
+        <li>**`array.slice(start, end_before)`**: Extracts a portion into a new array. **Does not modify the original array**.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

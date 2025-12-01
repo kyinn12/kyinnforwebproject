@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 12: HTTP Communication and JSON - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 12: HTTP Communication and JSON - Summary</h1>
+
+  <h2>1. HTTP Communication (HTTP 통신)</h2>
+  <p>To exchange data between a client (web browser) and a server, a pre-arranged set of rules called a **protocol** is necessary. The web uses the **HTTP** (HyperText Transfer Protocol) protocol.</p>
+  <ul>
+    <li>**HTTP Request**: The client requests data from the server. This includes the **Request Header** (containing system info, browser type, etc.) and optionally the **Request Body**.</li>
+    <li>**HTTP Response**: The server sends data back to the client. This includes the **Response Header** (status, message time) and the **Response Body** (the actual content like HTML, images).</li>
+    <li>**HTTPS**: The secure version of HTTP, recommended for all websites by modern browsers.</li>
+  </ul>
+
+  <h2>2. HTTP Request Methods: GET vs. POST</h2>
+  <ul>
+    <li>**GET Method**: Used when requesting data. The request message is appended to the URL (Visible in the address bar). No separate request body is used.
+      <ul>
+        <li>**Use Case**: Safe for requests where data disclosure (like search keywords) is not a concern.</li>
+      </ul>
+    </li>
+    <li>**POST Method**: Used when sending data that should not be exposed (like login credentials). The content is sent in the **Request Body**, hidden from the URL.
+      <ul>
+        <li>**Use Case**: Mandatory for sensitive operations like logins, form submissions, and resource creation.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>3. Response Status Codes (응답 상태)</h2>
+  <p>The server sends a numerical **Status Code** in the response header indicating the result of the request.</p>
+  <ul>
+    <li>**2XX (Success)**: Request was accepted or successfully completed.
+      <ul>
+        <li>`200 OK`: Successful transmission from server to client.</li>
+      </ul>
+    </li>
+    <li>**4XX (Client Error)**: The client made a bad request.
+      <ul>
+        <li>`400 Bad Request`: General failure of the request.</li>
+        <li>`404 Not Found`: The requested document/resource could not be located.</li>
+        <li>`403 Forbidden`: Access denied (even if authenticated).</li>
+      </ul>
+    </li>
+    <li>**5XX (Server Error)**: The server encountered an internal error.
+      <ul>
+        <li>`500 Internal Server Error`: General server-side error.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. Data Exchange Format: JSON</h2>
+  <ul>
+    <li>**JSON (JavaScript Object Notation)** is the preferred data exchange format on the web (over XML) due to its speed and simplicity.</li>
+    <li>**Features**: Text-based, fast transmission speed, language-independent, and easy to convert to/from JavaScript objects.</li>
+    <li>**JSON Format**: Composed of key-value pairs enclosed in curly braces `{}`.
+      <ul>
+        <li>**Key**: Must always be enclosed in **double quotes** (e.g., `"name"`).</li>
+        <li>**Value**: Can be a number, string (must be in double quotes), boolean (`true`/`false`), `null`, or an array/nested JSON string. **Functions are not allowed as values.**</li>
+        <li>Multiple JSON strings can be stored together as an **Array** (`[]`).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>5. JSON and JavaScript Conversion</h2>
+  <ul>
+    <li>**Stringify (Serialization)**: Converting a JavaScript **object** into a JSON **string** to be stored or sent to a server.
+      <br><code>JSON.stringify(object)</code></li>
+    <li>**Parse (Parsing)**: Converting a JSON **string** (retrieved from a server) back into a JavaScript **object** to be used in programming.
+      <br><code>JSON.parse(JSON_string)</code></li>
+  </ul>
+
+  <h2>6. Asynchronous Communication (AJAX)</h2>
+  <ul>
+    <li>**Asynchronous Communication**: The process of bringing in only parts of a web document without reloading the entire page. This is handled by **AJAX** (Asynchronous JavaScript and XML).</li>
+    <li>**`XMLHttpRequest` (XHR)**: The object used for HTTP communication (requesting data from a server and receiving the response) in JavaScript.
+      <ul>
+        <li>**Instance Creation**: `let xhr = new XMLHttpRequest();`</li>
+        <li>**Setup**: `xhr.open(method, url, isAsync);` (method is GET/POST, URL is the resource, `isAsync` is typically `true`).</li>
+        <li>**Send**: `xhr.send(content);` (content is optional, usually for POST requests).</li>
+      </ul>
+    </li>
+    <li>**XHR Response Properties**:
+      <ul>
+        <li>**`xhr.readyState`**: Indicates the connection status (0 to 4). `4` means the data processing is complete and ready to use.</li>
+        <li>**`xhr.status`**: The HTTP status code (e.g., `200`).</li>
+        <li>**`xhr.responseText`**: The response data stored as a **string**.</li>
+        <li>**`onreadystatechange`**: An event handler executed every time `readyState` changes. Used to check if `readyState === 4` and `status === 200` to process the received data.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>7. Error Handling (예외 처리)</h2>
+  <p>**Exception Handling** is anticipating and managing issues that could stop a program (e.g., syntax errors, user canceling a prompt).</p>
+  <ul>
+    <li>**`try...catch...finally`**:
+      <ul>
+        <li>**`try`**: Contains the code to execute.</li>
+        <li>**`catch (error)`**: Executes if an exception occurs in the `try` block. Used to display the error (e.g., `console.error(err)`).</li>
+        <li>**`finally`**: Executes after the `try` and `catch` blocks, regardless of whether an exception occurred.</li>
+      </ul>
+    </li>
+    <li>**`throw`**: Allows the user to manually create an exception and specify an error message (e.g., `throw "User name missing.";` or `throw new Error("...");`).</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

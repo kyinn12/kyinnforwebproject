@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 13: Asynchronous Programming - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 13: Asynchronous Programming - Summary</h1>
+
+  <h2>1. Synchronous vs. Asynchronous Processing</h2>
+  <ul>
+    <li>**Synchronous (동기)**: Tasks are executed one after the other in sequence. If a long task starts, all subsequent tasks must wait for it to finish. (Example: Coffee shop processing one customer order completely before taking the next).</li>
+    <li>**Asynchronous (비동기)**: A long task is started and then handed off (e.g., given a buzzer). The main processor moves on to the next task without waiting. When the long task is complete, a notification is handled. (Example: Coffee shop taking the next order while the first coffee is being made).</li>
+    <li>JavaScript uses a **single-thread** model, meaning it can only handle one task at a time. Asynchronous operations (like timers or network requests) are essential to prevent the program from freezing while waiting for slow operations.</li>
+  </ul>
+
+  <h2>2. Callback Functions</h2>
+  <ul>
+    <li>A **Callback** is a function passed as an argument to another function, to be executed later (e.g., when an asynchronous task completes).
+      <br><code>order("Americano", display);</code></li>
+    <li>**Callback Hell (콜백 지옥)**: When multiple asynchronous operations depend on each other, nesting callbacks deeply inside one another creates code that is difficult to read, maintain, and debug.</li>
+  </ul>
+
+  <h2>3. Promises (프로미스)</h2>
+  <p>Introduced in ES6 to manage asynchronous operations and escape Callback Hell by separating the code that produces a result from the code that processes the result.</p>
+  <ul>
+    <li>**Promise Creation**: Use the `Promise` constructor, which takes a function with two arguments: `resolve` (for success) and `reject` (for failure).
+      <br><code>const pizza = new Promise((resolve, reject) => { /* logic */ });</code></li>
+    <li>**Promise States**:
+      <ul>
+        <li>**`pending`**: The initial state (waiting).</li>
+        <li>**`fulfilled`**: The operation succeeded (`resolve` was called).</li>
+        <li>**`rejected`**: The operation failed (`reject` was called).</li>
+      </ul>
+    </li>
+    <li>**Promise Consumption (Execution)**: Executes the promise based on its final state:
+      <ul>
+        <li>**`.then(function)`**: Executes when the promise is **fulfilled**. It receives the value passed to `resolve()`.</li>
+        <li>**`.catch(function)`**: Executes when the promise is **rejected**. It receives the error passed to `reject()`.</li>
+        <li>**`.finally(function)`**: Executes regardless of success or failure.</li>
+      </ul>
+    </li>
+    <li>**Promise Chaining**: The key to escaping Callback Hell. Since `.then()` always returns a new promise, multiple asynchronous steps can be linked sequentially, improving readability: `A.then(B).then(C)`.</li>
+  </ul>
+
+  <h2>4. `fetch` API</h2>
+  <ul>
+    <li>The `fetch()` API is a modern interface used to request data from a server, replacing `XMLHttpRequest`.</li>
+    <li>**Key Feature**: `fetch()` **returns a Promise**.</li>
+    <li>**Usage**: `fetch('url')` returns a `Promise{<pending>}` that resolves into a **Response object**. You typically chain `.then(response => response.json())` to convert the data before using it.</li>
+  </ul>
+
+  <h2>5. `async` and `await`</h2>
+  <p>Introduced to make Promise chaining even easier to read, allowing asynchronous code to be written and read almost like synchronous code.</p>
+  <ul>
+    <li>**`async` Function**: A function declared with the `async` keyword. It implicitly returns a **Promise**.
+      <br><code>async function init() { /* code */ }</code></li>
+    <li>**`await` Keyword**: Can only be used **inside an `async` function**. It pauses the execution of the `async` function until the Promise it is called with is resolved (fulfilled or rejected).
+      <br><code>const response = await fetch(url);</code></li>
+    <li>**Benefit**: Eliminates the need for explicit `.then()` calls when chaining Promises, simplifying the code structure significantly.</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

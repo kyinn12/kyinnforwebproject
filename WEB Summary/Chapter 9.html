@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 9: Creating JavaScript Objects - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 9: Creating JavaScript Objects - Summary</h1>
+
+  <h2>1. What is an Object?</h2>
+  <ul>
+    <li>In programming, an **Object** is the fundamental unit for storing and processing data.</li>
+    <li>In JavaScript, an object is a collection of related **information** and **actions** bundled together.</li>
+    <li>**Types of Objects**:
+      <ul>
+        <li>**Built-in Objects**: Pre-defined objects (e.g., `Date`, `Math`).</li>
+        <li>**Document Object Model (DOM)**: Web documents, including elements like images, links, etc.</li>
+        <li>**Browser Object Model (BOM)**: Information used by the web browser (e.g., `window`, `location`).</li>
+        <li>**User-defined Objects**: Objects created by the user as needed.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>2. Creating User-defined Objects</h2>
+  <p>User-defined objects are created using the **Object Literal** method, consisting of **properties** (key-value pairs).</p>
+  <ul>
+    <li>**Syntax**: `objectName = { key1: value1, key2: value2, ... }`.</li>
+    <li>**Key**: Must be a string, number, or Symbol. Keys are separated by a colon (`:`).</li>
+    <li>**Accessing Properties**:
+      <ul>
+        <li>**Dot Notation**: `object.key` (Key is used without quotes).</li>
+        <li>**Bracket Notation**: `object["key"]` (Key must be enclosed in quotes).</li>
+      </ul>
+    </li>
+    <li>**Modifying/Adding/Deleting**: Properties can be modified or added using assignment (`=`), and deleted using the `delete` keyword.
+      <br><code>book1.pages = 50;</code>
+      <br><code>delete book2.pages;</code></li>
+    <li>**Object Nesting**: Objects can contain other objects (or nested objects). Access nested properties using sequential dot notation (e.g., `student.score.history`).</li>
+  </ul>
+
+  <h2>3. Object Methods and `this`</h2>
+  <ul>
+    <li>**Method**: A property of an object whose value is a **function**, defining the object's behavior.
+      <br>Traditional Syntax: `methodName: function() { ... }`
+      <br>ES6 Shorthand: `methodName() { ... }`</li>
+    <li>**`this` Keyword**: Inside an object's method, `this` is a reserved keyword that refers to the **current object**. It is used to access other properties within the same object (e.g., `this.title`).</li>
+  </ul>
+
+  <h2>4. Object Copying</h2>
+  <ul>
+    <li>**Primitive Data Copy**: When copying primitive data types (e.g., numbers), the **value** is copied. Changing the copied variable does **not** affect the original.</li>
+    <li>**Object Copy**: When copying objects, the **memory address (reference)** is copied. Changing a property in the copied object **will change the original object's value** because both point to the same data location.</li>
+  </ul>
+
+  <h2>5. Constructor Functions and Classes</h2>
+  <p>When multiple objects share the same properties and methods, you can create a **template** (constructor) to easily create new instances.</p>
+  <ul>
+    <li>**Constructor Function**: A template function used to create objects. By convention, the name starts with a capital letter.
+      <br>Inside the function, properties are defined using `this`.
+      <br>Instance creation: `let book1 = new Book("Title", 648);`</li>
+    <li>**Class (ES6 Syntactic Sugar)**: A modern, simpler syntax (syntactic sugar) for creating constructor functions.
+      <br>The **`constructor(parameters)`** method initializes properties using `this`.
+      <br>Instance creation: `let book1 = new BookC("Title", 648);`</li>
+  </ul>
+
+  <h2>6. Accessing Keys and Values</h2>
+  <ul>
+    <li>**`for...in` Loop**: Used to iterate through and retrieve only the **keys** (or both keys and values) of an object.
+      <br><code>for (key in object) { console.log(key); }</code></li>
+    <li>**`Object.keys(object)`**: Returns an array containing only the **keys** of the object.</li>
+    <li>**`Object.values(object)`**: Returns an array containing only the **values** of the object.</li>
+    <li>**`Object.entries(object)`**: Returns an array containing an array of `[key, value]` pairs for each property.</li>
+  </ul>
+
+  <h2>7. Prototypes and Inheritance</h2>
+  <ul>
+    <li>**Prototype**: The original form from which a JavaScript object is created. Every object inherits properties and methods from its prototype.
+      <br>The `[[Prototype]]` property (or `__proto__`) tells you which object an instance was derived from.</li>
+    <li>**Prototype Method**: A method can be defined outside the constructor function using `prototype`. This saves memory as the method is shared by all instances.
+      <br><code>Book.prototype.finish = function() { ... };</code></li>
+    <li>**Inheritance (Class)**: Classes use the **`extends`** keyword to inherit from a parent class.
+      <br>The **`super(properties)`** function must be called inside the child class's `constructor()` to reuse the parent class's properties.
+      <br><code>class TextbookC extends BookC { super(title, price); this.major = major; }</code></li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

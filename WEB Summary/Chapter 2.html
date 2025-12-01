@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 2: Variables and Data Types - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 2: Variables and Data Types - Summary</h1>
+
+  <h2>1. Input and Output Methods (입력과 출력)</h2>
+  <ul>
+    <li>**`alert(content)`**: Displays an **alert box** with a message or variable value.</li>
+    <li>**`confirm(content)`**: Displays a **confirmation box** with "OK" and "Cancel" buttons. Returns `true` if "OK" is clicked, and `false` if "Cancel" is clicked.</li>
+    <li>**`prompt(content, defaultValue)`**: Displays a **prompt box** where the user can input a value. If the user clicks "Cancel" (or doesn't input a value), it returns `null`.</li>
+    <li>**`console.log(content)`**: Displays content in the **console window**, often used for debugging.</li>
+    <li>**`document.write(content)`**: Displays content directly on the **web browser screen**. (Note: This is used temporarily before studying the DOM.)</li>
+  </ul>
+
+  <h2>2. Variables and Declaration (변수와 선언)</h2>
+  <ul>
+    <li>A **Variable** is a name (like a label) assigned to a memory space (like a basket) used to store data values within a program.</li>
+    <li>**Declaration**: Variables are declared using a keyword followed by the variable name.
+      <ul>
+        <li>**`let`**: Used to declare a variable whose value **can be changed (reassigned)** later.</li>
+        <li>**`const` (Constant)**: Used to declare a constant whose value **cannot be changed** (reassigned) after initialization. Constants are useful for values that are logically fixed (e.g., the current year or a DOM element).</li>
+        <li>**`var`**: The older keyword (pre-ES6), which allows both re-declaration and reassignment.</li>
+      </ul>
+    </li>
+    <li>**Assignment**: A value or expression is stored in a variable using the assignment operator (`=`). Declaration and assignment can be done simultaneously.</li>
+  </ul>
+
+  <h2>3. Variable Naming Rules (변수 이름 규칙)</h2>
+  <ul>
+    <li>Cannot start with a **number** or contain **spaces**.</li>
+    <li>Is **case-sensitive** (e.g., `current`, `Current`, and `CURRENT` are all different).</li>
+    <li>Cannot use **reserved keywords** (e.g., `let`).</li>
+    <li>**Common Conventions** (for multi-word variables):
+      <ul>
+        <li>**Snake Case**: Use underscores (`_`) (e.g., `current_year`).</li>
+        <li>**Camel Case**: Capitalize the first letter of each word except the first (e.g., `currentYear`).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. Data Types (자료형)</h2>
+  <p>JavaScript data types are categorized into **Primitive** (single value) and **Object** (all other types).</p>
+  <ul>
+    <li>**`number` (숫자형)**: Includes both integers and floating-point (real) numbers.</li>
+    <li>**`string` (문자열)**: Data enclosed in single (`' '`) or double (`" "`) quotes.
+      <ul>
+        <li>**Escape Characters**: Special characters (like quotes or new lines) are represented using a backslash (`\`) (e.g., `\'`, `\n`).</li>
+        <li>**Template Literal**: An ES6 format using **backticks** (`` ` ``) that allows embedding variables or expressions directly inside the string using `${}`.</li>
+      </ul>
+    </li>
+    <li>**`boolean` (논리형)**: Represents either **`true`** or **`false`**.
+      <ul>
+        <li>**Falsy Values**: Certain values are treated as `false` in logical contexts: `0`, `""` (empty string), `NaN`, `undefined`, and `null`. All other values are considered **Truthy**.</li>
+      </ul>
+    </li>
+    <li>**`undefined`**: The initial type and value of a variable that has been declared but not yet assigned a value.</li>
+    <li>**`null`**: The type and value representing an intentionally invalid or empty value.</li>
+    <li>**`array` (배열)**: Stores multiple values in a single variable, enclosed in square brackets (`[]`) and separated by commas.
+      <ul>
+        <li>**Index**: Values are accessed by their **index**, starting from **0**.</li>
+        <li>The size of the array is given by the **`.length`** property.</li>
+      </ul>
+    </li>
+    <li>**`Symbol`**: A new primitive type (ES6+) that guarantees **uniqueness**. Used mainly as a key in object properties to prevent naming conflicts.</li>
+    <li>**Checking Type**: The **`typeof(value)`** function returns the data type of a value or variable.</li>
+  </ul>
+
+  <h2>5. Type Conversion (자료형 변환)</h2>
+  <p>JavaScript is a loosely typed language, and data types can change during execution.</p>
+  <ul>
+    <li>**Automatic (Implicit) Conversion**: Occurs during operations. For example, the subtraction operator (`-`) automatically converts a string to a number. The addition operator (`+`) acts as a **concatenation operator** if one operand is a string.</li>
+    <li>**Explicit Conversion**: Use built-in functions to control the conversion:
+      <ul>
+        <li>**To Number**: `Number(value)`, `parseInt(value)` (for integer), `parseFloat(value)` (for float).</li>
+        <li>**To String**: `value.toString()`, `String(value)` (can convert `null` and `undefined`).</li>
+        <li>**To Boolean**: `Boolean(value)`.</li>
+        <li>**Fixed Decimal**: `number.toFixed(digits)` fixes the number of decimal places for a floating-point result.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

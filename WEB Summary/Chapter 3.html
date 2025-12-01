@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 3: Operators and Control Statements - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 3: Operators and Control Statements - Summary</h1>
+
+  <h2>1. Operators (연산자)</h2>
+  <p>Operators are symbols that perform an operation on **operands** (the values being manipulated).</p>
+  <ul>
+    <li>**Arithmetic Operators (산술 연산자)**: Perform mathematical calculations.
+      <ul>
+        <li>`+`, `-`, `*`, `/`: Standard addition, subtraction, multiplication, and division.</li>
+        <li>`%` (Modulus): Returns the **remainder** of a division.</li>
+        <li>`++` (Increment): Increases the operand by 1. `--` (Decrement): Decreases the operand by 1.
+          <ul>
+            <li>**Prefix (`++a`)**: Performs the operation **before** the value is used in the expression.</li>
+            <li>**Postfix (`a++`)**: Performs the operation **after** the value is used in the expression.</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>**Assignment Operators (할당 연산자)**: Assign the result of the right-side expression to the left-side variable.
+      <ul>
+        <li>`=` (Assignment)</li>
+        <li>Compound operators: `+=`, `-=`, `*=`, `/=`, `%=` (e.g., `y += x` is equivalent to `y = y + x`).</li>
+      </ul>
+    </li>
+    <li>**Concatenation Operator (연결 연산자)**: The `+` symbol is used to join strings together. **If either operand is a string, JavaScript treats `+` as concatenation.**</li>
+    <li>**Comparison Operators (비교 연산자)**: Compare two values and return a boolean result (`true` or `false`).
+      <ul>
+        <li>`==` (Equal), `!=` (Not Equal): Compares values, **automatically converting data types** if necessary (e.g., `3 == "3"` is `true`).</li>
+        <li>`===` (Strict Equal), `!==` (Strict Not Equal): Compares values and checks if the **data types are identical**. (e.g., `3 === "3"` is `false`).</li>
+      </ul>
+    </li>
+    <li>**Logical Operators (논리 연산자)**: Combine and manipulate boolean values, often used in complex conditions.
+      <ul>
+        <li>`||` (OR): Returns `true` if **at least one** operand is `true`.</li>
+        <li>`&&` (AND): Returns `true` only if **all** operands are `true`.</li>
+        <li>`!` (NOT): Inverts the boolean value of the operand.</li>
+      </ul>
+    </li>
+    <li>**Operator Precedence**: Determines the order in which operators are executed in an expression (Unary > Arithmetic > Comparison > Logical > Assignment).</li>
+  </ul>
+
+  <h2>2. Conditional Statements (조건문)</h2>
+  <p>Statements that allow the program to make decisions based on whether a condition is true or false.</p>
+  <ul>
+    <li>**`if` Statement**: Executes a block of code only if the condition inside the parentheses is `true`.
+      <br><code>if (condition) { /* code to execute if true */ }</code></li>
+    <li>**`if...else` Statement**: Executes the `if` block if the condition is `true`, or executes the `else` block if the condition is `false`.
+      <br><code>if (condition) { /* true code */ } else { /* false code */ }</code></li>
+    <li>**`if...else if...else`**: Links multiple conditions sequentially. The first condition to evaluate to `true` is executed.</li>
+    <li>**Conditional Operator (조건 연산자)**: A shorthand for simple `if...else` structures.
+      <br><code>(condition) ? true_result : false_result;</code></li>
+    <li>**`switch` Statement**: Used when there are many possible conditions to check against a single variable/expression.
+      <ul>
+        <li>The variable is checked against each `case` value.</li>
+        <li>**`break`**: Must be used after the commands in a `case` to exit the `switch` statement immediately.</li>
+        <li>**`default`**: Code that runs if none of the `case` values match.</li>
+      </ul>
+    </li>
+    <li>**Short-Circuit Evaluation (단축 평가)**: In `&&` and `||` operations, if the result can be determined after checking the first condition, the rest of the expression is skipped, making processing faster.</li>
+  </ul>
+
+  <h2>3. Looping Statements (반복문)</h2>
+  <p>Statements used to execute the same code multiple times, reducing repetition and shortening code.</p>
+  <ul>
+    <li>**`for` Loop**: The most common loop, typically used when the number of repetitions is known.
+      <br><code>for (initialization; condition; increment) { /* commands */ }</code></li>
+    <li>**`while` Loop**: Continues to execute as long as the condition is `true`. It checks the condition **before** executing the code.
+      <br><code>while (condition) { /* commands */ }</code></li>
+    <li>**`do...while` Loop**: Executes the code **at least once**, then checks the condition. It continues to execute as long as the condition is `true`.
+      <br><code>do { /* commands */ } while (condition)</code></li>
+    <li>**`for...of` Loop**: Used to iterate through the **values** of an iterable object (like strings or arrays).
+      <br><code>for (variable of object) { /* commands */ }</code></li>
+    <li>**`for...in` Loop**: Used to iterate through the **keys** (or property names) of an object.</li>
+    <li>**`break` Statement**: Immediately exits the current loop (or `switch` statement), regardless of the condition.</li>
+    <li>**`continue` Statement**: Stops the current iteration of the loop and skips to the next iteration.</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>

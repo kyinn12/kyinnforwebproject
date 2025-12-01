@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 4: Functions and Scope - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 4: Functions and Scope - Summary</h1>
+
+  <h2>1. The Role of Functions (함수)</h2>
+  <ul>
+    <li>Functions are essential for **analyzing and solving problems** in programming.</li>
+    <li>A large problem is broken down into smaller issues, and the smallest units are written as functions.</li>
+    <li>Functions allow for **code reuse** and prevent the continuous repetition of the same commands for different data inputs.</li>
+  </ul>
+
+  <h2>2. Function Declaration, Execution, and Return</h2>
+  <ul>
+    <li>**Declaration**: Use the reserved keyword `function`, followed by the function name and curly braces containing the commands.
+      <br><code>function functionName() { /* commands */ }</code></li>
+    <li>**Execution (Calling)**: Execute the function by writing the function name followed by parentheses `()`.
+      <br><code>functionName();</code></li>
+    <li>**Return Value**: The `return` keyword is used to pass the result of the function's execution back to the point where it was called.
+      <br><code>return sum;</code></li>
+  </ul>
+
+  <h2>3. Parameters and Arguments (매개변수와 인수)</h2>
+  <ul>
+    <li>These allow functions to accept external values, making them reusable for various tasks.</li>
+    <li>**Parameter (매개변수)**: Variables declared in the parentheses when defining the function to receive values from outside. Parameters are local to the function they are declared in.</li>
+    <li>**Argument (인수)**: The actual values or variables passed into the function when it is executed.</li>
+    <li>**Default Parameters**: ES6 allows assigning a default value to a parameter during definition, which is used if an argument is missing during execution.</li>
+  </ul>
+
+  <h2>4. Variable Scope (스코프)</h2>
+  <ul>
+    <li>**Scope** is the effective range of a declared variable.</li>
+    <li>**Function Scope (`var`)**: Variables declared with `var` have function scope.
+      <ul>
+        <li>A variable declared within a function is a **local variable**.</li>
+        <li>A variable declared outside any function is a **global variable** and can be used throughout the program.</li>
+      </ul>
+    </li>
+    <li>**Block Scope (`let`, `const`)**: Variables declared with `let` or `const` have block scope.
+      <ul>
+        <li>A **block** is any area enclosed by `{` and `}`.</li>
+        <li>These variables are only valid within the block where they are declared (Block Variables).</li>
+      </ul>
+    </li>
+    <li>**Hoisting (호이스팅)**: `var` variables are hoisted, meaning the declaration is recognized internally before the code is executed, which can lead to unexpected results if the variable is used before it is assigned. **`let` and `const` do not have this issue**.</li>
+  </ul>
+
+  <h2>5. Modern Function Syntax</h2>
+  <ul>
+    <li>**Function Expression (함수 표현식)**: Assigning an anonymous function to a variable, treating the function like a value.
+      <br><code>let sum = function(a, b) { return a + b }</code></li>
+    <li>**Immediately Invoked Function Expression (IIFE)**: A function executed immediately upon declaration, useful for single-use functions.
+      <br><code>(function() { /* commands */ })();</code></li>
+    <li>**Arrow Function (화살표 함수)**: ES6 syntax using `=>` for a simpler function expression.
+      <ul>
+        <li>Can omit `()` if there is only one parameter.</li>
+        <li>Can omit `{}` and `return` if the function body is a single `return` statement.
+          <br><code>let sum = (a, b) => a + b;</code></li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>6. Callback and Rest Parameters</h2>
+  <ul>
+    <li>**Callback Function (콜백 함수)**: A function passed as an argument to another function, to be executed later.
+      <br><code>bttn.addEventListener("click", display); // display is the callback</code></li>
+    <li>**Spread Syntax (전개 구문)**: Uses `...` to unpack values from iterable items (arrays, strings, objects).</li>
+    <li>**Rest Parameters (나머지 매개변수)**: Uses `...` in a function declaration to collect an indefinite number of arguments into an array.
+      <br><code>function addNum(...numbers) { /* commands */ }</code></li>
+  </ul>
+
+  <h2>7. Timer Functions (타이머 함수)</h2>
+  <p>Functions that schedule the execution of a callback function based on time, measured in milliseconds (1s = 1000ms).</p>
+  <ul>
+    <li>**`setInterval(callback, time)`**: Executes the callback repeatedly at set intervals.</li>
+    <li>**`clearInterval(timer)`**: Stops a function that was set to repeat using `setInterval()`.</li>
+    <li>**`setTimeout(callback, time)`**: Executes the callback only once after the specified time delay.</li>
+  </ul>
+
+  <h2>8. Debugging (디버깅)</h2>
+  <ul>
+    <li>**Debugging** is the process of finding and fixing errors when a program's output differs from the expected result.</li>
+    <li>The Browser Developer Tools include a 'Sources' tab where you can set a **breakpoint** (or stop point) by clicking the line number to pause execution.</li>
+    <li>This allows you to check how the source code executes step-by-step and inspect variable values (`n`, `sum`, `i`) at that point.</li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

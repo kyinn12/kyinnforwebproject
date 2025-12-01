@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 15: Handling Graphic Elements with Canvas - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 15: Handling Graphic Elements with Canvas - Summary</h1>
+
+  <h2>1. Drawing Styles and Color</h2>
+  <ul>
+    <li>**Color**: If no color is specified, the default is **black**.
+      <ul>
+        <li>**Fill Color**: `ctx.fillStyle = color;`</li>
+        <li>**Stroke Color**: `ctx.strokeStyle = color;`</li>
+        <li>`color` can be a name, hex value, `rgb`/`rgba`, or `hsl`/`hsla`.</li>
+      </ul>
+    </li>
+    <li>**Transparency (Opacity)**:
+      <ul>
+        <li>**Global Alpha**: `ctx.globalAlpha = value;` sets the transparency for **all subsequent** drawn shapes. Values range from `0.0` (fully transparent) to `1.0` (fully opaque).</li>
+        <li>**RGBA**: Can also use `rgba(r, g, b, a)` where `a` is the alpha value.</li>
+      </ul>
+    </li>
+    <li>**Line Thickness**: `ctx.lineWidth = value;` (default is 1.0; must be non-negative).</li>
+  </ul>
+
+  <h2>2. Gradients and Patterns</h2>
+  <h3>Gradients (그러데이션)</h3>
+  <ul>
+    <li>**Linear Gradient**: Creates a gradient that changes color along a straight line (horizontally or vertically).
+      <ul>
+        <li>Create object: `ctx.createLinearGradient(x1, y1, x2, y2)` (defines the gradient area).</li>
+      </ul>
+    </li>
+    <li>**Radial Gradient**: Creates a gradient that changes color between a starting circle and an ending circle.
+      <ul>
+        <li>Create object: `ctx.createRadialGradient(x1, y1, r1, x2, y2, r2)`.</li>
+      </ul>
+    </li>
+    <li>**Color Stops**: Once a gradient object is created, colors are assigned using relative positions:
+      <br><code>gradient.addColorStop(position, color)</code> (position is a value from `0.0` to `1.0`).</li>
+    <li>Apply gradient: Assign the gradient object to `ctx.fillStyle` or `ctx.strokeStyle`.</li>
+  </ul>
+  <h3>Patterns (패턴 채우기)</h3>
+  <ul>
+    <li>**Pattern Object**: Used to fill shapes with a repeating image instead of a solid color.
+      <ul>
+        <li>Create object: `ctx.createPattern(image, type)` (image is an `Image` object).</li>
+        <li>`type` can be `repeat`, `repeat-x`, `repeat-y`, or `no-repeat`.</li>
+      </ul>
+    </li>
+    <li>Apply pattern: Assign the pattern object to `ctx.fillStyle`.</li>
+  </ul>
+
+  <h2>3. Line and Shadow Styles</h2>
+  <h3>Line Styles</h3>
+  <ul>
+    <li>**Line Endings (`lineCap`)**: Specifies the shape of the ends of lines.
+      <ul>
+        <li>`butt` (default): Flat, square ends.</li>
+        <li>`round`: Ends are half-circles with a radius equal to half the line width.</li>
+        <li>`square`: Ends are squares with a height equal to half the line width, extending past the endpoint.</li>
+      </ul>
+    </li>
+    <li>**Line Joins (`lineJoin`)**: Specifies how two lines connect.
+      <ul>
+        <li>`miter` (default): Creates a sharp corner (like a single line).</li>
+        <li>`round`: Creates a rounded corner.</li>
+        <li>`bevel`: Creates a clean, "cut-off" corner.</li>
+      </ul>
+    </li>
+    <li>**`miterLimit`**: Determines how much the corner can extend when `lineJoin` is set to `miter` (default 10).</li>
+  </ul>
+  <h3>Shadow Effects</h3>
+  <p>Shadow properties must be declared before the shape is drawn.</p>
+  <ul>
+    <li>`ctx.shadowOffsetX`: Horizontal distance of the shadow (positive = right, negative = left).</li>
+    <li>`ctx.shadowOffsetY`: Vertical distance of the shadow (positive = down, negative = up).</li>
+    <li>`ctx.shadowColor`: Shadow color (default is transparent black).</li>
+    <li>`ctx.shadowBlur`: The degree of blurriness (0 is sharpest; higher numbers increase blur).</li>
+  </ul>
+
+  <h2>4. Context Transformations (변형)</h2>
+  <p>Transformations change the **2D context** itself, affecting all subsequent drawing operations.</p>
+  <ul>
+    <li>**State Management**: It's crucial to save and restore the context state to prevent unwanted effects on other elements.
+      <ul>
+        <li>`ctx.save()`: Stores the current context state (styles, transforms, clipping path).</li>
+        <li>`ctx.restore()`: Recalls the last saved state.</li>
+      </ul>
+    </li>
+    <li>**Translation (Moving Origin)**: `ctx.translate(x, y)` moves the origin point `(0, 0)` of the canvas by the specified distance. This effectively moves all subsequent graphics relative to the new origin.</li>
+    <li>**Rotation**: `ctx.rotate(angle)` rotates the graphic elements **around the canvas origin**.
+      <ul>
+        <li>To rotate a shape around its own center, first use `translate()` to move the origin to the shape's center point, apply `rotate()`, and then translate the origin back.</li>
+        <li>Angle must be in **radians**, and rotation is **clockwise**.</li>
+      </ul>
+    </li>
+    <li>**Scaling (Resizing)**: `ctx.scale(x, y)` magnifies or shrinks the graphics.
+      <ul>
+        <li>A scale factor greater than 1.0 (e.g., `scale(2, 2)`) **magnifies** the drawing unit (pixel).</li>
+        <li>A scale factor between 0.0 and 1.0 (e.g., `scale(1, 0.7)`) **shrinks** the drawing unit.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>5. Graphics Composition (합성)</h2>
+  <ul>
+    <li>**`globalCompositeOperation`**: Used when two or more graphics overlap, determining how the **source** (later drawn) graphic interacts with the **destination** (earlier drawn) graphic.
+      <ul>
+        <li>`source-over`: (Default) Source is drawn on top of the destination.</li>
+        <li>`destination-over`: Destination is drawn on top of the source.</li>
+        <li>`source-in`: Only the overlapping area of the source is drawn.</li>
+        <li>`destination-out`: Only the non-overlapping area of the destination is drawn.</li>
+        <li>`lighter`: Overlapping areas combine color values.</li>
+        <li>`xor`: Overlapping areas become transparent.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>

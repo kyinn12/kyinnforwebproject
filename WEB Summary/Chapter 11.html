@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 11: Arrays and Objects in Depth - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 11: Arrays and Objects in Depth - Summary</h1>
+
+  <h2>1. ECMAScript 2015+ Features</h2>
+  <ul>
+    <li>**Default Parameter Values**: You can assign default values to function parameters. If an argument is omitted during function execution, the default value is used.</li>
+    <li>**Spread Syntax (`...`)**: Has multiple uses:
+      <ul>
+        <li>**In Functions (Rest Parameter)**: Allows receiving an indefinite number of arguments as a single array (e.g., `function addNum(...numbers)`).</li>
+        <li>**In Arrays**: Used to concatenate arrays (`[...arr1, ...arr2]`) or to copy array values (creating a shallow copy).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>2. Advanced Object Features (ES2015+)</h2>
+  <ul>
+    <li>**Bracket Notation for Property Access**: Can be used to access object properties (the property name must be a string: `book["published date"]`).</li>
+    <li>**Computed Property Names**: Allows using functions or expressions to calculate a property name when defining an object.
+      <br><code>const obj = { [add(10, 20)]: "value" }</code></li>
+    <li>**Property Value Shorthand**: If a variable name and the object property name are the same, you can use the variable name only when defining the object (e.g., `{ name, age }` instead of `{ name: name, age: age }`).</li>
+    <li>**Symbol Keys**: **Symbol** is a new primitive data type (ES2015+). It guarantees a unique value and can be used as a property key to prevent naming collisions, especially when information should not be easily iterated over.
+      <ul>
+        <li>Access: Symbol keys require bracket notation (e.g., `member[id]`).</li>
+        <li>Global Symbol: `Symbol.for("key")` checks a global registry for an existing Symbol before creating a new one. `Symbol.keyFor(symbol)` retrieves the key from the registry.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>3. Destructuring Assignment (구조 분해 할당)</h2>
+  <ul>
+    <li>**Destructuring** allows breaking down the structure of an array or object to assign some or all of its values to new variables easily.</li>
+    <li>**Array Destructuring**: Uses square brackets `[]`. Values are assigned by position.
+      <ul>
+        <li>Skipping Values: Use empty spaces/commas to skip elements (e.g., `let [spring,,fall,]`).</li>
+        <li>Rest Variable: Use `...` for the last variable to collect the remaining elements into an array (e.g., `let [teacher, ...students]`).</li>
+        <li>Swapping Values: Can easily swap two variable values: `[x, y] = [y, x]`.</li>
+      </ul>
+    </li>
+    <li>**Object Destructuring**: Uses curly braces `{}`. Values are assigned by **matching the property name** to the variable name.
+      <ul>
+        <li>Renaming: You can assign a property's value to a variable with a different name (e.g., `let {name: userName, age} = member`).</li>
+        <li>Nested Destructuring: Can extract values from nested objects or arrays.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. Array Manipulation Methods</h2>
+  <ul>
+    <li>**`map()`**: Executes the same function on every element in an array and returns the results in a **new array**.
+      <br><code>numbers.map(number => number * 2);</code></li>
+    <li>**`filter()`**: Executes a function for every element and returns a **new array** containing only the elements that satisfy the specified condition (i.e., the function returns `true`).</li>
+    <li>**`reduce()`**: Executes a function on all array elements sequentially to **accumulate the result** into a single value.
+      <br>Syntax: `array.reduce((accumulator, currentValue, index, array) => { ... }, initialValue);`</li>
+  </ul>
+
+  <h2>5. Map and Set Objects</h2>
+  <p>Map and Set were introduced to complement Arrays and Objects, overcoming their limitations (e.g., Object keys must be strings; Array/Object iteration limitations).</p>
+  <ul>
+    <li>**Map**: A collection of key-value pairs (similar to an Object), but:
+      <ul>
+        <li>**Keys**: Can use **any data type** (objects, functions, etc.) as a key.</li>
+        <li>**Order**: Properties maintain the order in which they were added.</li>
+        <li>**Methods**: `new Map()`, `set(key, value)` (add/update), `get(key)`, `size` (property), `has(key)`, `delete(key)`, `clear()`.</li>
+        <li>**Chaining**: `set()` returns the Map instance, allowing method chaining.</li>
+        <li>**Iteration**: Map methods (`keys()`, `values()`, `entries()`) return an **Iterable object**, allowing the use of `for...of` loops.</li>
+      </ul>
+    </li>
+    <li>**Set**: A collection of values (similar to an Array), but:
+      <ul>
+        <li>**Uniqueness**: **Does not allow duplicate values**.</li>
+        <li>**Methods**: `new Set()`, `add(value)`, `size`, `has(value)`, `delete(value)`, `clear()`.</li>
+        <li>**Use Case**: Ideal for checking attendance or storing unique items.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>6. Iterators and Generators</h2>
+  <ul>
+    <li>**Iterable Object**: An object that can be processed sequentially (e.g., Array, String, Map, Set).
+      <ul>
+        <li>Iterable objects contain the `Symbol.iterator` method, which is the **Iterable Protocol**.</li>
+        <li>They support `for...of` loops, the Spread Operator (`...`), and Destructuring Assignment.</li>
+      </ul>
+    </li>
+    <li>**Iterator Object**: An object capable of retrieving elements sequentially.
+      <ul>
+        <li>It is returned by executing the `Symbol.iterator` method.</li>
+        <li>It has a **`next()`** method, which returns an object with `{ value: nextValue, done: boolean }`.</li>
+      </ul>
+    </li>
+    <li>**Generator Function**: Used to make general objects iterable.
+      <ul>
+        <li>It is defined using `function* functionName() { ... }`.</li>
+        <li>Uses the **`yield`** statement instead of `return` to return values sequentially.</li>
+        <li>It returns an **Iterator object**, which can be controlled using `next()` or iterated over using `for...of`.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>

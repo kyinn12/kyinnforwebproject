@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chapter 17: Utilizing Web APIs - Summary</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.8;
+      margin: 40px;
+      background-color: #fdfdfd;
+      color: #000;
+    }
+    h1 {
+      color: #1a1a1a;
+      text-align: center;
+      text-decoration: underline;
+    }
+    h2 {
+      color: #333333;
+      margin-top: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    pre {
+      background-color: #f4f4f4;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-size: 15px;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .home-button {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .home-button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Chapter 17: Utilizing Web APIs - Summary</h1>
+
+  <h2>1. Understanding API and Web APIs</h2>
+  <ul>
+    <li>**API (Application Programming Interface)**: An interface that helps programs easily exchange information. APIs simplify development (e.g., the Canvas API makes drawing easy).</li>
+    <li>**Open API (Public API)**: APIs made publicly available for anyone to use (e.g., using a portal site's map or government data).</li>
+    <li>**Web API**: APIs that are built directly into HTML and can be used with JavaScript to build web applications.</li>
+  </ul>
+
+  <h2>2. Web Storage API (웹 스토리지 API)</h2>
+  <p>Web Storage is used to store website-related information on the user's computer, offering advantages over traditional cookies.</p>
+  <ul>
+    <li>**Cookies vs. Web Storage**:
+      <ul>
+        <li>Cookies are small text files (max 4KB per file, 50 per domain) sent back and forth to the server on every request, posing security/privacy risks.</li>
+        <li>Web Storage is larger (2-10MB per domain) and data is **not** automatically sent to the server, improving security.</li>
+      </ul>
+    </li>
+    <li>**Types of Web Storage**:
+      <ul>
+        <li>**Session Storage**: Stores data only for the current **session** (until the browser window or tab is closed).</li>
+        <li>**Local Storage**: Stores data permanently, even after the browser is closed, until explicitly deleted by the user or application.</li>
+      </ul>
+    </li>
+    <li>**Storage Object Methods**: Used identically for both Session and Local Storage. Data is stored as a JSON string and must be parsed when retrieved.
+      <ul>
+        <li>`setItem(key, value)`: Stores or updates a key-value pair.</li>
+        <li>`getItem(key)`: Retrieves the value for the specified key.</li>
+        <li>`removeItem(key)`: Deletes the item with the specified key.</li>
+        <li>`clear()`: Deletes all key-value pairs in the storage.</li>
+        <li>`length`: Property that returns the number of items stored.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>3. Geolocation API (지오로케이션 API)</h2>
+  <ul>
+    <li>The Geolocation API allows an application to access the user's location information (longitude/latitude).</li>
+    <li>It is a child object of the `window.navigator` object.</li>
+    <li>**Security**: Must be used only over **HTTPS** (secure protocol) because location data is sensitive. The browser always prompts the user for permission before providing location data.</li>
+    <li>**`geolocation` Object Methods**:
+      <ul>
+        <li>`getCurrentPosition(success, error, options)`: Retrieves the **device's current location** once.</li>
+        <li>`watchPosition(success, error, options)`: Continuously monitors and updates the location (periodically checks for changes).</li>
+        <li>`clearWatch(id)`: Stops the continuous location monitoring started by `watchPosition()`.</li>
+      </ul>
+    </li>
+    <li>**`position` Object**: The object containing the location data, passed to the `successCallback`.
+      <ul>
+        <li>Key data: `coords.latitude` and `coords.longitude` (in degrees), `timestamp` (time of retrieval).</li>
+        <li>All properties are read-only.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>4. Web Storage Practical Application (To-do List)</h2>
+  <p>To use Web Storage to manage a to-do list, data must be converted for storage and retrieval:</p>
+  <ol>
+    <li>**Save Data**: When a user adds an item, the existing data is retrieved, parsed from JSON, the new item is pushed into the JavaScript array, and the entire array is converted back to a JSON string before being saved to `localStorage`.
+      <br><code>localStorage.setItem('todos', JSON.stringify(todos));</code></li>
+    <li>**Display Data**: On page load (`DOMContentLoaded` event), stored data is retrieved, parsed, and iterated over to dynamically create and display the HTML elements (the list items and buttons).</li>
+    <li>**Delete Data**: To delete an item, find the item's index in the JavaScript array (`todos.indexOf(value)`), use `splice(index, 1)` to remove it, and then save the updated array back to `localStorage`.</li>
+  </ol>
+
+  <div class="button-container">
+    <button class="home-button" onclick="window.location.href='index.html'">
+      Go Back to Home Page
+    </button>
+  </div>
+
+</body>
+</html>
