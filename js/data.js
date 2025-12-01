@@ -435,8 +435,7 @@ function sortProducts(option) {
         return;
     }
     
-    let sortedProducts = [...allProducts];
-    let sortedProducts = [...productsToSort]; 
+    let sortedProducts = [...allProducts]; 
 
     if (option === 'price-asc') {
         sortedProducts.sort((a, b) => a.price - b.price);
@@ -444,6 +443,8 @@ function sortProducts(option) {
         sortedProducts.sort((a, b) => b.price - a.price);
     } else if (option === 'name-asc') {
         sortedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (option === 'default') {
+        sortedProducts = allProducts;
     }
     
     renderProducts(sortedProducts);
@@ -471,15 +472,9 @@ function searchProducts(keyword) {
     }
     
     const searchResults = allProducts.filter(product => {
-    
-    if (!keyword.trim()) {
-        renderProducts(productsToSearch);
-        return;
-    }
-    
-    const searchResults = productsToSearch.filter(product => {
         const nameMatch = product.name.toLowerCase().includes(keyword);
-        const tagMatch = product.tags.some(tag => tag.toLowerCase().includes(keyword)); 
+        const tags = Array.isArray(product.tags) ? product.tags : [];
+        const tagMatch = tags.some(tag => tag.toLowerCase().includes(keyword)); 
         
         return nameMatch || tagMatch;
     });
