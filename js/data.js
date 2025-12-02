@@ -212,27 +212,56 @@ async function updateProduct(id, updatedProduct) {
 }
 
 async function deleteProduct(id) {
+    const normalizedId = typeof id === 'string' ? parseInt(id) : id;
+    
     if (USE_API) {
       try {
-        await fetch(`${API_BASE_URL}/products/${id}`, {
+        await fetch(`${API_BASE_URL}/products/${normalizedId}`, {
           method: 'DELETE',
         });
         allProducts = await fetchProductsFromApi();
       } catch (err) {
         console.error('API not available, deleting from localStorage only');
         let products = getProductsFromStorage();
-        products = products.filter(p => p.id !== id);
+        products = products.filter(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          return pId !== normalizedId;
+        });
         saveProductsToStorage(products);
         allProducts = products;
       }
     } else {
-      let products = getProductsFromStorage();
-      products = products.filter(p => p.id !== id);
-      saveProductsToStorage(products);
-      allProducts = products;
+      const fileProducts = await fetchProductsFromFile();
+      let storageProducts = getProductsFromStorage();
+      
+      const fileProductIds = fileProducts.map(p => {
+        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+        return isNaN(pId) ? 0 : pId;
+      });
+      
+      if (fileProductIds.includes(normalizedId)) {
+        alert('Cannot delete products from items.json. Only products you added can be deleted.');
+        return;
+      }
+      
+      storageProducts = storageProducts.filter(p => {
+        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+        return pId !== normalizedId;
+      });
+      saveProductsToStorage(storageProducts);
+      
+      const mergedProducts = [...fileProducts, ...storageProducts];
+      const mergedMap = new Map();
+      mergedProducts.forEach(p => {
+        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+        if (!isNaN(pId) && pId > 0) {
+          mergedMap.set(pId, { ...p, id: pId });
+        }
+      });
+      allProducts = Array.from(mergedMap.values());
     }
   
-    console.log(`Product ID ${id} deleted.`);
+    console.log(`Product ID ${normalizedId} deleted.`);
     renderSellerProducts();
 }
 
