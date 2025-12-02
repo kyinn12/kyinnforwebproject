@@ -289,13 +289,18 @@ async function addNewProduct(newProduct) {
         
         let storageProducts2 = getProductsFromStorage();
         storageProducts2.push(productPayload);
-        saveProductsToStorage(storageProducts2);
         
-        // Force sync to cloud storage after add
+        // Save locally first
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts2));
+        
+        // Force sync to cloud storage after add (wait for it to complete)
         if (USE_CLOUD_STORAGE) {
           const syncSuccess = await syncToCloudStorage(storageProducts2);
-          if (!syncSuccess) {
-            console.warn('⚠️ Product added locally but failed to sync to cloud. Other browsers may not see it.');
+          if (syncSuccess) {
+            console.log('✅ Product added and synced - visible in all browsers now!');
+          } else {
+            console.warn('⚠️ Product added locally but failed to sync to cloud.');
+            console.warn('⚠️ Other browsers may not see it. Check console for API key instructions.');
           }
         }
         
