@@ -127,14 +127,21 @@ async function syncToCloudStorage(products) {
             console.warn('⚠️ No API key provided - write operations will fail');
         }
         
+        // Also sync deleted products list so deletions sync across browsers
+        const deletedProducts = getDeletedProductIds();
+        
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
         console.log('📤 Syncing to:', url);
         console.log('📦 Products to sync:', products.length);
+        console.log('🗑️ Deleted products to sync:', deletedProducts.length);
         
         const response = await fetch(url, {
             method: 'PUT',
             headers: headers,
-            body: JSON.stringify({ products })
+            body: JSON.stringify({ 
+                products,
+                deletedProducts 
+            })
         });
         
         if (response.ok) {
@@ -197,7 +204,15 @@ async function syncFromCloudStorage() {
         if (res.ok) {
             const data = await res.json();
             const cloudProducts = data.record?.products || [];
+            const cloudDeletedProducts = data.record?.deletedProducts || [];
+            
             if (Array.isArray(cloudProducts)) {
+                // Sync deleted products list from cloud
+                if (Array.isArray(cloudDeletedProducts) && cloudDeletedProducts.length > 0) {
+                    localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(cloudDeletedProducts));
+                    console.log('✅ Synced deleted products list from cloud:', cloudDeletedProducts.length, 'deleted IDs');
+                }
+                
                 // Use cloud products as source of truth, but merge intelligently
                 const localProducts = getProductsFromStorage();
                 
@@ -487,9 +502,15 @@ async function deleteProduct(id) {
         
         if (fileProductIds.includes(normalizedId)) {
           addToDeletedProducts(normalizedId);
-          // Sync deleted list to cloud storage
+          // Sync deleted list to cloud storage (include current products and deleted list)
           if (USE_CLOUD_STORAGE) {
-            await syncToCloudStorage(storageProducts);
+            const syncSuccess = await syncToCloudStorage(storageProducts);
+            if (syncSuccess) {
+              console.log('✅ Product deleted and synced - removed from all browsers now!');
+            } else {
+              console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
+              console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
+            }
           }
         } else {
           const beforeCount = storageProducts.length;
