@@ -19,7 +19,7 @@ const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
 // IMPORTANT: JSONBin.io requires an API key for write operations
 // Get your API key from: https://jsonbin.io/app/account/api-keys
 // Then add it below:
-const JSONBIN_API_KEY = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR09351.7JzDzd8CkF0VVnYvgog3YZfG'; // X-MASTER-KEY from JSONBin.io
+const JSONBIN_API_KEY = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // X-MASTER-KEY from JSONBin.io
 
 async function fetchProductsFromApi() {
   if (USE_API) {
@@ -118,15 +118,20 @@ async function syncToCloudStorage(products) {
             'Content-Type': 'application/json',
         };
         
-        // Add API key if available (required for write operations on private bins)
+        // Add API key if available (required for write operations)
         if (JSONBIN_API_KEY) {
             headers['X-Master-Key'] = JSONBIN_API_KEY;
+            // Debug: Log first few characters to verify key is set (don't log full key for security)
+            console.log('🔑 Using API key:', JSONBIN_API_KEY.substring(0, 10) + '...');
         } else {
-            // Try without API key (works for public bins)
-            console.log('ℹ️ Syncing without API key (bin must be public)');
+            console.warn('⚠️ No API key provided - write operations will fail');
         }
         
-        const response = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`, {
+        const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
+        console.log('📤 Syncing to:', url);
+        console.log('📦 Products to sync:', products.length);
+        
+        const response = await fetch(url, {
             method: 'PUT',
             headers: headers,
             body: JSON.stringify({ products })
@@ -140,17 +145,26 @@ async function syncToCloudStorage(products) {
         } else {
             const errorData = await response.json().catch(() => ({}));
             const errorText = await response.text().catch(() => '');
-            console.error('❌ Cloud storage sync FAILED:', response.status, errorData || errorText);
+            console.error('❌ Cloud storage sync FAILED:', response.status);
+            console.error('📋 Error details:', errorData || errorText);
+            console.error('🔑 API Key used:', JSONBIN_API_KEY ? JSONBIN_API_KEY.substring(0, 10) + '...' : 'NONE');
+            console.error('🆔 Bin ID:', CLOUD_STORAGE_BIN_ID);
+            
             if (response.status === 401 || response.status === 403) {
-                console.error('💡 401 ERROR: Invalid API key or bin belongs to different account');
-                console.error('💡 SOLUTION 1: Make sure API key and bin are from the SAME account');
-                console.error('💡 Step 1: Go to https://jsonbin.io/app/bins - verify bin exists');
-                console.error('💡 Step 2: Go to https://jsonbin.io/app/account/api-keys - create NEW key');
-                console.error('💡 Step 3: Copy ENTIRE key and update JSONBIN_API_KEY in data.js');
-                console.error('💡 SOLUTION 2: Make bin public (works without API key for reads)');
-                console.error('💡 Go to bin settings and change visibility to "Public"');
+                console.error('💡 401/403 ERROR: Authentication failed');
+                console.error('💡 Possible causes:');
+                console.error('   1. API key is incorrect or incomplete');
+                console.error('   2. API key and bin are from different accounts');
+                console.error('   3. Bin is private and requires API key (you have one, so check #1 or #2)');
+                console.error('💡 SOLUTION:');
+                console.error('   - Verify bin exists: https://jsonbin.io/app/bins');
+                console.error('   - Verify API key: https://jsonbin.io/app/account/api-keys');
+                console.error('   - Make sure both are from the SAME account');
+                console.error('   - Copy the ENTIRE X-MASTER-KEY (starts with $2a$10$)');
+                console.error('   - Make bin public: Go to bin settings → Change to "Public"');
             } else if (response.status === 404) {
-                console.error('💡 Bin ID not found. Check CLOUD_STORAGE_BIN_ID is correct.');
+                console.error('💡 404 ERROR: Bin ID not found');
+                console.error('💡 Check CLOUD_STORAGE_BIN_ID is correct:', CLOUD_STORAGE_BIN_ID);
             }
             return false;
         }
@@ -168,7 +182,15 @@ async function syncFromCloudStorage() {
             headers['X-Master-Key'] = JSONBIN_API_KEY;
         }
         
-        const res = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`, {
+        const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`;
+        console.log('📥 Syncing from:', url);
+        if (JSONBIN_API_KEY) {
+            console.log('🔑 Using API key:', JSONBIN_API_KEY.substring(0, 10) + '...');
+        } else {
+            console.log('ℹ️ No API key - bin must be public for reads');
+        }
+        
+        const res = await fetch(url, {
             headers: headers
         });
         
