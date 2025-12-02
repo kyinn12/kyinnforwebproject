@@ -7,6 +7,7 @@ let editingProductId = null;
 const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
 const CART_KEY = 'codedlookCart';       
+const DELETED_PRODUCTS_KEY = 'codedlookDeletedProducts';
 const API_BASE_URL = 'http://localhost:4000';
 const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 
@@ -92,10 +93,31 @@ function saveProductsToStorage(products) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
 }
 
+function getDeletedProductIds() {
+    const deletedJson = localStorage.getItem(DELETED_PRODUCTS_KEY);
+    return deletedJson ? JSON.parse(deletedJson) : [];
+}
+
+function addToDeletedProducts(productId) {
+    const deletedIds = getDeletedProductIds();
+    const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
+    if (!deletedIds.includes(normalizedId)) {
+        deletedIds.push(normalizedId);
+        localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(deletedIds));
+    }
+}
+
+function removeFromDeletedProducts(productId) {
+    const deletedIds = getDeletedProductIds();
+    const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
+    const filtered = deletedIds.filter(id => id !== normalizedId);
+    localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(filtered));
+}
+
 function initializeData() {
     try {
-        if (!localStorage.getItem(STORAGE_KEY)) {
-            saveProductsToStorage(defaultProducts);
+    if (!localStorage.getItem(STORAGE_KEY)) {
+        saveProductsToStorage(defaultProducts);
         }
     } catch (err) {
         console.log('initializeData: Using API for products');
@@ -104,11 +126,11 @@ function initializeData() {
 
 async function addNewProduct(newProduct) {
     const productPayload = {
-      name: newProduct.name,
-      price: parseInt(newProduct.price),
-      category: newProduct.category,
-      tags: newProduct.tags.split(',').map(tag => tag.trim()),
-      stock: parseInt(newProduct.stock),
+        name: newProduct.name,
+        price: parseInt(newProduct.price),
+        category: newProduct.category,
+        tags: newProduct.tags.split(',').map(tag => tag.trim()),
+        stock: parseInt(newProduct.stock),
       imageUrl: newProduct.image || 'https://i.imgur.com/FRTPdpc.jpeg',
     };
   
@@ -147,11 +169,12 @@ async function addNewProduct(newProduct) {
         storageProducts2.push(productPayload);
         saveProductsToStorage(storageProducts2);
         
+        const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts2];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
           const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          if (!isNaN(id) && id > 0) {
+          if (!isNaN(id) && id > 0 && !deletedIds.includes(id)) {
             mergedMap.set(id, { ...p, id });
           }
         });
@@ -162,12 +185,12 @@ async function addNewProduct(newProduct) {
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 110;
         productPayload.id = newId;
         products.push(productPayload);
-        saveProductsToStorage(products);
-        allProducts = products;
+    saveProductsToStorage(products); 
+    allProducts = products; 
       }
     }
-  
-    renderSellerProducts();
+    
+    renderSellerProducts(); 
 }
 
 async function updateProduct(id, updatedProduct) {
@@ -199,7 +222,7 @@ async function updateProduct(id, updatedProduct) {
         }
       }
     } else {
-      let products = getProductsFromStorage();
+    let products = getProductsFromStorage();
       const index = products.findIndex(p => p.id === id);
       if (index !== -1) {
         products[index] = { ...products[index], ...updated };
@@ -207,8 +230,8 @@ async function updateProduct(id, updatedProduct) {
         allProducts = products;
       }
     }
-  
-    renderSellerProducts();
+    
+    renderSellerProducts(); 
 }
 
 async function deleteProduct(id) {
@@ -241,28 +264,28 @@ async function deleteProduct(id) {
         });
         
         if (fileProductIds.includes(normalizedId)) {
-          alert('Cannot delete products from items.json. Only products you added can be deleted.');
-          return;
+          addToDeletedProducts(normalizedId);
+        } else {
+          const beforeCount = storageProducts.length;
+          storageProducts = storageProducts.filter(p => {
+            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return pId !== normalizedId;
+          });
+          
+          if (storageProducts.length === beforeCount) {
+            console.warn(`Product ID ${normalizedId} not found in localStorage`);
+            return;
+          }
+          
+          saveProductsToStorage(storageProducts);
         }
         
-        const beforeCount = storageProducts.length;
-        storageProducts = storageProducts.filter(p => {
-          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          return pId !== normalizedId;
-        });
-        
-        if (storageProducts.length === beforeCount) {
-          console.warn(`Product ID ${normalizedId} not found in localStorage`);
-          return;
-        }
-        
-        saveProductsToStorage(storageProducts);
-        
+        const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
           const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          if (!isNaN(pId) && pId > 0) {
+          if (!isNaN(pId) && pId > 0 && !deletedIds.includes(pId)) {
             mergedMap.set(pId, { ...p, id: pId });
           }
         });
@@ -287,11 +310,12 @@ async function loadEmbeddedProducts() {
       } else {
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
+        const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
           const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          if (!isNaN(id) && id > 0) {
+          if (!isNaN(id) && id > 0 && !deletedIds.includes(id)) {
             mergedMap.set(id, { ...p, id });
           }
         });
@@ -311,7 +335,7 @@ async function loadEmbeddedProducts() {
       }
     } catch (err) {
       console.error('Error loading products:', err);
-      allProducts = getProductsFromStorage(); 
+    allProducts = getProductsFromStorage(); 
       if (!allProducts || allProducts.length === 0) {
         console.error('No products found.');
         if (productListContainer) {
@@ -322,7 +346,7 @@ async function loadEmbeddedProducts() {
           `;
         }
       } else {
-        renderProducts(allProducts);
+    renderProducts(allProducts);
       }
     }
 }
@@ -400,7 +424,7 @@ function initProductControls() {
 async function renderSellerProducts() {
     const sellerTableBody = document.querySelector('#product-table tbody');
     if (!sellerTableBody) return;
-  
+
     let products = allProducts;
     if (!products || !products.length) {
       if (USE_API) {
@@ -408,11 +432,12 @@ async function renderSellerProducts() {
       } else {
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
+        const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
           const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          if (!isNaN(id) && id > 0) {
+          if (!isNaN(id) && id > 0 && !deletedIds.includes(id)) {
             mergedMap.set(id, { ...p, id });
           }
         });
@@ -421,21 +446,21 @@ async function renderSellerProducts() {
       allProducts = products;
     }
   
-    sellerTableBody.innerHTML = '';
+    sellerTableBody.innerHTML = ''; 
     products.forEach(product => {
-      const row = sellerTableBody.insertRow();
-      row.innerHTML = `
-        <td>${product.id}</td>
-        <td><img src="${product.imageUrl}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover;"></td>
-        <td>${product.name}</td>
-        <td>${product.category}</td>
-        <td>${product.price.toLocaleString('ko-KR')}원</td>
-        <td>${product.stock > 0 ? product.stock : '품절'}</td>
-        <td>
-          <button class="btn-seller-delete" data-id="${product.id}">Delete</button>
+        const row = sellerTableBody.insertRow();
+        row.innerHTML = `
+            <td>${product.id}</td>
+            <td><img src="${product.imageUrl}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover;"></td>
+            <td>${product.name}</td>
+            <td>${product.category}</td>
+            <td>${product.price.toLocaleString('ko-KR')}원</td>
+            <td>${product.stock > 0 ? product.stock : '품절'}</td>
+            <td>
+                <button class="btn-seller-delete" data-id="${product.id}">Delete</button>
           <button class="btn-seller-edit" data-id="${product.id}">Edit</button>
-        </td>
-      `;
+            </td>
+        `;
     });
     
     const deleteButtons = document.querySelectorAll('.btn-seller-delete');
