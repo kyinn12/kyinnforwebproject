@@ -220,7 +220,11 @@ async function syncFromCloudStorage() {
                 // Create a map - CLOUD is source of truth, then local, then items.json
                 const mergedMap = new Map();
                 
-                // Step 1: Add items.json products first (base products, lowest priority)
+                // CLOUD is the source of truth for storage products
+                // Use cloud products directly (they are the storage products from cloud)
+                // Then add items.json products (static file)
+                
+                // Step 1: Add items.json products first (base products)
                 fileProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     if (!isNaN(id) && id > 0) {
@@ -228,16 +232,8 @@ async function syncFromCloudStorage() {
                     }
                 });
                 
-                // Step 2: Add local storage products (override items.json if same ID)
-                localProducts.forEach(p => {
-                    const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-                    if (!isNaN(id) && id > 0) {
-                        mergedMap.set(id, { ...p, id });
-                    }
-                });
-                
-                // Step 3: Add cloud products LAST (highest priority - source of truth)
-                // This ensures cloud storage always wins for storage products
+                // Step 2: Add cloud products (source of truth for storage products - overrides items.json if same ID)
+                // Cloud products are the storage products synced from cloud
                 cloudProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     if (!isNaN(id) && id > 0) {
@@ -245,12 +241,23 @@ async function syncFromCloudStorage() {
                     }
                 });
                 
-                // Save merged storage products (cloud + local) to localStorage
+                // Step 3: Add any local storage products that aren't in cloud (newer local additions that haven't synced yet)
+                // Only add if they're not already in cloud (cloud is source of truth)
+                localProducts.forEach(p => {
+                    const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    if (!isNaN(id) && id > 0 && !mergedMap.has(id)) {
+                        // This product exists locally but not in cloud - add it
+                        mergedMap.set(id, { ...p, id });
+                    }
+                });
+                
+                // Save ONLY storage products (cloud + any new local) to localStorage
+                // Exclude items.json products from storage
+                const fileProductIds = fileProducts.map(fp => {
+                    const fid = typeof fp.id === 'string' ? parseInt(fp.id) : fp.id;
+                    return isNaN(fid) ? 0 : fid;
+                });
                 const storageProductsOnly = Array.from(mergedMap.values()).filter(p => {
-                    const fileProductIds = fileProducts.map(fp => {
-                        const fid = typeof fp.id === 'string' ? parseInt(fp.id) : fp.id;
-                        return isNaN(fid) ? 0 : fid;
-                    });
                     const pid = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     return !fileProductIds.includes(pid);
                 });
@@ -537,18 +544,18 @@ async function deleteProduct(id) {
         if (fileProductIds.includes(normalizedId)) {
           // Product is from items.json - mark as deleted
           addToDeletedProducts(normalizedId);
-          // Sync deleted list to cloud storage
+          // Sync deleted list AND current storage products to cloud
           if (USE_CLOUD_STORAGE) {
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
-              console.log('✅ Product deleted and synced - removed from all browsers now!');
+              console.log('✅ Product deleted (from items.json) and synced - removed from all browsers now!');
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
             }
           }
         } else {
-          // Product is from storage - remove it
+          // Product is from storage - remove it from storage
           const beforeCount = storageProducts.length;
           storageProducts = storageProducts.filter(p => {
             const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -557,7 +564,7 @@ async function deleteProduct(id) {
           
           if (storageProducts.length === beforeCount) {
             console.warn(`Product ID ${normalizedId} not found in localStorage`);
-            // Still try to sync in case it exists in cloud
+            // Product might exist in cloud but not local - still sync to ensure consistency
             if (USE_CLOUD_STORAGE) {
               await syncToCloudStorage(storageProducts);
             }
@@ -571,7 +578,7 @@ async function deleteProduct(id) {
           if (USE_CLOUD_STORAGE) {
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
-              console.log('✅ Product deleted and synced - removed from all browsers now!');
+              console.log('✅ Product deleted (from storage) and synced - removed from all browsers now!');
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
