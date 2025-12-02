@@ -269,14 +269,22 @@ async function syncFromCloudStorage() {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProductsOnly));
                 
                 // Filter out deleted products and update allProducts
+                // Use the cloud deleted list (already synced to localStorage above)
                 const deletedIds = getDeletedProductIds();
+                console.log('🔍 Filtering products. Deleted IDs to exclude:', deletedIds);
+                
+                const beforeFilter = Array.from(mergedMap.values()).length;
                 const finalProducts = Array.from(mergedMap.values()).filter(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-                    return !isNaN(id) && id > 0 && !deletedIds.includes(id);
+                    const isDeleted = deletedIds.includes(id);
+                    if (isDeleted) {
+                        console.log('🚫 Filtering out deleted product ID:', id);
+                    }
+                    return !isNaN(id) && id > 0 && !isDeleted;
                 });
                 
                 allProducts = finalProducts; // Update global allProducts
-                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', fileProducts.length, 'from items.json,', finalProducts.length, 'total after filtering deleted');
+                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', fileProducts.length, 'from items.json,', beforeFilter, 'before filter,', finalProducts.length, 'after filtering deleted');
                 return finalProducts;
             }
         } else {
