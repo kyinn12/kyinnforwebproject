@@ -207,8 +207,8 @@ async function syncFromCloudStorage() {
             const cloudDeletedProducts = data.record?.deletedProducts || [];
             
             if (Array.isArray(cloudProducts)) {
-                // Sync deleted products list from cloud
-                if (Array.isArray(cloudDeletedProducts) && cloudDeletedProducts.length > 0) {
+                // Always sync deleted products list from cloud (even if empty)
+                if (Array.isArray(cloudDeletedProducts)) {
                     localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(cloudDeletedProducts));
                     console.log('✅ Synced deleted products list from cloud:', cloudDeletedProducts.length, 'deleted IDs');
                 }
@@ -235,8 +235,17 @@ async function syncFromCloudStorage() {
                 
                 const mergedProducts = Array.from(cloudMap.values());
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedProducts));
-                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', mergedProducts.length, 'total');
-                return mergedProducts;
+                
+                // Filter out deleted products and update allProducts
+                const deletedIds = getDeletedProductIds();
+                const finalProducts = mergedProducts.filter(p => {
+                    const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return !isNaN(id) && id > 0 && !deletedIds.includes(id);
+                });
+                
+                allProducts = finalProducts; // Update global allProducts
+                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', mergedProducts.length, 'merged,', finalProducts.length, 'after filtering deleted');
+                return finalProducts;
             }
         } else {
             const errorText = await res.text().catch(() => '');
@@ -550,6 +559,7 @@ async function deleteProduct(id) {
         });
         allProducts = Array.from(mergedMap.values());
         console.log(`✅ Product ID ${normalizedId} deleted successfully.`);
+        console.log(`📊 Total products after delete: ${allProducts.length}`);
       } catch (err) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
@@ -557,6 +567,7 @@ async function deleteProduct(id) {
       }
     }
   
+    // Re-render to show updated list (will sync from cloud if enabled)
     await renderSellerProducts();
 }
 
@@ -688,11 +699,16 @@ async function renderSellerProducts() {
     if (!sellerTableBody) return;
   
     // Always sync from cloud storage first to get latest changes from other browsers
+    let products = null;
     if (USE_CLOUD_STORAGE && !USE_API) {
-        await syncFromCloudStorage();
+        products = await syncFromCloudStorage();
+        // syncFromCloudStorage now updates allProducts, but use the returned value
+        if (products && products.length > 0) {
+            allProducts = products;
+        }
     }
   
-    let products = allProducts;
+    // If sync didn't return products or we're not using cloud storage, build from local data
     if (!products || !products.length) {
       if (USE_API) {
         products = await fetchProductsFromApi();
