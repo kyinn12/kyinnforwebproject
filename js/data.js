@@ -276,9 +276,11 @@ async function syncFromCloudStorage() {
                 const beforeFilter = Array.from(mergedMap.values()).length;
                 const finalProducts = Array.from(mergedMap.values()).filter(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-                    const isDeleted = deletedIds.includes(id);
+                    // Normalize deleted IDs for comparison
+                    const normalizedDeletedIds = deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did);
+                    const isDeleted = normalizedDeletedIds.includes(id);
                     if (isDeleted) {
-                        console.log('🚫 Filtering out deleted product ID:', id);
+                        console.log('🚫 Filtering out deleted product ID:', id, '(was in deleted list:', deletedIds, ')');
                     }
                     return !isNaN(id) && id > 0 && !isDeleted;
                 });
@@ -309,7 +311,9 @@ async function syncFromCloudStorage() {
 
 function getDeletedProductIds() {
     const deletedJson = localStorage.getItem(DELETED_PRODUCTS_KEY);
-    return deletedJson ? JSON.parse(deletedJson) : [];
+    const ids = deletedJson ? JSON.parse(deletedJson) : [];
+    // Normalize all IDs to numbers for consistent comparison
+    return ids.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
 }
 
 function addToDeletedProducts(productId) {
@@ -605,17 +609,24 @@ async function deleteProduct(id) {
         }
         
         const deletedIds = getDeletedProductIds();
+        console.log('🔍 After delete - Deleted IDs list:', deletedIds);
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
           const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          if (!isNaN(pId) && pId > 0 && !deletedIds.includes(pId)) {
+          // Normalize deleted IDs for comparison
+          const normalizedDeletedIds = deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did);
+          const isDeleted = normalizedDeletedIds.includes(pId);
+          if (!isNaN(pId) && pId > 0 && !isDeleted) {
             mergedMap.set(pId, { ...p, id: pId });
+          } else if (isDeleted) {
+            console.log('🚫 Excluding deleted product ID:', pId);
           }
         });
         allProducts = Array.from(mergedMap.values());
         console.log(`✅ Product ID ${normalizedId} deleted successfully.`);
         console.log(`📊 Total products after delete: ${allProducts.length}`);
+        console.log(`📋 Products in list:`, allProducts.map(p => p.id));
       } catch (err) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
