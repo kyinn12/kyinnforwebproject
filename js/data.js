@@ -260,6 +260,14 @@ async function addNewProduct(newProduct) {
         storageProducts2.push(productPayload);
         saveProductsToStorage(storageProducts2);
         
+        // Force sync to cloud storage after add
+        if (USE_CLOUD_STORAGE) {
+          const syncSuccess = await syncToCloudStorage(storageProducts2);
+          if (!syncSuccess) {
+            console.warn('⚠️ Product added locally but failed to sync to cloud. Other browsers may not see it.');
+          }
+        }
+        
         const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts2];
         const mergedMap = new Map();
@@ -407,6 +415,10 @@ async function deleteProduct(id) {
         
         if (fileProductIds.includes(normalizedId)) {
           addToDeletedProducts(normalizedId);
+          // Sync deleted list to cloud storage
+          if (USE_CLOUD_STORAGE) {
+            await syncToCloudStorage(storageProducts);
+          }
         } else {
           const beforeCount = storageProducts.length;
           storageProducts = storageProducts.filter(p => {
@@ -420,6 +432,14 @@ async function deleteProduct(id) {
           }
           
           saveProductsToStorage(storageProducts);
+          
+          // Force sync to cloud storage after delete
+          if (USE_CLOUD_STORAGE) {
+            const syncSuccess = await syncToCloudStorage(storageProducts);
+            if (!syncSuccess) {
+              console.warn('⚠️ Delete saved locally but failed to sync to cloud. Other browsers may not see the change.');
+            }
+          }
         }
         
         const deletedIds = getDeletedProductIds();
@@ -432,7 +452,7 @@ async function deleteProduct(id) {
           }
         });
         allProducts = Array.from(mergedMap.values());
-        console.log(`Product ID ${normalizedId} deleted successfully.`);
+        console.log(`✅ Product ID ${normalizedId} deleted successfully.`);
       } catch (err) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
