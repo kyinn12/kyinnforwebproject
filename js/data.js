@@ -201,9 +201,16 @@ async function syncFromCloudStorage() {
             }
         } else {
             const errorText = await res.text().catch(() => '');
-            console.warn('⚠️ Cloud storage read failed:', res.status, errorText);
-            if (res.status === 401 || res.status === 403) {
-                console.warn('💡 TIP: Bin might be private. Make it public or add API key.');
+            if (res.status === 404) {
+                console.error('❌ Bin ID not found (404). The bin does not exist.');
+                console.error('💡 SOLUTION: Create a new bin at https://jsonbin.io/app/bins');
+                console.error('💡 Then update CLOUD_STORAGE_BIN_ID in data.js with your new bin ID');
+                console.error('💡 See SETUP_JSONBIN.md for detailed instructions');
+            } else {
+                console.warn('⚠️ Cloud storage read failed:', res.status, errorText);
+                if (res.status === 401 || res.status === 403) {
+                    console.warn('💡 TIP: Bin might be private. Make it public or add API key.');
+                }
             }
         }
     } catch (err) {
