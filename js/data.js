@@ -142,11 +142,13 @@ async function syncToCloudStorage(products) {
             const errorText = await response.text().catch(() => '');
             console.error('❌ Cloud storage sync FAILED:', response.status, errorData || errorText);
             if (response.status === 401 || response.status === 403) {
-                console.error('💡 SOLUTION: You need an API key for write operations.');
-                console.error('💡 Step 1: Go to https://jsonbin.io/app/account/api-keys');
-                console.error('💡 Step 2: Create an API key');
-                console.error('💡 Step 3: Add it to JSONBIN_API_KEY in data.js');
-                console.error('💡 OR: Make your bin public in JSONBin.io settings');
+                console.error('💡 401 ERROR: Invalid API key or bin belongs to different account');
+                console.error('💡 SOLUTION 1: Make sure API key and bin are from the SAME account');
+                console.error('💡 Step 1: Go to https://jsonbin.io/app/bins - verify bin exists');
+                console.error('💡 Step 2: Go to https://jsonbin.io/app/account/api-keys - create NEW key');
+                console.error('💡 Step 3: Copy ENTIRE key and update JSONBIN_API_KEY in data.js');
+                console.error('💡 SOLUTION 2: Make bin public (works without API key for reads)');
+                console.error('💡 Go to bin settings and change visibility to "Public"');
             } else if (response.status === 404) {
                 console.error('💡 Bin ID not found. Check CLOUD_STORAGE_BIN_ID is correct.');
             }
