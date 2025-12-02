@@ -130,12 +130,41 @@ async function addNewProduct(newProduct) {
         allProducts = products;
       }
     } else {
-      let products = getProductsFromStorage();
-      const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 101;
-      productPayload.id = newId;
-      products.push(productPayload);
-      saveProductsToStorage(products);
-      allProducts = products;
+      try {
+        const fileProducts = await fetchProductsFromFile();
+        const storageProducts = getProductsFromStorage();
+        const allExistingProducts = [...fileProducts, ...storageProducts];
+        const numericIds = allExistingProducts
+          .map(p => {
+            const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return isNaN(id) ? 0 : id;
+          })
+          .filter(id => id > 0);
+        const newId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 110;
+        productPayload.id = newId;
+        
+        let storageProducts2 = getProductsFromStorage();
+        storageProducts2.push(productPayload);
+        saveProductsToStorage(storageProducts2);
+        
+        const mergedProducts = [...fileProducts, ...storageProducts2];
+        const mergedMap = new Map();
+        mergedProducts.forEach(p => {
+          const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          if (!isNaN(id) && id > 0) {
+            mergedMap.set(id, { ...p, id });
+          }
+        });
+        allProducts = Array.from(mergedMap.values());
+      } catch (err) {
+        console.warn('Error merging products:', err);
+        let products = getProductsFromStorage();
+        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 110;
+        productPayload.id = newId;
+        products.push(productPayload);
+        saveProductsToStorage(products);
+        allProducts = products;
+      }
     }
   
     renderSellerProducts();
@@ -209,20 +238,44 @@ async function deleteProduct(id) {
 
 async function loadEmbeddedProducts() {
     try {
-      const products = await fetchProductsFromApi();
-      allProducts = products;
-      renderProducts(allProducts);
+      if (USE_API) {
+        const products = await fetchProductsFromApi();
+        allProducts = products;
+        renderProducts(allProducts);
+      } else {
+        const fileProducts = await fetchProductsFromFile();
+        const storageProducts = getProductsFromStorage();
+        const mergedProducts = [...fileProducts, ...storageProducts];
+        const mergedMap = new Map();
+        mergedProducts.forEach(p => {
+          const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          if (!isNaN(id) && id > 0) {
+            mergedMap.set(id, { ...p, id });
+          }
+        });
+        allProducts = Array.from(mergedMap.values());
+        if (!allProducts || allProducts.length === 0) {
+          console.error('No products found.');
+          if (productListContainer) {
+            productListContainer.innerHTML = `
+              <p style="text-align: center; padding: 40px; color: #666;">
+                No products available.
+              </p>
+            `;
+          }
+        } else {
+          renderProducts(allProducts);
+        }
+      }
     } catch (err) {
-      console.error('API error, falling back to local data:', err);
-      console.warn('Make sure json-server is running: npx json-server --watch js/items.json --port 4000');
-      allProducts = getProductsFromStorage();
+      console.error('Error loading products:', err);
+      allProducts = getProductsFromStorage(); 
       if (!allProducts || allProducts.length === 0) {
-        console.error('No products found. Please start json-server and ensure items.json has products.');
+        console.error('No products found.');
         if (productListContainer) {
           productListContainer.innerHTML = `
             <p style="text-align: center; padding: 40px; color: #666;">
-              No products available. Please ensure json-server is running:<br>
-              <code style="background: #f0f0f0; padding: 5px; border-radius: 3px;">npx json-server --watch js/items.json --port 4000</code>
+              No products available.
             </p>
           `;
         }
@@ -308,7 +361,21 @@ async function renderSellerProducts() {
   
     let products = allProducts;
     if (!products || !products.length) {
-      products = await fetchProductsFromApi();
+      if (USE_API) {
+        products = await fetchProductsFromApi();
+      } else {
+        const fileProducts = await fetchProductsFromFile();
+        const storageProducts = getProductsFromStorage();
+        const mergedProducts = [...fileProducts, ...storageProducts];
+        const mergedMap = new Map();
+        mergedProducts.forEach(p => {
+          const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          if (!isNaN(id) && id > 0) {
+            mergedMap.set(id, { ...p, id });
+          }
+        });
+        products = Array.from(mergedMap.values());
+      }
       allProducts = products;
     }
   
