@@ -19,7 +19,7 @@ const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
 // IMPORTANT: JSONBin.io requires an API key for write operations
 // Get your API key from: https://jsonbin.io/app/account/api-keys
 // Then add it below:
-const JSONBIN_API_KEY = '$2a$10$rp6Drx8Yb8d9aHkpc4klaONPhbCg56OVxgTOfjYoH6GLaesQvJz3m'; // Add your API key here: 'your-api-key-here'
+const JSONBIN_API_KEY = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR09351.7JzDzd8CkF0VVnYvgog3YZfG'; // X-MASTER-KEY from JSONBin.io
 
 async function fetchProductsFromApi() {
   if (USE_API) {
