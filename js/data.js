@@ -14,12 +14,12 @@ const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 // Cloud storage for sharing across browsers
 // Using JSONBin.io (free JSON storage service)
 const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b';
-const CLOUD_STORAGE_BIN_ID = '692e8ddad0ea881f400d3c3a'; // Your bin ID
+const CLOUD_STORAGE_BIN_ID = '692e8f8ad0ea881f400d3e91'; // Your bin ID
 const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
 // IMPORTANT: JSONBin.io requires an API key for write operations
 // Get your API key from: https://jsonbin.io/app/account/api-keys
 // Then add it below:
-const JSONBIN_API_KEY = null; // Add your API key here: 'your-api-key-here'
+const JSONBIN_API_KEY = '$2a$10$rp6Drx8Yb8d9aHkpc4klaONPhbCg56OVxgTOfjYoH6GLaesQvJz3m'; // Add your API key here: 'your-api-key-here'
 
 async function fetchProductsFromApi() {
   if (USE_API) {
