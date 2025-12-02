@@ -250,6 +250,7 @@ async function addNewProduct(newProduct) {
 }
 
 async function updateProduct(id, updatedProduct) {
+    const normalizedId = typeof id === 'string' ? parseInt(id) : id;
     const updated = {
       name: updatedProduct.name,
       price: parseInt(updatedProduct.price),
@@ -261,7 +262,7 @@ async function updateProduct(id, updatedProduct) {
   
     if (USE_API) {
       try {
-        await fetch(`${API_BASE_URL}/products/${id}`, {
+        await fetch(`${API_BASE_URL}/products/${normalizedId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updated),
@@ -269,25 +270,67 @@ async function updateProduct(id, updatedProduct) {
         allProducts = await fetchProductsFromApi();
       } catch (err) {
         console.error('API not available, updating localStorage only');
-        let products = getProductsFromStorage();
-        const index = products.findIndex(p => p.id === id);
+    let products = getProductsFromStorage();
+        const index = products.findIndex(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          return pId === normalizedId;
+        });
         if (index !== -1) {
-          products[index] = { ...products[index], ...updated };
+          products[index] = { ...products[index], ...updated, id: normalizedId };
           saveProductsToStorage(products);
           allProducts = products;
         }
       }
     } else {
-    let products = getProductsFromStorage();
-      const index = products.findIndex(p => p.id === id);
-      if (index !== -1) {
-        products[index] = { ...products[index], ...updated };
-        saveProductsToStorage(products);
-        allProducts = products;
+      try {
+        if (USE_CLOUD_STORAGE) {
+            await syncFromCloudStorage();
+        }
+        const fileProducts = await fetchProductsFromFile();
+        let storageProducts = getProductsFromStorage();
+        
+        const fileProductIds = fileProducts.map(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          return isNaN(pId) ? 0 : pId;
+        });
+        
+        if (fileProductIds.includes(normalizedId)) {
+          alert('Cannot edit products from items.json. Only products you added can be edited.');
+          return;
+        }
+        
+        const index = storageProducts.findIndex(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          return pId === normalizedId;
+        });
+        
+        if (index !== -1) {
+          storageProducts[index] = { ...storageProducts[index], ...updated, id: normalizedId };
+          saveProductsToStorage(storageProducts);
+          
+          const deletedIds = getDeletedProductIds();
+          const mergedProducts = [...fileProducts, ...storageProducts];
+          const mergedMap = new Map();
+          mergedProducts.forEach(p => {
+            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            if (!isNaN(pId) && pId > 0 && !deletedIds.includes(pId)) {
+              mergedMap.set(pId, { ...p, id: pId });
+            }
+          });
+          allProducts = Array.from(mergedMap.values());
+          console.log(`Product ID ${normalizedId} updated successfully.`);
+        } else {
+          console.warn(`Product ID ${normalizedId} not found in localStorage`);
+          alert('Product not found. It may have been deleted or is from items.json.');
+        }
+      } catch (err) {
+        console.error('Error updating product:', err);
+        alert('Error updating product. Please try again.');
+        return;
       }
     }
     
-    renderSellerProducts(); 
+    await renderSellerProducts(); 
 }
 
 async function deleteProduct(id) {
