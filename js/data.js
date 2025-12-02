@@ -11,6 +11,19 @@ const DELETED_PRODUCTS_KEY = 'codedlookDeletedProducts';
 const API_BASE_URL = 'http://localhost:4000';
 const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 
+// Cloud storage for sharing across browsers
+// Using a simple JSON storage service (free, no signup required for basic use)
+const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b';
+const CLOUD_STORAGE_BIN_ID = null; // Set this to your bin ID after creating one
+const USE_CLOUD_STORAGE = false; // Set to true to enable cloud storage
+
+// To enable cloud storage:
+// 1. Go to https://jsonbin.io/ (free account)
+// 2. Create a new bin
+// 3. Copy the bin ID from the URL
+// 4. Set CLOUD_STORAGE_BIN_ID above
+// 5. Set USE_CLOUD_STORAGE = true
+
 async function fetchProductsFromApi() {
   if (USE_API) {
     try {
@@ -91,6 +104,46 @@ function getProductsFromStorage() {
 
 function saveProductsToStorage(products) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    if (USE_CLOUD_STORAGE && CLOUD_STORAGE_BIN_ID) {
+        syncToCloudStorage(products).catch(err => {
+            console.warn('Failed to sync to cloud storage:', err);
+        });
+    }
+}
+
+async function syncToCloudStorage(products) {
+    if (!CLOUD_STORAGE_BIN_ID) return;
+    try {
+        await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ products })
+        });
+        console.log('Synced to cloud storage');
+    } catch (err) {
+        console.error('Cloud storage sync error:', err);
+    }
+}
+
+async function syncFromCloudStorage() {
+    if (!USE_CLOUD_STORAGE || !CLOUD_STORAGE_BIN_ID) return null;
+    try {
+        const res = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`);
+        if (res.ok) {
+            const data = await res.json();
+            const cloudProducts = data.record?.products || [];
+            if (cloudProducts.length > 0) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudProducts));
+                console.log('Synced from cloud storage');
+                return cloudProducts;
+            }
+        }
+    } catch (err) {
+        console.warn('Failed to sync from cloud storage:', err);
+    }
+    return null;
 }
 
 function getDeletedProductIds() {
@@ -153,6 +206,9 @@ async function addNewProduct(newProduct) {
       }
     } else {
       try {
+        if (USE_CLOUD_STORAGE) {
+            await syncFromCloudStorage();
+        }
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const allExistingProducts = [...fileProducts, ...storageProducts];
@@ -308,6 +364,9 @@ async function loadEmbeddedProducts() {
         allProducts = products;
         renderProducts(allProducts);
       } else {
+        if (USE_CLOUD_STORAGE) {
+            await syncFromCloudStorage();
+        }
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
@@ -430,6 +489,9 @@ async function renderSellerProducts() {
       if (USE_API) {
         products = await fetchProductsFromApi();
       } else {
+        if (USE_CLOUD_STORAGE) {
+            await syncFromCloudStorage();
+        }
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
