@@ -739,20 +739,28 @@ async function renderSellerProducts() {
     // Always sync from cloud storage first to get latest changes from other browsers
     let products = null;
     if (USE_CLOUD_STORAGE && !USE_API) {
-        products = await syncFromCloudStorage();
-        // syncFromCloudStorage now includes items.json + cloud + local, and updates allProducts
-        if (products) {
-            allProducts = products; // Use synced products (already filtered and merged)
+        try {
+            products = await syncFromCloudStorage();
+            // syncFromCloudStorage now includes items.json + cloud + local, and updates allProducts
+            if (products && Array.isArray(products) && products.length > 0) {
+                allProducts = products; // Use synced products (already filtered and merged)
+                console.log('✅ Using synced products from cloud:', products.length);
+            } else {
+                console.warn('⚠️ Sync returned empty or invalid products, using fallback');
+            }
+        } catch (err) {
+            console.error('❌ Error syncing from cloud:', err);
         }
     }
   
     // If sync didn't return products or we're not using cloud storage, build from local data
-    if (!products || products.length === 0) {
+    if (!products || !Array.isArray(products) || products.length === 0) {
       if (USE_API) {
         products = await fetchProductsFromApi();
         allProducts = products;
       } else {
-        // Fallback: build from local data (shouldn't happen if sync works)
+        // Fallback: build from local data
+        console.log('📦 Building products from local data (fallback)');
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
