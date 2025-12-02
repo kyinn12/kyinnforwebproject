@@ -231,38 +231,51 @@ async function deleteProduct(id) {
         allProducts = products;
       }
     } else {
-      const fileProducts = await fetchProductsFromFile();
-      let storageProducts = getProductsFromStorage();
-      
-      const fileProductIds = fileProducts.map(p => {
-        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-        return isNaN(pId) ? 0 : pId;
-      });
-      
-      if (fileProductIds.includes(normalizedId)) {
-        alert('Cannot delete products from items.json. Only products you added can be deleted.');
+      try {
+        const fileProducts = await fetchProductsFromFile();
+        let storageProducts = getProductsFromStorage();
+        
+        const fileProductIds = fileProducts.map(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          return isNaN(pId) ? 0 : pId;
+        });
+        
+        if (fileProductIds.includes(normalizedId)) {
+          alert('Cannot delete products from items.json. Only products you added can be deleted.');
+          return;
+        }
+        
+        const beforeCount = storageProducts.length;
+        storageProducts = storageProducts.filter(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          return pId !== normalizedId;
+        });
+        
+        if (storageProducts.length === beforeCount) {
+          console.warn(`Product ID ${normalizedId} not found in localStorage`);
+          return;
+        }
+        
+        saveProductsToStorage(storageProducts);
+        
+        const mergedProducts = [...fileProducts, ...storageProducts];
+        const mergedMap = new Map();
+        mergedProducts.forEach(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          if (!isNaN(pId) && pId > 0) {
+            mergedMap.set(pId, { ...p, id: pId });
+          }
+        });
+        allProducts = Array.from(mergedMap.values());
+        console.log(`Product ID ${normalizedId} deleted successfully.`);
+      } catch (err) {
+        console.error('Error deleting product:', err);
+        alert('Error deleting product. Please try again.');
         return;
       }
-      
-      storageProducts = storageProducts.filter(p => {
-        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-        return pId !== normalizedId;
-      });
-      saveProductsToStorage(storageProducts);
-      
-      const mergedProducts = [...fileProducts, ...storageProducts];
-      const mergedMap = new Map();
-      mergedProducts.forEach(p => {
-        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-        if (!isNaN(pId) && pId > 0) {
-          mergedMap.set(pId, { ...p, id: pId });
-        }
-      });
-      allProducts = Array.from(mergedMap.values());
     }
   
-    console.log(`Product ID ${normalizedId} deleted.`);
-    renderSellerProducts();
+    await renderSellerProducts();
 }
 
 async function loadEmbeddedProducts() {
