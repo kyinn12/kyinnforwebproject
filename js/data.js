@@ -12,17 +12,12 @@ const API_BASE_URL = 'http://localhost:4000';
 const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 
 // Cloud storage for sharing across browsers
-// Using a simple JSON storage service (free, no signup required for basic use)
+// Using JSONBin.io (free JSON storage service)
 const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b';
-const CLOUD_STORAGE_BIN_ID = null; // Set this to your bin ID after creating one
-const USE_CLOUD_STORAGE = false; // Set to true to enable cloud storage
-
-// To enable cloud storage:
-// 1. Go to https://jsonbin.io/ (free account)
-// 2. Create a new bin
-// 3. Copy the bin ID from the URL
-// 4. Set CLOUD_STORAGE_BIN_ID above
-// 5. Set USE_CLOUD_STORAGE = true
+const CLOUD_STORAGE_BIN_ID = '674e5297654a7b423561451f'; // Your bin ID
+const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
+// Note: For write operations, you may need an API key from https://jsonbin.io/app/account/api-keys
+// Add it to syncToCloudStorage function if needed
 
 async function fetchProductsFromApi() {
   if (USE_API) {
@@ -114,34 +109,64 @@ function saveProductsToStorage(products) {
 async function syncToCloudStorage(products) {
     if (!CLOUD_STORAGE_BIN_ID) return;
     try {
-        await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`, {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        
+        // If you have an API key, add it here:
+        // headers['X-Master-Key'] = 'your-api-key-here';
+        // Or use X-Access-Key for read-only keys
+        
+        const response = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: headers,
             body: JSON.stringify({ products })
         });
-        console.log('Synced to cloud storage');
+        
+        if (response.ok) {
+            console.log('✅ Synced to cloud storage successfully');
+        } else {
+            const errorData = await response.json().catch(() => ({}));
+            console.warn('⚠️ Cloud storage sync warning:', response.status, errorData);
+            // Continue even if sync fails - data is saved locally
+        }
     } catch (err) {
-        console.error('Cloud storage sync error:', err);
+        console.warn('⚠️ Cloud storage sync error (data saved locally):', err.message);
+        // Don't throw - allow local save to continue
     }
 }
 
 async function syncFromCloudStorage() {
     if (!USE_CLOUD_STORAGE || !CLOUD_STORAGE_BIN_ID) return null;
     try {
-        const res = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`);
+        const headers = {};
+        // If you have an API key, add it here:
+        // headers['X-Master-Key'] = 'your-api-key-here';
+        // Or use X-Access-Key for read-only keys
+        
+        const res = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`, {
+            headers: headers
+        });
+        
         if (res.ok) {
             const data = await res.json();
             const cloudProducts = data.record?.products || [];
-            if (cloudProducts.length > 0) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudProducts));
-                console.log('Synced from cloud storage');
-                return cloudProducts;
+            if (cloudProducts.length > 0 || Array.isArray(cloudProducts)) {
+                // Merge with local storage to preserve any local-only products
+                const localProducts = getProductsFromStorage();
+                const merged = [...localProducts, ...cloudProducts];
+                const uniqueProducts = Array.from(
+                    new Map(merged.map(p => [p.id, p])).values()
+                );
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(uniqueProducts));
+                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'products');
+                return uniqueProducts;
             }
+        } else {
+            console.warn('⚠️ Cloud storage read failed:', res.status);
         }
     } catch (err) {
-        console.warn('Failed to sync from cloud storage:', err);
+        console.warn('⚠️ Failed to sync from cloud storage (using local data):', err.message);
     }
     return null;
 }
