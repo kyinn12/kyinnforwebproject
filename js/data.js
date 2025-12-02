@@ -16,8 +16,10 @@ const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b';
 const CLOUD_STORAGE_BIN_ID = '674e5297654a7b423561451f'; // Your bin ID
 const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
-// Note: For write operations, you may need an API key from https://jsonbin.io/app/account/api-keys
-// Add it to syncToCloudStorage function if needed
+// IMPORTANT: JSONBin.io requires an API key for write operations
+// Get your API key from: https://jsonbin.io/app/account/api-keys
+// Then add it below:
+const JSONBIN_API_KEY = null; // Add your API key here: 'your-api-key-here'
 
 async function fetchProductsFromApi() {
   if (USE_API) {
@@ -113,9 +115,10 @@ async function syncToCloudStorage(products) {
             'Content-Type': 'application/json',
         };
         
-        // If you have an API key, add it here:
-        // headers['X-Master-Key'] = 'your-api-key-here';
-        // Or use X-Access-Key for read-only keys
+        // Add API key if available (required for write operations)
+        if (JSONBIN_API_KEY) {
+            headers['X-Master-Key'] = JSONBIN_API_KEY;
+        }
         
         const response = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`, {
             method: 'PUT',
@@ -124,15 +127,22 @@ async function syncToCloudStorage(products) {
         });
         
         if (response.ok) {
-            console.log('✅ Synced to cloud storage successfully');
+            console.log('✅ Synced to cloud storage successfully - all browsers will see this change');
+            return true;
         } else {
             const errorData = await response.json().catch(() => ({}));
-            console.warn('⚠️ Cloud storage sync warning:', response.status, errorData);
+            console.error('❌ Cloud storage sync FAILED:', response.status, errorData);
+            if (response.status === 401 || response.status === 403) {
+                console.error('💡 TIP: You need an API key for write operations. Get it from: https://jsonbin.io/app/account/api-keys');
+                console.error('💡 Add it to JSONBIN_API_KEY in data.js');
+            }
             // Continue even if sync fails - data is saved locally
+            return false;
         }
     } catch (err) {
-        console.warn('⚠️ Cloud storage sync error (data saved locally):', err.message);
+        console.error('❌ Cloud storage sync error (data saved locally):', err.message);
         // Don't throw - allow local save to continue
+        return false;
     }
 }
 
@@ -333,6 +343,14 @@ async function updateProduct(id, updatedProduct) {
           storageProducts[index] = { ...storageProducts[index], ...updated, id: normalizedId };
           saveProductsToStorage(storageProducts);
           
+          // Force sync to cloud storage after update
+          if (USE_CLOUD_STORAGE) {
+            const syncSuccess = await syncToCloudStorage(storageProducts);
+            if (!syncSuccess) {
+              console.warn('⚠️ Update saved locally but failed to sync to cloud. Other browsers may not see the change.');
+            }
+          }
+          
           const deletedIds = getDeletedProductIds();
           const mergedProducts = [...fileProducts, ...storageProducts];
           const mergedMap = new Map();
@@ -343,7 +361,7 @@ async function updateProduct(id, updatedProduct) {
             }
           });
           allProducts = Array.from(mergedMap.values());
-          console.log(`Product ID ${normalizedId} updated successfully.`);
+          console.log(`✅ Product ID ${normalizedId} updated successfully.`);
         } else {
           console.warn(`Product ID ${normalizedId} not found in localStorage`);
           alert('Product not found. It may have been deleted or is from items.json.');
