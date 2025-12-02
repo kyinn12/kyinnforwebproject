@@ -624,6 +624,8 @@ async function deleteProduct(id) {
     }
   
     // Re-render to show updated list (will sync from cloud if enabled)
+    // Small delay to ensure cloud sync completes
+    await new Promise(resolve => setTimeout(resolve, 500));
     await renderSellerProducts();
 }
 
