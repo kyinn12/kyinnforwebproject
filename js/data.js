@@ -208,9 +208,14 @@ async function syncFromCloudStorage() {
             
             if (Array.isArray(cloudProducts)) {
                 // Always sync deleted products list from cloud (even if empty)
+                // Cloud deleted list is the source of truth
                 if (Array.isArray(cloudDeletedProducts)) {
                     localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(cloudDeletedProducts));
-                    console.log('✅ Synced deleted products list from cloud:', cloudDeletedProducts.length, 'deleted IDs');
+                    console.log('✅ Synced deleted products list from cloud:', cloudDeletedProducts.length, 'deleted IDs:', cloudDeletedProducts);
+                } else {
+                    // If cloud doesn't have deletedProducts, initialize empty array
+                    localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify([]));
+                    console.log('✅ Initialized empty deleted products list');
                 }
                 
                 // Get all products: cloud (from storage), local storage, and items.json
@@ -544,11 +549,15 @@ async function deleteProduct(id) {
         if (fileProductIds.includes(normalizedId)) {
           // Product is from items.json - mark as deleted
           addToDeletedProducts(normalizedId);
+          const deletedIds = getDeletedProductIds();
+          console.log('🗑️ Deleted product ID:', normalizedId, 'Deleted list now:', deletedIds);
+          
           // Sync deleted list AND current storage products to cloud
           if (USE_CLOUD_STORAGE) {
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
               console.log('✅ Product deleted (from items.json) and synced - removed from all browsers now!');
+              console.log('🗑️ Deleted IDs synced to cloud:', deletedIds);
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
@@ -573,6 +582,7 @@ async function deleteProduct(id) {
           
           // Save locally first
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
+          console.log('🗑️ Removed product from storage. Storage products now:', storageProducts.length);
           
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
