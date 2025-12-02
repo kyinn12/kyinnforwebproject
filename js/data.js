@@ -213,38 +213,57 @@ async function syncFromCloudStorage() {
                     console.log('✅ Synced deleted products list from cloud:', cloudDeletedProducts.length, 'deleted IDs');
                 }
                 
-                // Use cloud products as source of truth, but merge intelligently
+                // Get all products: cloud (from storage), local storage, and items.json
                 const localProducts = getProductsFromStorage();
+                const fileProducts = await fetchProductsFromFile();
                 
-                // Create a map of cloud products by ID
-                const cloudMap = new Map();
+                // Create a map starting with cloud products (source of truth for storage products)
+                const mergedMap = new Map();
+                
+                // First, add cloud products (these are the storage products from cloud)
                 cloudProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     if (!isNaN(id) && id > 0) {
-                        cloudMap.set(id, { ...p, id });
+                        mergedMap.set(id, { ...p, id });
                     }
                 });
                 
-                // Add any local products that aren't in cloud (newer local additions)
+                // Then, add any local storage products that aren't in cloud (newer local additions)
                 localProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-                    if (!isNaN(id) && id > 0 && !cloudMap.has(id)) {
-                        cloudMap.set(id, { ...p, id });
+                    if (!isNaN(id) && id > 0 && !mergedMap.has(id)) {
+                        mergedMap.set(id, { ...p, id });
                     }
                 });
                 
-                const mergedProducts = Array.from(cloudMap.values());
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedProducts));
+                // Finally, add items.json products (static file products)
+                fileProducts.forEach(p => {
+                    const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    if (!isNaN(id) && id > 0 && !mergedMap.has(id)) {
+                        mergedMap.set(id, { ...p, id });
+                    }
+                });
+                
+                // Save merged storage products (cloud + local) to localStorage
+                const storageProductsOnly = Array.from(mergedMap.values()).filter(p => {
+                    const fileProductIds = fileProducts.map(fp => {
+                        const fid = typeof fp.id === 'string' ? parseInt(fp.id) : fp.id;
+                        return isNaN(fid) ? 0 : fid;
+                    });
+                    const pid = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return !fileProductIds.includes(pid);
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProductsOnly));
                 
                 // Filter out deleted products and update allProducts
                 const deletedIds = getDeletedProductIds();
-                const finalProducts = mergedProducts.filter(p => {
+                const finalProducts = Array.from(mergedMap.values()).filter(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     return !isNaN(id) && id > 0 && !deletedIds.includes(id);
                 });
                 
                 allProducts = finalProducts; // Update global allProducts
-                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', mergedProducts.length, 'merged,', finalProducts.length, 'after filtering deleted');
+                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', fileProducts.length, 'from items.json,', finalProducts.length, 'total after filtering deleted');
                 return finalProducts;
             }
         } else {
@@ -702,17 +721,19 @@ async function renderSellerProducts() {
     let products = null;
     if (USE_CLOUD_STORAGE && !USE_API) {
         products = await syncFromCloudStorage();
-        // syncFromCloudStorage now updates allProducts, but use the returned value
-        if (products && products.length > 0) {
-            allProducts = products;
+        // syncFromCloudStorage now includes items.json + cloud + local, and updates allProducts
+        if (products) {
+            allProducts = products; // Use synced products (already filtered and merged)
         }
     }
   
     // If sync didn't return products or we're not using cloud storage, build from local data
-    if (!products || !products.length) {
+    if (!products || products.length === 0) {
       if (USE_API) {
         products = await fetchProductsFromApi();
+        allProducts = products;
       } else {
+        // Fallback: build from local data (shouldn't happen if sync works)
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
@@ -725,9 +746,12 @@ async function renderSellerProducts() {
           }
         });
         products = Array.from(mergedMap.values());
+        allProducts = products;
       }
-      allProducts = products;
     }
+    
+    // Use allProducts (which is now up-to-date) for rendering
+    products = allProducts;
   
     sellerTableBody.innerHTML = ''; 
     products.forEach(product => {
