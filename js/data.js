@@ -589,15 +589,17 @@ function initProductControls() {
 async function renderSellerProducts() {
     const sellerTableBody = document.querySelector('#product-table tbody');
     if (!sellerTableBody) return;
-
+  
+    // Always sync from cloud storage first to get latest changes from other browsers
+    if (USE_CLOUD_STORAGE && !USE_API) {
+        await syncFromCloudStorage();
+    }
+  
     let products = allProducts;
     if (!products || !products.length) {
       if (USE_API) {
         products = await fetchProductsFromApi();
       } else {
-        if (USE_CLOUD_STORAGE) {
-            await syncFromCloudStorage();
-        }
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
