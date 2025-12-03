@@ -426,11 +426,18 @@ body {
     color: var(--primary-color);
 }
 
-.cart-table td:nth-child(4) {
+/* Qty column (5th column) - for cart table */
+.cart-table td:nth-child(4):has(.btn-qty) {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+}
+
+/* Qty column (5th column) - for order table */
+.cart-table td:nth-child(5) {
+    white-space: nowrap;
+    text-align: center;
 }
 
 .btn-qty {
