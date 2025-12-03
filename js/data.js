@@ -481,9 +481,11 @@ async function addNewProduct(newProduct) {
     saveProductsToStorage(products); 
     allProducts = products; 
       }
+    } finally {
+        isOperationInProgress = false;
     }
     
-    renderSellerProducts(); 
+    await renderSellerProducts(); 
 }
 
 async function updateProduct(id, updatedProduct) {
