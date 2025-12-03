@@ -1089,8 +1089,8 @@ function renderProducts(productsToRender) {
 function initProductControls() {
     // Clean up wishlist first to remove invalid IDs
     cleanupWishlist();
-    // Then update count with cleaned list
-    updateWishlistCount(getWishlistIds().length);
+    // Then update count with valid items only
+    updateWishlistCount(getValidWishlistCount());
     updateCartCount(Object.keys(getCartItems()).length);
     
     const container = document.getElementById('product-list-container');
@@ -1528,7 +1528,7 @@ function saveWishlistIds(ids) {
     updateWishlistCount(ids.length); 
 }
 
-// Clean up wishlist by removing IDs that don't exist in allProducts
+// Clean up wishlist by removing IDs that don't exist in allProducts or are deleted
 function cleanupWishlist() {
     if (!allProducts || allProducts.length === 0) {
         // If no products loaded yet, just normalize IDs
@@ -1562,43 +1562,36 @@ function cleanupWishlist() {
     }
 }
 
+// Get valid wishlist count (only products that actually exist)
+function getValidWishlistCount() {
+    if (!allProducts || allProducts.length === 0) {
+        return 0;
+    }
+    
+    const wishlistIds = getWishlistIds();
+    const normalizedWishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
+    
+    // Get valid product IDs from allProducts
+    const validProductIds = new Set(allProducts.map(p => {
+        if (!p) return 0;
+        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+        return isNaN(pId) ? 0 : pId;
+    }).filter(id => id > 0));
+    
+    // Check deleted products
+    const deletedIds = getDeletedProductIds();
+    const deletedSet = new Set(deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did).filter(id => !isNaN(id) && id > 0));
+    
+    // Count only valid, non-deleted products
+    return normalizedWishlistIds.filter(id => validProductIds.has(id) && !deletedSet.has(id)).length;
+}
+
 function toggleWishlist(productId) {
     try {
-        // Clean up wishlist first to remove any invalid IDs
-        cleanupWishlist();
-        
     let wishlistIds = getWishlistIds();
         const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
         if (isNaN(normalizedId) || normalizedId <= 0) {
             console.error('Invalid product ID for wishlist:', productId);
-            return;
-        }
-        
-        // Verify product exists before adding
-        const productExists = allProducts.some(p => {
-            if (!p) return false;
-            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-            return !isNaN(pId) && pId === normalizedId;
-        });
-        
-        // Check if product is deleted
-        const deletedIds = getDeletedProductIds();
-        const isDeleted = deletedIds.some(did => {
-            const normalizedDid = typeof did === 'string' ? parseInt(did) : did;
-            return normalizedDid === normalizedId;
-        });
-        
-        if (isDeleted || !productExists) {
-            // Product doesn't exist or is deleted, remove from wishlist if it's there
-            wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
-            const index = wishlistIds.indexOf(normalizedId);
-            if (index !== -1) {
-                wishlistIds.splice(index, 1);
-                saveWishlistIds(wishlistIds);
-            }
-            if (!productExists) {
-                alert('Cannot add to wishlist: Product not found or has been deleted.');
-            }
             return;
         }
         
