@@ -2187,6 +2187,13 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
 // View Orders Function
 function viewOrders() {
     try {
+        // Sync orders from cloud storage first to get latest orders
+        if (USE_CLOUD_STORAGE && !USE_API) {
+            syncFromCloudStorage().catch(err => {
+                console.warn('Error syncing orders from cloud:', err);
+            });
+        }
+        
         const orders = getOrders();
         
         if (orders.length === 0) {
