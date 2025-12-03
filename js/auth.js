@@ -42,7 +42,7 @@ function handlePartnerLogin() {
             const password = passwordInput ? passwordInput.value : '';
             console.log('Username:', username, 'Password:', password ? '***' : '');
             if (username && password) {
-                authenticateAndRedirect('seller', username, password, '../html/seller.html');
+            authenticateAndRedirect('seller', username, password, '../html/seller.html');
             } else {
                 alert('Please enter username and password');
             }

@@ -2676,9 +2676,8 @@ function displayOrdersInModal(orders) {
         const newPdfBtn = downloadPdfBtn.cloneNode(true);
         downloadPdfBtn.parentNode.replaceChild(newPdfBtn, downloadPdfBtn);
         newPdfBtn.addEventListener('click', () => {
-            // Always get current orders from storage (not affected by selection/deletion)
-            const currentOrders = getOrders();
-            downloadOrdersAsPDF(currentOrders);
+            // Use the original orders that were displayed (not affected by deletions)
+            downloadOrdersAsPDF(orders);
         });
     }
     
@@ -2688,9 +2687,8 @@ function displayOrdersInModal(orders) {
         const newExcelBtn = downloadExcelBtn.cloneNode(true);
         downloadExcelBtn.parentNode.replaceChild(newExcelBtn, downloadExcelBtn);
         newExcelBtn.addEventListener('click', () => {
-            // Always get current orders from storage (not affected by selection/deletion)
-            const currentOrders = getOrders();
-            downloadOrdersAsExcel(currentOrders);
+            // Use the original orders that were displayed (not affected by deletions)
+            downloadOrdersAsExcel(orders);
         });
     }
 }
