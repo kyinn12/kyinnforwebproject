@@ -29,7 +29,11 @@ const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
 // SECURITY WARNING: For production, store API key in localStorage or environment variable
 // This is a fallback value - users should set their own key via localStorage.setItem('JSONBIN_API_KEY', 'your-key')
 const JSONBIN_API_KEY_STORAGE_KEY = 'JSONBIN_API_KEY';
-const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // Fallback default key
+// IMPORTANT: This is a fallback key. JSONBin.io API keys are bcrypt hashes (60 characters).
+// If you get 401 errors, verify your API key at https://jsonbin.io/app/account/api-keys
+// The key should start with $2a$10$ and be exactly 60 characters long.
+// Users should set their own key via: localStorage.setItem('JSONBIN_API_KEY', 'your-complete-60-char-key')
+const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // Fallback default key (verify this is complete)
 // Get API key from localStorage first, fallback to default (for development only)
 function getJsonBinApiKey() {
     const storedKey = localStorage.getItem(JSONBIN_API_KEY_STORAGE_KEY);
@@ -1647,7 +1651,7 @@ function getValidWishlistCount() {
     return normalizedWishlistIds.filter(id => validProductIds.has(id) && !deletedSet.has(id)).length;
 }
 
-function toggleWishlist(productId) {
+async function toggleWishlist(productId) {
     try {
     let wishlistIds = getWishlistIds();
         const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
@@ -1668,7 +1672,7 @@ function toggleWishlist(productId) {
     }
 
     saveWishlistIds(wishlistIds); 
-        loadEmbeddedProducts();
+        await loadEmbeddedProducts();
     } catch (err) {
         console.error('Error toggling wishlist:', err);
         alert('Error updating wishlist. Please try again.');

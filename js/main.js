@@ -15,7 +15,7 @@ function initSellerDashboard() {
     const submitButton = document.getElementById('submit-new-product');
     const formTitle = document.querySelector('#product-registration-form h2');
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault(); 
 
         const newProduct = {
@@ -27,18 +27,23 @@ function initSellerDashboard() {
             image: document.getElementById('p-image').value 
         };
 
-        if (typeof editingProductId === 'number' && !isNaN(editingProductId)) {
-            updateProduct(editingProductId, newProduct);
-            alert(`Product "${newProduct.name}" updated successfully!`);
-            editingProductId = null;
-            if (submitButton) submitButton.textContent = 'Register Product';
-            if (formTitle) formTitle.textContent = '➕ Add New Product (Image URL Supported)';
-        } else {
-            addNewProduct(newProduct);
-            alert(`Product "${newProduct.name}" registered successfully!`);
-        }
+        try {
+            if (typeof editingProductId === 'number' && !isNaN(editingProductId)) {
+                await updateProduct(editingProductId, newProduct);
+                alert(`Product "${newProduct.name}" updated successfully!`);
+                editingProductId = null;
+                if (submitButton) submitButton.textContent = 'Register Product';
+                if (formTitle) formTitle.textContent = '➕ Add New Product (Image URL Supported)';
+            } else {
+                await addNewProduct(newProduct);
+                alert(`Product "${newProduct.name}" registered successfully!`);
+            }
 
-        form.reset(); 
+            form.reset(); 
+        } catch (err) {
+            console.error('Error saving product:', err);
+            alert('Error saving product. Please try again.');
+        }
     });
 
     renderSellerProducts().then(() => {
