@@ -26,8 +26,16 @@ const CLOUD_STORAGE_BIN_ID = '692e8f8ad0ea881f400d3e91'; // Your bin ID
 const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
 // IMPORTANT: JSONBin.io requires an API key for write operations
 // Get your API key from: https://jsonbin.io/app/account/api-keys
-// Then add it below:
-const JSONBIN_API_KEY = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // X-MASTER-KEY from JSONBin.io
+// SECURITY WARNING: For production, store API key in localStorage or environment variable
+// This is a fallback value - users should set their own key via localStorage.setItem('JSONBIN_API_KEY', 'your-key')
+const JSONBIN_API_KEY_STORAGE_KEY = 'JSONBIN_API_KEY';
+const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // Fallback default key
+// Get API key from localStorage first, fallback to default (for development only)
+function getJsonBinApiKey() {
+    const storedKey = localStorage.getItem(JSONBIN_API_KEY_STORAGE_KEY);
+    return storedKey || JSONBIN_API_KEY_DEFAULT;
+}
+// Note: Use getJsonBinApiKey() function instead of JSONBIN_API_KEY constant to get fresh value from localStorage
 
 async function fetchProductsFromApi() {
   if (USE_API) {
@@ -126,8 +134,9 @@ async function resetCloudStorage() {
             'Content-Type': 'application/json',
         };
         
-        if (JSONBIN_API_KEY) {
-            headers['X-Master-Key'] = JSONBIN_API_KEY;
+        const apiKey = getJsonBinApiKey();
+        if (apiKey) {
+            headers['X-Master-Key'] = apiKey;
         } else {
             console.warn('⚠️ No API key provided - reset will fail');
             return false;
@@ -194,8 +203,9 @@ async function syncToCloudStorage(products) {
         };
         
         // Add API key if available (required for write operations)
-        if (JSONBIN_API_KEY) {
-            headers['X-Master-Key'] = JSONBIN_API_KEY;
+        const apiKey = getJsonBinApiKey();
+        if (apiKey) {
+            headers['X-Master-Key'] = apiKey;
         } else {
             console.warn('⚠️ No API key provided - write operations will fail');
         }
@@ -223,7 +233,8 @@ async function syncToCloudStorage(products) {
             const errorText = await response.text().catch(() => '');
             console.error('❌ Cloud storage sync FAILED:', response.status);
             console.error('📋 Error details:', errorData || errorText);
-            console.error('🔑 API Key used:', JSONBIN_API_KEY ? JSONBIN_API_KEY.substring(0, 10) + '...' : 'NONE');
+            const apiKey = getJsonBinApiKey();
+            console.error('🔑 API Key used:', apiKey ? apiKey.substring(0, 10) + '...' : 'NONE');
             console.error('🆔 Bin ID:', CLOUD_STORAGE_BIN_ID);
             
             if (response.status === 401 || response.status === 403) {
@@ -769,8 +780,9 @@ async function deleteProduct(id) {
               if (syncSuccess) {
                 await new Promise(resolve => setTimeout(resolve, 300));
                 const verifyHeaders = {};
-                if (JSONBIN_API_KEY) {
-                  verifyHeaders['X-Master-Key'] = JSONBIN_API_KEY;
+                const apiKey = getJsonBinApiKey();
+                if (apiKey) {
+                  verifyHeaders['X-Master-Key'] = apiKey;
                 }
                 const verifyRes = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`, {
                   headers: verifyHeaders
@@ -791,9 +803,8 @@ async function deleteProduct(id) {
             if (syncSuccess) {
               // Update last known state immediately after successful sync
               finalDeletedList = getDeletedProductIds();
-              if (lastKnownDeletedIds !== null) {
-                lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
-              }
+              // Always update lastKnownDeletedIds (fixes bug where null check prevented initialization)
+              lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud after 5 attempts.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
@@ -888,8 +899,9 @@ async function deleteProduct(id) {
               if (syncSuccess) {
                 await new Promise(resolve => setTimeout(resolve, 300));
                 const verifyHeaders = {};
-                if (JSONBIN_API_KEY) {
-                  verifyHeaders['X-Master-Key'] = JSONBIN_API_KEY;
+                const apiKey = getJsonBinApiKey();
+                if (apiKey) {
+                  verifyHeaders['X-Master-Key'] = apiKey;
                 }
                 const verifyRes = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`, {
                   headers: verifyHeaders
@@ -1287,8 +1299,9 @@ async function checkForChanges() {
     try {
         // Get current state from cloud
         const headers = {};
-        if (JSONBIN_API_KEY) {
-            headers['X-Master-Key'] = JSONBIN_API_KEY;
+        const apiKey = getJsonBinApiKey();
+        if (apiKey) {
+            headers['X-Master-Key'] = apiKey;
         }
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`;
