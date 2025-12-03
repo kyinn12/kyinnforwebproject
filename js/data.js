@@ -3,6 +3,7 @@
 const productListContainer = document.getElementById('product-list-container');
 let allProducts = []; 
 let editingProductId = null;
+let autoRefreshInterval = null; // For auto-refreshing seller page
 
 const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
@@ -644,6 +645,16 @@ async function deleteProduct(id) {
     // Small delay to ensure cloud sync completes
     await new Promise(resolve => setTimeout(resolve, 500));
     await renderSellerProducts();
+    
+    // Update last known state after delete
+    if (USE_CLOUD_STORAGE && !USE_API) {
+        const currentProductIds = allProducts.map(p => {
+            const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return isNaN(id) ? 0 : id;
+        }).filter(id => id > 0).sort((a, b) => a - b);
+        lastKnownProductIds = currentProductIds;
+        lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
+    }
 }
 
 async function loadEmbeddedProducts() {
@@ -867,6 +878,111 @@ async function renderSellerProducts() {
             }
         });
     });
+    
+    // Update last known state after render
+    if (USE_CLOUD_STORAGE && !USE_API) {
+        const currentProductIds = allProducts.map(p => {
+            const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return isNaN(id) ? 0 : id;
+        }).filter(id => id > 0).sort((a, b) => a - b);
+        lastKnownProductIds = currentProductIds;
+        lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
+    }
+}
+
+// Auto-refresh function to detect changes from other browsers
+let lastKnownProductIds = null;
+let lastKnownDeletedIds = null;
+
+async function checkForChanges() {
+    if (!USE_CLOUD_STORAGE || USE_API) return;
+    
+    try {
+        // Get current state from cloud
+        const headers = {};
+        if (JSONBIN_API_KEY) {
+            headers['X-Master-Key'] = JSONBIN_API_KEY;
+        }
+        
+        const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`;
+        const res = await fetch(url, { headers: headers });
+        
+        if (res.ok) {
+            const data = await res.json();
+            const cloudProducts = data.record?.products || [];
+            const cloudDeletedProducts = data.record?.deletedProducts || [];
+            
+            // Normalize IDs for comparison
+            const currentProductIds = cloudProducts.map(p => {
+                const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return isNaN(id) ? 0 : id;
+            }).filter(id => id > 0).sort((a, b) => a - b);
+            
+            const currentDeletedIds = (Array.isArray(cloudDeletedProducts) ? cloudDeletedProducts : []).map(id => {
+                const normalized = typeof id === 'string' ? parseInt(id) : id;
+                return isNaN(normalized) ? 0 : normalized;
+            }).filter(id => id > 0).sort((a, b) => a - b);
+            
+            // Check if anything changed
+            const productIdsChanged = JSON.stringify(currentProductIds) !== JSON.stringify(lastKnownProductIds);
+            const deletedIdsChanged = JSON.stringify(currentDeletedIds) !== JSON.stringify(lastKnownDeletedIds);
+            
+            if (productIdsChanged || deletedIdsChanged) {
+                console.log('🔄 Changes detected from other browser! Refreshing...');
+                console.log('📦 Product IDs changed:', productIdsChanged);
+                console.log('🗑️ Deleted IDs changed:', deletedIdsChanged);
+                
+                // Update last known state
+                lastKnownProductIds = currentProductIds;
+                lastKnownDeletedIds = currentDeletedIds;
+                
+                // Re-render seller products to show updated list
+                const sellerTableBody = document.querySelector('#product-table tbody');
+                if (sellerTableBody) {
+                    await renderSellerProducts();
+                }
+            }
+        }
+    } catch (err) {
+        // Silently fail - don't spam console with errors
+        console.debug('Auto-refresh check failed (this is normal if offline):', err.message);
+    }
+}
+
+function startAutoRefresh() {
+    // Only start if on seller page and cloud storage is enabled
+    const sellerTableBody = document.querySelector('#product-table tbody');
+    if (!sellerTableBody || !USE_CLOUD_STORAGE || USE_API) return;
+    
+    // Clear any existing interval
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    
+    // Initialize last known state
+    const currentProductIds = allProducts.map(p => {
+        const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+        return isNaN(id) ? 0 : id;
+    }).filter(id => id > 0).sort((a, b) => a - b);
+    lastKnownProductIds = currentProductIds;
+    lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
+    
+    // Check for changes every 3 seconds
+    autoRefreshInterval = setInterval(checkForChanges, 3000);
+    console.log('🔄 Auto-refresh started - checking for changes every 3 seconds');
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        console.log('🛑 Auto-refresh stopped');
+    }
+}
+
+// Stop auto-refresh when page is unloaded
+if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', stopAutoRefresh);
 }
 
 function startEditProduct(productId) {

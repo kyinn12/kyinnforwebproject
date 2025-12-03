@@ -41,7 +41,12 @@ function initSellerDashboard() {
         form.reset(); 
     });
 
-    renderSellerProducts(); 
+    renderSellerProducts().then(() => {
+        // Start auto-refresh after initial render
+        if (typeof startAutoRefresh === 'function') {
+            startAutoRefresh();
+        }
+    }); 
 }
 
 window.handlePartnerLoginClick = function(e) {
