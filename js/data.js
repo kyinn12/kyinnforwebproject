@@ -619,16 +619,16 @@ async function deleteProduct(id) {
         if (fileProductIds.includes(normalizedId)) {
           // Product is from items.json - mark as deleted
           addToDeletedProducts(normalizedId);
-          // Get the updated deleted list AFTER adding
-          const deletedIds = getDeletedProductIds();
+          
           // Sync deleted list AND current storage products to cloud
           if (USE_CLOUD_STORAGE) {
             // Wait a moment to ensure localStorage is updated
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 200));
             
-            // Get fresh deleted list one more time
+            // Get fresh deleted list to ensure it's up to date
             const finalDeletedList = getDeletedProductIds();
             
+            // Sync to cloud - syncToCloudStorage will automatically include deletedProducts from localStorage
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
               // Update last known state immediately after successful sync
@@ -663,7 +663,11 @@ async function deleteProduct(id) {
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
             // Wait a moment to ensure localStorage is updated
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // syncToCloudStorage automatically includes deletedProducts from localStorage
+            // Make sure deleted list is current before syncing
+            const currentDeletedList = getDeletedProductIds();
             
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
@@ -673,7 +677,7 @@ async function deleteProduct(id) {
                 return isNaN(id) ? 0 : id;
               }).filter(id => id > 0).sort((a, b) => a - b);
               lastKnownProductIds = currentProductIds;
-              lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
+              lastKnownDeletedIds = currentDeletedList.sort((a, b) => a - b);
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
