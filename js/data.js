@@ -5,6 +5,10 @@ let allProducts = [];
 let editingProductId = null;
 let autoRefreshInterval = null; // For auto-refreshing seller page
 
+// Race condition prevention: operation locks
+let isOperationInProgress = false; // Prevents concurrent operations
+let isSyncing = false; // Prevents concurrent cloud syncs
+
 const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
 const CART_KEY = 'codedlookCart';       
@@ -165,6 +169,22 @@ async function syncToCloudStorage(products) {
         console.warn('⚠️ No cloud storage bin ID configured');
         return false;
     }
+    
+    // Prevent concurrent syncs
+    if (isSyncing) {
+        // Wait for current sync to complete (max 5 seconds)
+        let waitCount = 0;
+        while (isSyncing && waitCount < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitCount++;
+        }
+        if (isSyncing) {
+            console.warn('⚠️ Sync timeout - another sync is taking too long');
+            return false;
+        }
+    }
+    
+    isSyncing = true;
     try {
         const headers = {
             'Content-Type': 'application/json',
@@ -222,6 +242,8 @@ async function syncToCloudStorage(products) {
     } catch (err) {
         console.error('❌ Cloud storage sync error (data saved locally):', err.message);
         return false;
+    } finally {
+        isSyncing = false;
     }
 }
 
@@ -373,16 +395,25 @@ function initializeData() {
 }
 
 async function addNewProduct(newProduct) {
-    const productPayload = {
-        name: newProduct.name,
-        price: parseInt(newProduct.price),
-        category: newProduct.category,
-        tags: newProduct.tags.split(',').map(tag => tag.trim()),
-        stock: parseInt(newProduct.stock),
-      imageUrl: newProduct.image || 'https://i.imgur.com/FRTPdpc.jpeg',
-    };
-  
-    if (USE_API) {
+    // Prevent concurrent operations
+    if (isOperationInProgress) {
+        console.warn('⚠️ Another operation is in progress. Please wait...');
+        return;
+    }
+    
+    isOperationInProgress = true;
+    
+    try {
+        const productPayload = {
+            name: newProduct.name,
+            price: parseInt(newProduct.price),
+            category: newProduct.category,
+            tags: newProduct.tags.split(',').map(tag => tag.trim()),
+            stock: parseInt(newProduct.stock),
+          imageUrl: newProduct.image || 'https://i.imgur.com/FRTPdpc.jpeg',
+        };
+      
+        if (USE_API) {
       try {
         await fetch(`${API_BASE_URL}/products`, {
           method: 'POST',
@@ -456,17 +487,26 @@ async function addNewProduct(newProduct) {
 }
 
 async function updateProduct(id, updatedProduct) {
-    const normalizedId = typeof id === 'string' ? parseInt(id) : id;
-    const updated = {
-      name: updatedProduct.name,
-      price: parseInt(updatedProduct.price),
-      category: updatedProduct.category,
-      tags: updatedProduct.tags.split(',').map(tag => tag.trim()),
-      stock: parseInt(updatedProduct.stock),
-      imageUrl: updatedProduct.image || '',
-    };
-  
-    if (USE_API) {
+    // Prevent concurrent operations
+    if (isOperationInProgress) {
+        console.warn('⚠️ Another operation is in progress. Please wait...');
+        return;
+    }
+    
+    isOperationInProgress = true;
+    
+    try {
+        const normalizedId = typeof id === 'string' ? parseInt(id) : id;
+        const updated = {
+          name: updatedProduct.name,
+          price: parseInt(updatedProduct.price),
+          category: updatedProduct.category,
+          tags: updatedProduct.tags.split(',').map(tag => tag.trim()),
+          stock: parseInt(updatedProduct.stock),
+          imageUrl: updatedProduct.image || '',
+        };
+      
+        if (USE_API) {
       try {
         await fetch(`${API_BASE_URL}/products/${normalizedId}`, {
           method: 'PUT',
@@ -576,6 +616,8 @@ async function updateProduct(id, updatedProduct) {
         console.error('Error updating product:', err);
         alert('Error updating product. Please try again.');
         return;
+      } finally {
+        isOperationInProgress = false;
       }
     }
     
@@ -583,9 +625,18 @@ async function updateProduct(id, updatedProduct) {
 }
 
 async function deleteProduct(id) {
-    const normalizedId = typeof id === 'string' ? parseInt(id) : id;
+    // Prevent concurrent operations
+    if (isOperationInProgress) {
+        console.warn('⚠️ Another operation is in progress. Please wait...');
+        return;
+    }
     
-    if (USE_API) {
+    isOperationInProgress = true;
+    
+    try {
+        const normalizedId = typeof id === 'string' ? parseInt(id) : id;
+        
+        if (USE_API) {
       try {
         await fetch(`${API_BASE_URL}/products/${normalizedId}`, {
           method: 'DELETE',
@@ -741,6 +792,8 @@ async function deleteProduct(id) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
         return;
+      } finally {
+        isOperationInProgress = false;
       }
     }
   
@@ -892,9 +945,9 @@ async function renderSellerProducts() {
     const sellerTableBody = document.querySelector('#product-table tbody');
     if (!sellerTableBody) return;
   
-    // Always sync from cloud storage first to get latest changes from other browsers
+    // Only sync from cloud if no operation is in progress (prevents race conditions)
     let products = null;
-    if (USE_CLOUD_STORAGE && !USE_API) {
+    if (USE_CLOUD_STORAGE && !USE_API && !isOperationInProgress) {
         try {
             products = await syncFromCloudStorage();
             // syncFromCloudStorage now includes items.json + cloud + local, and updates allProducts
@@ -1018,6 +1071,11 @@ let lastKnownDeletedIds = null;
 
 async function checkForChanges() {
     if (!USE_CLOUD_STORAGE || USE_API) return;
+    
+    // Skip check if an operation is in progress to prevent race conditions
+    if (isOperationInProgress || isSyncing) {
+        return;
+    }
     
     try {
         // Get current state from cloud
