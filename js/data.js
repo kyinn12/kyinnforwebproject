@@ -1959,9 +1959,9 @@ function showPaymentModal(totalPrice, cartItems) {
             </div>
             <div class="payment-inputs">
                 <label for="card-number">Card Number:</label>
-                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" pattern="[0-9 ]{13,19}">
+                <input type="text" id="card-number" placeholder="Enter any card number">
                 <label for="card-password">Card Password:</label>
-                <input type="password" id="card-password" placeholder="Enter card password" maxlength="4" pattern="[0-9]{4}">
+                <input type="password" id="card-password" placeholder="Enter any password">
             </div>
             <div class="payment-actions">
                 <button id="confirm-payment-btn" class="btn-payment">Confirm Payment</button>
@@ -1992,13 +1992,14 @@ function showPaymentModal(totalPrice, cartItems) {
             const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '') || '';
             const cardPassword = document.getElementById('card-password')?.value || '';
             
-            if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 16) {
-                alert('Please enter a valid card number (13-16 digits)');
+            // Accept any card number and password (no validation)
+            if (!cardNumber || cardNumber.trim() === '') {
+                alert('Please enter a card number');
                 return;
             }
             
-            if (!cardPassword || cardPassword.length !== 4 || !/^\d{4}$/.test(cardPassword)) {
-                alert('Please enter a valid 4-digit card password');
+            if (!cardPassword || cardPassword.trim() === '') {
+                alert('Please enter a card password');
                 return;
             }
             
@@ -2161,6 +2162,11 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
         // Add order (this will also sync orders to cloud via saveOrders)
         addOrder(order);
         
+        // Verify order was saved
+        const savedOrders = getOrders();
+        console.log('Order saved. Total orders now:', savedOrders.length);
+        console.log('Latest order:', savedOrders[0]);
+        
         // Clear cart
         localStorage.setItem(CART_KEY, JSON.stringify({}));
         updateCartCount(0);
@@ -2171,7 +2177,7 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
             modal.style.display = 'none';
         }
         
-        alert(`Payment successful! Order #${order.id}\nTotal: ${totalPrice.toLocaleString('ko-KR')}원`);
+        alert(`Payment successful! Order #${order.id}\nTotal: ${totalPrice.toLocaleString('ko-KR')}원\n\nYou can view this order in "My Orders".`);
         
         // Reload products to show updated stock
         await loadEmbeddedProducts();
@@ -2185,16 +2191,15 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
 }
 
 // View Orders Function
-function viewOrders() {
+async function viewOrders() {
     try {
         // Sync orders from cloud storage first to get latest orders
         if (USE_CLOUD_STORAGE && !USE_API) {
-            syncFromCloudStorage().catch(err => {
-                console.warn('Error syncing orders from cloud:', err);
-            });
+            await syncFromCloudStorage();
         }
         
         const orders = getOrders();
+        console.log('Orders found:', orders.length, orders);
         
         if (orders.length === 0) {
             const modal = document.getElementById('app-modal');
