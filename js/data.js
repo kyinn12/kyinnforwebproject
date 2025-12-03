@@ -2983,48 +2983,15 @@ function displayOrdersInModal(orders) {
     if (deleteSelectedBtnTop) {
         deleteSelectedBtnTop.addEventListener('click', async () => {
             const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
-            // Group selected items by order ID
-            const selectedItemsByOrder = {};
+            // Get unique order IDs from selected items
+            const selectedOrderIds = new Set();
             checkedBoxes.forEach(cb => {
-                const orderId = parseInt(cb.dataset.orderId);
-                const itemIndex = parseInt(cb.dataset.itemIndex);
-                if (!selectedItemsByOrder[orderId]) {
-                    selectedItemsByOrder[orderId] = [];
-                }
-                selectedItemsByOrder[orderId].push(itemIndex);
+                selectedOrderIds.add(parseInt(cb.dataset.orderId));
             });
             
-            // For each order, if all items are selected, delete the entire order
-            // Otherwise, we'll need to modify the order to remove only selected items
-            const ordersToDelete = [];
-            const ordersToModify = [];
-            
-            orders.forEach(order => {
-                const selectedIndices = selectedItemsByOrder[order.id] || [];
-                if (selectedIndices.length === order.items.length) {
-                    // All items selected, delete entire order
-                    ordersToDelete.push(order.id);
-                } else if (selectedIndices.length > 0) {
-                    // Some items selected, modify order
-                    ordersToModify.push({
-                        orderId: order.id,
-                        itemIndices: selectedIndices
-                    });
-                }
-            });
-            
-            // Delete full orders
-            if (ordersToDelete.length > 0) {
-                await deleteSelectedOrders(ordersToDelete);
-            }
-            
-            // For partial deletions, we need to modify orders
-            // This is more complex - for now, we'll delete the entire order if any items are selected
-            // A better implementation would modify the order to remove only selected items
-            if (ordersToModify.length > 0) {
-                // For simplicity, delete the entire order if any items are selected
-                const partialOrderIds = ordersToModify.map(m => m.orderId);
-                await deleteSelectedOrders(partialOrderIds);
+            // Delete all orders that have at least one selected item
+            if (selectedOrderIds.size > 0) {
+                await deleteSelectedOrders(Array.from(selectedOrderIds));
             }
         });
     }
