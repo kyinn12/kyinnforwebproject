@@ -500,23 +500,32 @@ async function updateProduct(id, updatedProduct) {
           return isNaN(pId) ? 0 : pId;
         });
         
-        if (fileProductIds.includes(normalizedId)) {
-          alert('Cannot edit products from items.json. Only products you added can be edited.');
-          return;
-        }
+        // Check if product is from items.json or storage
+        const isFromItemsJson = fileProductIds.includes(normalizedId);
         
-        const index = storageProducts.findIndex(p => {
-          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          return pId === normalizedId;
-        });
-        
-        if (index !== -1) {
-          storageProducts[index] = { ...storageProducts[index], ...updated, id: normalizedId };
+        if (isFromItemsJson) {
+          // Product is from items.json - save edited version to cloud storage
+          // This will override the items.json version in the merged view
+          const editedProduct = { ...updated, id: normalizedId };
+          
+          // Check if product already exists in storage (from previous edit)
+          const existingIndex = storageProducts.findIndex(p => {
+            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return pId === normalizedId;
+          });
+          
+          if (existingIndex !== -1) {
+            // Update existing edited version
+            storageProducts[existingIndex] = editedProduct;
+          } else {
+            // Add new edited version (will override items.json version)
+            storageProducts.push(editedProduct);
+          }
           
           // Save locally first
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
           
-          // Force sync to cloud storage after update (wait for it to complete)
+          // Force sync to cloud storage after update
           if (USE_CLOUD_STORAGE) {
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (!syncSuccess) {
@@ -524,21 +533,45 @@ async function updateProduct(id, updatedProduct) {
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
             }
           }
-          
-          const deletedIds = getDeletedProductIds();
-          const mergedProducts = [...fileProducts, ...storageProducts];
-          const mergedMap = new Map();
-          mergedProducts.forEach(p => {
-            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-            if (!isNaN(pId) && pId > 0 && !deletedIds.includes(pId)) {
-              mergedMap.set(pId, { ...p, id: pId });
-            }
-          });
-          allProducts = Array.from(mergedMap.values());
         } else {
-          console.warn(`Product ID ${normalizedId} not found in localStorage`);
-          alert('Product not found. It may have been deleted or is from items.json.');
+          // Product is from storage - update it normally
+          const index = storageProducts.findIndex(p => {
+            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return pId === normalizedId;
+          });
+          
+          if (index !== -1) {
+            storageProducts[index] = { ...storageProducts[index], ...updated, id: normalizedId };
+            
+            // Save locally first
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
+            
+            // Force sync to cloud storage after update
+            if (USE_CLOUD_STORAGE) {
+              const syncSuccess = await syncToCloudStorage(storageProducts);
+              if (!syncSuccess) {
+                console.warn('⚠️ Update saved locally but failed to sync to cloud.');
+                console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
+              }
+            }
+          } else {
+            console.warn(`Product ID ${normalizedId} not found`);
+            alert('Product not found. It may have been deleted.');
+            return;
+          }
         }
+        
+        // Update allProducts with merged data
+        const deletedIds = getDeletedProductIds();
+        const mergedProducts = [...fileProducts, ...storageProducts];
+        const mergedMap = new Map();
+        mergedProducts.forEach(p => {
+          const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+          if (!isNaN(pId) && pId > 0 && !deletedIds.includes(pId)) {
+            mergedMap.set(pId, { ...p, id: pId });
+          }
+        });
+        allProducts = Array.from(mergedMap.values());
       } catch (err) {
         console.error('Error updating product:', err);
         alert('Error updating product. Please try again.');
