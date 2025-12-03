@@ -109,6 +109,65 @@ function saveProductsToStorage(products) {
     }
 }
 
+// Function to reset cloud storage to clean state
+async function resetCloudStorage() {
+    if (!CLOUD_STORAGE_BIN_ID) {
+        console.warn('⚠️ No cloud storage bin ID configured');
+        return false;
+    }
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        
+        if (JSONBIN_API_KEY) {
+            headers['X-Master-Key'] = JSONBIN_API_KEY;
+            console.log('🔑 Using API key to reset cloud storage');
+        } else {
+            console.warn('⚠️ No API key provided - reset will fail');
+            return false;
+        }
+        
+        const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
+        console.log('🔄 Resetting cloud storage to clean state...');
+        
+        // Reset to empty state
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify({ 
+                products: [],
+                deletedProducts: []
+            })
+        });
+        
+        if (response.ok) {
+            console.log('✅ Cloud storage reset successfully!');
+            console.log('✅ All products and deleted lists cleared from cloud');
+            
+            // Also clear local storage
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+            localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify([]));
+            console.log('✅ Local storage also cleared');
+            
+            return true;
+        } else {
+            const errorText = await response.text().catch(() => '');
+            console.error('❌ Failed to reset cloud storage:', response.status, errorText);
+            return false;
+        }
+    } catch (err) {
+        console.error('❌ Error resetting cloud storage:', err.message);
+        return false;
+    }
+}
+
+// Make reset function available globally for console access
+if (typeof window !== 'undefined') {
+    window.resetCloudStorage = resetCloudStorage;
+    console.log('💡 To reset cloud storage, run: resetCloudStorage() in the console');
+}
+
 async function syncToCloudStorage(products) {
     if (!CLOUD_STORAGE_BIN_ID) {
         console.warn('⚠️ No cloud storage bin ID configured');
