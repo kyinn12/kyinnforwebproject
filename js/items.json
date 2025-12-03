@@ -106,17 +106,6 @@
       ],
       "stock": 21,
       "imageUrl": "https://i.imgur.com/Z1otbP1.jpeg"
-    },
-    {
-      "id": "5d6a",
-      "name": "haha",
-      "price": 5000,
-      "category": "Tops",
-      "tags": [
-        "15"
-      ],
-      "stock": 52,
-      "imageUrl": "https://i.imgur.com/FRTPdpc.jpeg"
     }
   ]
 }
