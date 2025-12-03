@@ -267,8 +267,9 @@ async function syncFromCloudStorage() {
     if (!USE_CLOUD_STORAGE || !CLOUD_STORAGE_BIN_ID) return null;
     try {
         const headers = {};
-        if (JSONBIN_API_KEY) {
-            headers['X-Master-Key'] = JSONBIN_API_KEY;
+        const apiKey = getJsonBinApiKey();
+        if (apiKey) {
+            headers['X-Master-Key'] = apiKey;
         }
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`;
