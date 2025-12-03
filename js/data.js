@@ -1286,16 +1286,21 @@ async function renderSellerProducts() {
 }
 
 // Auto-refresh function to detect changes from other browsers
-let lastKnownProductIds = null;
-let lastKnownDeletedIds = null;
+// Initialize as empty arrays to ensure type consistency for comparisons
+let lastKnownProductIds = [];
+let lastKnownDeletedIds = [];
+let isCheckingForChanges = false; // Lock to prevent concurrent executions
 
 async function checkForChanges() {
     if (!USE_CLOUD_STORAGE || USE_API) return;
     
-    // STRONG race condition prevention: Skip check if ANY operation is in progress
-    if (isOperationInProgress || isSyncing || isDeleting) {
+    // STRONG race condition prevention: Skip check if ANY operation is in progress OR if already checking
+    if (isOperationInProgress || isSyncing || isDeleting || isCheckingForChanges) {
         return;
     }
+    
+    // Set lock to prevent concurrent executions
+    isCheckingForChanges = true;
     
     try {
         // Get current state from cloud
@@ -1325,8 +1330,11 @@ async function checkForChanges() {
             }).filter(id => id > 0).sort((a, b) => a - b);
             
             // Check if anything changed
-            const productIdsChanged = JSON.stringify(currentProductIds) !== JSON.stringify(lastKnownProductIds);
-            const deletedIdsChanged = JSON.stringify(currentDeletedIds) !== JSON.stringify(lastKnownDeletedIds);
+            // Ensure both sides are arrays for consistent comparison
+            const lastProductIds = Array.isArray(lastKnownProductIds) ? lastKnownProductIds : [];
+            const lastDeletedIds = Array.isArray(lastKnownDeletedIds) ? lastKnownDeletedIds : [];
+            const productIdsChanged = JSON.stringify(currentProductIds) !== JSON.stringify(lastProductIds);
+            const deletedIdsChanged = JSON.stringify(currentDeletedIds) !== JSON.stringify(lastDeletedIds);
             
             // Also check if product data changed (for edits)
             let productDataChanged = false;
@@ -1382,6 +1390,9 @@ async function checkForChanges() {
     } catch (err) {
         // Silently fail - don't spam console with errors
         // No console output for auto-refresh
+    } finally {
+        // Always release lock, even if error occurred
+        isCheckingForChanges = false;
     }
 }
 
@@ -1405,7 +1416,13 @@ function startAutoRefresh() {
     lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
     
     // Check for changes every 3 seconds (silently)
-    autoRefreshInterval = setInterval(checkForChanges, 3000);
+    // Use a wrapper function to properly handle async execution and prevent concurrent calls
+    autoRefreshInterval = setInterval(() => {
+        // Don't await - setInterval doesn't support async, but the lock prevents concurrent executions
+        checkForChanges().catch(() => {
+            // Silently handle any errors - checkForChanges already has error handling
+        });
+    }, 3000);
 }
 
 function stopAutoRefresh() {

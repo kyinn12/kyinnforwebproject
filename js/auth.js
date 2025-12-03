@@ -32,6 +32,13 @@ function handlePartnerLogin() {
     const partnerLoginButton = document.getElementById('partner-login-btn');
     console.log('handlePartnerLogin called, button found:', !!partnerLoginButton);
     if (partnerLoginButton) {
+        // Check if listener is already attached to prevent duplicates
+        if (partnerLoginButton.hasAttribute('data-listener-attached')) {
+            console.log('Partner login listener already attached, skipping');
+            return;
+        }
+        
+        partnerLoginButton.setAttribute('data-listener-attached', 'true');
         partnerLoginButton.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -46,7 +53,7 @@ function handlePartnerLogin() {
             } else {
                 alert('Please enter username and password');
             }
-        }, { once: false });
+        });
         console.log('Partner login button listener attached successfully');
     } else {
         console.error('Partner login button not found!');
