@@ -24,6 +24,34 @@
     
     <script src="../js/auth.js"></script>
     <script src="../js/data.js"></script>
-    <script src="../js/main.js"></script> 
+    <script src="../js/main.js"></script>
+    <script>
+        // Direct fallback event listener to ensure button is always clickable
+        document.addEventListener('DOMContentLoaded', () => {
+            const partnerLoginBtn = document.getElementById('partner-login-btn');
+            if (partnerLoginBtn) {
+                // Remove any existing onclick to prevent conflicts
+                partnerLoginBtn.onclick = null;
+                // Add direct click handler as final fallback
+                partnerLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Direct fallback handler triggered');
+                    const username = document.getElementById('username')?.value || '';
+                    const password = document.getElementById('password')?.value || '';
+                    if (username && password) {
+                        if (typeof authenticateAndRedirect === 'function') {
+                            authenticateAndRedirect('seller', username, password, '../html/seller.html');
+                        } else {
+                            alert('Authentication function not loaded. Please refresh the page.');
+                        }
+                    } else {
+                        alert('Please enter username and password');
+                    }
+                }, { once: false, capture: false });
+                console.log('Direct fallback listener attached to partner login button');
+            }
+        });
+    </script>
 </body>
 </html>
