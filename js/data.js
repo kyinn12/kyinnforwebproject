@@ -272,12 +272,28 @@ async function syncFromCloudStorage() {
             const cloudDeletedProducts = data.record?.deletedProducts || [];
             const cloudOrders = data.record?.orders || [];
             
-            // Sync orders from cloud
+            // Sync orders from cloud - merge with local orders (don't overwrite)
             if (Array.isArray(cloudOrders)) {
-                localStorage.setItem(ORDERS_KEY, JSON.stringify(cloudOrders));
+                const localOrders = getOrders();
+                // Merge orders: combine both arrays, remove duplicates by order ID
+                const orderMap = new Map();
+                // Add local orders first (newer)
+                localOrders.forEach(order => {
+                    orderMap.set(order.id, order);
+                });
+                // Add cloud orders (may have orders from other browsers)
+                cloudOrders.forEach(order => {
+                    if (!orderMap.has(order.id)) {
+                        orderMap.set(order.id, order);
+                    }
+                });
+                // Convert back to array, sort by ID (newest first)
+                const mergedOrders = Array.from(orderMap.values()).sort((a, b) => b.id - a.id);
+                localStorage.setItem(ORDERS_KEY, JSON.stringify(mergedOrders));
             } else {
-                // Initialize empty orders if not in cloud
-                if (!localStorage.getItem(ORDERS_KEY)) {
+                // Initialize empty orders if not in cloud, but keep local orders
+                const localOrders = getOrders();
+                if (localOrders.length === 0 && !localStorage.getItem(ORDERS_KEY)) {
                     localStorage.setItem(ORDERS_KEY, JSON.stringify([]));
                 }
             }
