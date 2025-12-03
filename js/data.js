@@ -960,7 +960,24 @@ async function renderSellerProducts() {
             const buttonElement = e.currentTarget || e.target.closest('.btn-seller-delete');
             const productId = buttonElement ? parseInt(buttonElement.dataset.id) : null;
             if (productId && !isNaN(productId)) {
-                deleteProduct(productId);
+                // Find the product to get its name for confirmation
+                const product = allProducts.find(p => {
+                    const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return pId === productId;
+                });
+                
+                if (product) {
+                    // Show confirmation dialog with product name
+                    const productName = product.name || `Product #${productId}`;
+                    const confirmDelete = confirm(`Do you want to delete "${productName}"?\n\nClick "OK" to delete or "Cancel" to cancel.`);
+                    
+                    if (confirmDelete) {
+                        deleteProduct(productId);
+                    }
+                } else {
+                    console.error(`Product with ID ${productId} not found`);
+                    alert('Product not found. It may have already been deleted.');
+                }
             } else {
                 console.error('❌ Could not get product ID from delete button. Button element:', buttonElement);
                 console.error('❌ Event target:', e.target, 'Current target:', e.currentTarget);
