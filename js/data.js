@@ -2072,7 +2072,7 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
             date: new Date().toISOString(),
             items: validItems,
             totalPrice: totalPrice,
-            cardNumber: cardNumber.substring(cardNumber.length - 4) // Store only last 4 digits
+            cardNumber: cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : cardNumber // Store last 4 digits or full number if shorter
         };
         
         // Update stock for all items
