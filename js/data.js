@@ -478,9 +478,10 @@ async function addNewProduct(newProduct) {
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 110;
         productPayload.id = newId;
         products.push(productPayload);
-    saveProductsToStorage(products); 
-    allProducts = products; 
+        saveProductsToStorage(products); 
+        allProducts = products; 
       }
+    }
     } finally {
         isOperationInProgress = false;
     }
@@ -618,6 +619,7 @@ async function updateProduct(id, updatedProduct) {
         console.error('Error updating product:', err);
         alert('Error updating product. Please try again.');
       }
+    }
     } finally {
       isOperationInProgress = false;
     }
@@ -793,6 +795,7 @@ async function deleteProduct(id) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
       }
+    }
     } finally {
       isOperationInProgress = false;
     }
