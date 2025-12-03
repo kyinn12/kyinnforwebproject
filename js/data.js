@@ -615,10 +615,9 @@ async function updateProduct(id, updatedProduct) {
       } catch (err) {
         console.error('Error updating product:', err);
         alert('Error updating product. Please try again.');
-        return;
-      } finally {
-        isOperationInProgress = false;
       }
+    } finally {
+      isOperationInProgress = false;
     }
     
     await renderSellerProducts(); 
@@ -791,10 +790,9 @@ async function deleteProduct(id) {
       } catch (err) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
-        return;
-      } finally {
-        isOperationInProgress = false;
       }
+    } finally {
+      isOperationInProgress = false;
     }
   
     // Re-render to show updated list (will sync from cloud if enabled)
