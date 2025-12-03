@@ -1967,7 +1967,7 @@ async function saveOrders(orders) {
     }
 }
 
-// Download orders as PDF file
+// Download orders as PDF file with watermark and seal
 function downloadOrdersAsPDF(orders) {
     try {
         if (typeof window.jspdf === 'undefined') {
@@ -1977,14 +1977,43 @@ function downloadOrdersAsPDF(orders) {
         
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        
+        // Add Codélook watermark across the whole page (diagonal, semi-transparent)
+        doc.setTextColor(200, 200, 200); // Light gray
+        doc.setFontSize(60);
+        doc.setFont(undefined, 'bold');
+        doc.text('Codélook', pageWidth / 2, pageHeight / 2, {
+            angle: 45,
+            align: 'center',
+            baseline: 'middle'
+        });
+        
+        // Add "Confirmed Payment" red seal/stamp (continuous, appears on every page)
+        doc.setTextColor(220, 53, 69); // Red color
+        doc.setFontSize(24);
+        doc.setFont(undefined, 'bold');
+        const sealText = '✓ CONFIRMED PAYMENT';
+        const sealX = pageWidth - 20;
+        const sealY = 20;
+        doc.text(sealText, sealX, sealY, {
+            angle: 0,
+            align: 'right'
+        });
+        
+        // Reset text color for content
+        doc.setTextColor(0, 0, 0);
         
         // Title
         doc.setFontSize(18);
-        doc.text('My Orders', 14, 20);
+        doc.setFont(undefined, 'bold');
+        doc.text('My Orders', 14, 30);
         
         // Date
         doc.setFontSize(10);
-        doc.text(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 14, 30);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 14, 40);
         
         // Prepare table data
         const tableData = [];
@@ -2020,15 +2049,39 @@ function downloadOrdersAsPDF(orders) {
         doc.autoTable({
             head: [['Product', 'Order #', 'Price', 'Qty', 'Total', 'Date', 'Card']],
             body: tableData,
-            startY: 35,
+            startY: 45,
             styles: { fontSize: 8 },
             headStyles: { fillColor: [0, 0, 0] },
-            margin: { top: 35 }
+            margin: { top: 45 },
+            didDrawPage: function (data) {
+                // Add watermark on every page
+                doc.setTextColor(200, 200, 200);
+                doc.setFontSize(60);
+                doc.setFont(undefined, 'bold');
+                doc.text('Codélook', pageWidth / 2, pageHeight / 2, {
+                    angle: 45,
+                    align: 'center',
+                    baseline: 'middle'
+                });
+                
+                // Add red seal on every page
+                doc.setTextColor(220, 53, 69);
+                doc.setFontSize(24);
+                doc.setFont(undefined, 'bold');
+                doc.text('✓ CONFIRMED PAYMENT', pageWidth - 20, 20, {
+                    angle: 0,
+                    align: 'right'
+                });
+                
+                // Reset color
+                doc.setTextColor(0, 0, 0);
+            }
         });
         
         // Add summary
         const finalY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
         doc.text(`Grand Total: ${grandTotal.toLocaleString('ko-KR')}원`, 14, finalY);
         doc.text(`Total Orders: ${orders.length}`, 14, finalY + 10);
         
@@ -2041,20 +2094,73 @@ function downloadOrdersAsPDF(orders) {
     }
 }
 
-// Download orders as Excel file
-function downloadOrdersAsExcel(orders) {
+// Download orders as Image file
+function downloadOrdersAsImage(orders) {
     try {
-        if (typeof XLSX === 'undefined') {
-            alert('Excel library not loaded. Please refresh the page.');
-            return;
-        }
+        // Create a canvas element
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1200;
+        canvas.height = 800;
         
-        // Prepare worksheet data
-        const worksheetData = [];
+        // Fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Header row
-        worksheetData.push(['Product', 'Order #', 'Price', 'Quantity', 'Total', 'Date', 'Card Number']);
+        // Add Codélook watermark (diagonal, semi-transparent)
+        ctx.save();
+        ctx.globalAlpha = 0.1;
+        ctx.fillStyle = '#cccccc';
+        ctx.font = 'bold 120px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(-Math.PI / 4); // 45 degrees
+        ctx.fillText('Codélook', 0, 0);
+        ctx.restore();
         
+        // Add "Confirmed Payment" red seal (top right)
+        ctx.save();
+        ctx.fillStyle = '#dc3545'; // Red
+        ctx.font = 'bold 28px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText('✓ CONFIRMED PAYMENT', canvas.width - 20, 20);
+        ctx.restore();
+        
+        // Title
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 32px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('My Orders', 20, 60);
+        
+        // Date
+        ctx.font = '16px Arial';
+        ctx.fillText(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 20, 90);
+        
+        // Table header
+        let yPos = 130;
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText('Product', 20, yPos);
+        ctx.fillText('Order #', 300, yPos);
+        ctx.fillText('Price', 450, yPos);
+        ctx.fillText('Qty', 550, yPos);
+        ctx.fillText('Total', 600, yPos);
+        ctx.fillText('Date', 750, yPos);
+        ctx.fillText('Card', 950, yPos);
+        
+        // Draw line under header
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(20, yPos + 10);
+        ctx.lineTo(canvas.width - 20, yPos + 10);
+        ctx.stroke();
+        
+        // Table rows
+        yPos = 160;
+        ctx.font = '12px Arial';
         let grandTotal = 0;
         
         orders.forEach(order => {
@@ -2063,59 +2169,55 @@ function downloadOrdersAsExcel(orders) {
             const orderDate = new Date(order.date);
             const formattedDate = orderDate.toLocaleDateString('ko-KR', {
                 year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                month: 'short',
+                day: 'numeric'
             });
             
             order.items.forEach(item => {
                 const itemTotal = (item.price || 0) * (item.quantity || 0);
                 grandTotal += itemTotal;
                 
-                worksheetData.push([
-                    item.name || 'Unknown Product',
-                    order.id,
-                    item.price || 0,
-                    item.quantity || 0,
-                    itemTotal,
-                    formattedDate,
-                    `****${order.cardNumber || ''}`
-                ]);
+                ctx.fillText(item.name || 'Unknown', 20, yPos);
+                ctx.fillText(`#${order.id}`, 300, yPos);
+                ctx.fillText(`${(item.price || 0).toLocaleString('ko-KR')}원`, 450, yPos);
+                ctx.fillText(item.quantity || 0, 550, yPos);
+                ctx.fillText(`${itemTotal.toLocaleString('ko-KR')}원`, 600, yPos);
+                ctx.fillText(formattedDate, 750, yPos);
+                ctx.fillText(`****${order.cardNumber || ''}`, 950, yPos);
+                
+                yPos += 25;
+                
+                // Add page break if needed
+                if (yPos > canvas.height - 100) {
+                    // Could add pagination here if needed
+                }
             });
         });
         
-        // Add summary rows
-        worksheetData.push([]);
-        worksheetData.push(['Grand Total', '', '', '', grandTotal, '', '']);
-        worksheetData.push(['Total Orders', '', '', '', orders.length, '', '']);
+        // Summary
+        yPos = canvas.height - 80;
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(`Grand Total: ${grandTotal.toLocaleString('ko-KR')}원`, 20, yPos);
+        ctx.fillText(`Total Orders: ${orders.length}`, 20, yPos + 30);
         
-        // Create workbook and worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-        
-        // Set column widths
-        ws['!cols'] = [
-            { wch: 30 }, // Product
-            { wch: 15 }, // Order #
-            { wch: 15 }, // Price
-            { wch: 10 }, // Quantity
-            { wch: 15 }, // Total
-            { wch: 25 }, // Date
-            { wch: 15 }  // Card
-        ];
-        
-        // Add worksheet to workbook
-        XLSX.utils.book_append_sheet(wb, ws, 'My Orders');
-        
-        // Save file
-        XLSX.writeFile(wb, `my-orders-${new Date().toISOString().split('T')[0]}.xlsx`);
-        alert('Orders downloaded as Excel file!');
+        // Convert canvas to image and download
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `my-orders-${new Date().toISOString().split('T')[0]}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('Orders downloaded as Image file!');
+        }, 'image/png');
     } catch (err) {
-        console.error('Error downloading Excel:', err);
-        alert('Error downloading Excel. Please try again.');
+        console.error('Error downloading Image:', err);
+        alert('Error downloading Image. Please try again.');
     }
 }
+
 
 function addOrder(order) {
     const orders = getOrders();
@@ -2607,7 +2709,7 @@ function displayOrdersInModal(orders) {
         <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button id="delete-selected-orders-btn" class="btn-cancel" style="background-color: #dc3545; color: white;">Delete Selected</button>
             <button id="download-orders-pdf-btn" class="btn-payment">Download as PDF</button>
-            <button id="download-orders-excel-btn" class="btn-payment">Download as Excel</button>
+            <button id="download-orders-image-btn" class="btn-payment">Download as Image</button>
         </div>
     `;
     modal.style.display = 'flex';
@@ -2681,14 +2783,14 @@ function displayOrdersInModal(orders) {
         });
     }
     
-    // Add download Excel button functionality
-    const downloadExcelBtn = document.getElementById('download-orders-excel-btn');
-    if (downloadExcelBtn) {
-        const newExcelBtn = downloadExcelBtn.cloneNode(true);
-        downloadExcelBtn.parentNode.replaceChild(newExcelBtn, downloadExcelBtn);
-        newExcelBtn.addEventListener('click', () => {
+    // Add download Image button functionality
+    const downloadImageBtn = document.getElementById('download-orders-image-btn');
+    if (downloadImageBtn) {
+        const newImageBtn = downloadImageBtn.cloneNode(true);
+        downloadImageBtn.parentNode.replaceChild(newImageBtn, downloadImageBtn);
+        newImageBtn.addEventListener('click', () => {
             // Use the original orders that were displayed (not affected by deletions)
-            downloadOrdersAsExcel(orders);
+            downloadOrdersAsImage(orders);
         });
     }
 }
