@@ -1608,7 +1608,7 @@ function saveWishlistIds(ids) {
 function cleanupWishlist() {
     if (!allProducts || allProducts.length === 0) {
         // If no products loaded yet, just normalize IDs
-        let wishlistIds = getWishlistIds();
+    let wishlistIds = getWishlistIds();
         wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
         saveWishlistIds(wishlistIds);
         return;
@@ -2844,9 +2844,11 @@ function displayOrdersInModal(orders) {
                     <td style="vertical-align: middle; text-align: center;">
                         <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" data-item-index="${itemIndex}" id="order-item-${uniqueItemId}" style="width: 20px; height: 20px; cursor: pointer;">
                     </td>
-                    <td style="white-space: nowrap;">
-                        <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
-                        <span style="display: inline-block; vertical-align: middle; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">${item.name || 'Unknown Product'}</span>
+                    <td style="text-align: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
+                            <span style="display: block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--text-dark, #333);">${item.name || 'Unknown Product'}</span>
+                        </div>
                     </td>
                     <td style="font-size: 0.8em;">Order #${order.id}${isFirstItem && order.couponCode ? `<br><small style="color: #28a745; font-size: 0.75em;">${order.couponName || order.couponCode}</small>` : ''}</td>
                     <td style="white-space: nowrap;">${(item.price || 0).toLocaleString('en-US')} won</td>
