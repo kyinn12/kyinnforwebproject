@@ -2123,6 +2123,45 @@ function addOrder(order) {
     saveOrders(orders); // Save immediately
 }
 
+// Delete selected orders
+async function deleteSelectedOrders(orderIds) {
+    if (!orderIds || orderIds.length === 0) {
+        alert('Please select at least one order to delete.');
+        return;
+    }
+    
+    // Confirm deletion
+    const confirmMessage = `Are you sure you want to delete ${orderIds.length} order(s)?`;
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        // Get current orders
+        let orders = getOrders();
+        
+        // Filter out selected orders
+        const filteredOrders = orders.filter(order => !orderIds.includes(order.id));
+        
+        // Save updated orders
+        await saveOrders(filteredOrders);
+        
+        // Sync to cloud storage
+        if (USE_CLOUD_STORAGE && !USE_API) {
+            const storageProducts = getProductsFromStorage();
+            await syncToCloudStorage(storageProducts);
+        }
+        
+        // Refresh the display
+        await viewOrders();
+        
+        alert(`Successfully deleted ${orderIds.length} order(s).`);
+    } catch (err) {
+        console.error('Error deleting orders:', err);
+        alert('Error deleting orders. Please try again.');
+    }
+}
+
 // Payment Modal and Processing
 function showPaymentModal(totalPrice, cartItems) {
     const modal = document.getElementById('app-modal');
@@ -2480,9 +2519,10 @@ function displayOrdersInModal(orders) {
         return;
     }
     
-    // Create table format similar to cart
+    // Create table format similar to cart with checkboxes
     let allItemsHtml = '';
     let grandTotal = 0;
+    const uniqueOrderIds = new Set();
     
     orders.forEach(order => {
         if (!order || !order.items || !Array.isArray(order.items)) {
@@ -2490,6 +2530,7 @@ function displayOrdersInModal(orders) {
             return;
         }
         
+        uniqueOrderIds.add(order.id);
         const orderDate = new Date(order.date);
         const formattedDate = orderDate.toLocaleDateString('ko-KR', {
             year: 'numeric',
@@ -2499,12 +2540,21 @@ function displayOrdersInModal(orders) {
             minute: '2-digit'
         });
         
-        order.items.forEach(item => {
+        // First row of each order has checkbox
+        let isFirstItem = true;
+        order.items.forEach((item, itemIndex) => {
             const itemTotal = (item.price || 0) * (item.quantity || 0);
             grandTotal += itemTotal;
             
+            const checkboxCell = isFirstItem ? `
+                <td rowspan="${order.items.length}" style="vertical-align: middle; text-align: center;">
+                    <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" id="order-${order.id}">
+                </td>
+            ` : '';
+            
             allItemsHtml += `
                 <tr>
+                    ${checkboxCell}
                     <td>
                         <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
                         ${item.name || 'Unknown Product'}
@@ -2517,13 +2567,22 @@ function displayOrdersInModal(orders) {
                     <td>****${order.cardNumber || ''}</td>
                 </tr>
             `;
+            
+            isFirstItem = false;
         });
     });
     
     modalListContainer.innerHTML = `
+        <div style="margin-bottom: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="select-all-orders" style="cursor: pointer;">
+                <strong>Select All</strong>
+            </label>
+        </div>
         <table class="cart-table">
             <thead>
                 <tr>
+                    <th style="width: 50px;">Select</th>
                     <th>Product</th>
                     <th>Order #</th>
                     <th>Price</th>
@@ -2534,7 +2593,7 @@ function displayOrdersInModal(orders) {
                 </tr>
             </thead>
             <tbody>
-                ${allItemsHtml.length > 0 ? allItemsHtml : '<tr><td colspan="7" class="text-center">You have no orders yet.</td></tr>'}
+                ${allItemsHtml.length > 0 ? allItemsHtml : '<tr><td colspan="8" class="text-center">You have no orders yet.</td></tr>'}
             </tbody>
         </table>
     `;
@@ -2545,12 +2604,71 @@ function displayOrdersInModal(orders) {
         <div>
             Total Orders: <strong>${orders.length}</strong>
         </div>
-        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button id="delete-selected-orders-btn" class="btn-cancel" style="background-color: #dc3545; color: white;">Delete Selected</button>
             <button id="download-orders-pdf-btn" class="btn-payment">Download as PDF</button>
             <button id="download-orders-excel-btn" class="btn-payment">Download as Excel</button>
         </div>
     `;
     modal.style.display = 'flex';
+    
+    // Add select all functionality
+    const selectAllCheckbox = document.getElementById('select-all-orders');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', (e) => {
+            const checkboxes = document.querySelectorAll('.order-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = e.target.checked;
+            });
+            updateDeleteButtonState();
+        });
+    }
+    
+    // Add individual checkbox change handlers
+    const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+    orderCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            updateSelectAllState();
+            updateDeleteButtonState();
+        });
+    });
+    
+    // Update select all checkbox state
+    function updateSelectAllState() {
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        }
+    }
+    
+    // Update delete button state
+    function updateDeleteButtonState() {
+        const deleteBtn = document.getElementById('delete-selected-orders-btn');
+        const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+        if (deleteBtn) {
+            deleteBtn.disabled = checkedBoxes.length === 0;
+            deleteBtn.style.opacity = checkedBoxes.length === 0 ? '0.5' : '1';
+            deleteBtn.style.cursor = checkedBoxes.length === 0 ? 'not-allowed' : 'pointer';
+        }
+    }
+    
+    // Add delete selected orders button functionality
+    const deleteSelectedBtn = document.getElementById('delete-selected-orders-btn');
+    if (deleteSelectedBtn) {
+        const newDeleteBtn = deleteSelectedBtn.cloneNode(true);
+        deleteSelectedBtn.parentNode.replaceChild(newDeleteBtn, deleteSelectedBtn);
+        newDeleteBtn.addEventListener('click', async () => {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const selectedOrderIds = Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.orderId));
+            if (selectedOrderIds.length > 0) {
+                await deleteSelectedOrders(selectedOrderIds);
+            }
+        });
+        updateDeleteButtonState(); // Initialize button state
+    }
     
     // Add download PDF button functionality
     const downloadPdfBtn = document.getElementById('download-orders-pdf-btn');
