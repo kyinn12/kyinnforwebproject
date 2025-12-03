@@ -77,10 +77,7 @@ h2::after {
 .logo {
     font-size: 2.2em;
     font-weight: 800;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #000000;
     letter-spacing: -1px;
     transition: transform 0.3s ease;
 }
@@ -133,7 +130,7 @@ h2::after {
     padding: 12px 28px;
     border: none;
     border-radius: 12px;
-    background: var(--gradient-primary);
+    background: #000000;
     color: white;
     font-weight: 700;
     font-size: 1em;
@@ -144,6 +141,7 @@ h2::after {
 }
 
 .navbar .login-button:hover {
+    background: #333333;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }

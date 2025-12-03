@@ -2331,7 +2331,7 @@ function calculatePaymentBreakdown(subtotal, couponCode) {
     const coupon = validateCoupon(couponCode);
     const discountAmount = coupon.valid ? subtotal * coupon.discount : 0;
     const afterDiscount = subtotal - discountAmount;
-    const taxRate = 0.00001; // 0.001% tax
+    const taxRate = 0.01; // 1% tax
     const taxAmount = afterDiscount * taxRate;
     const finalTotal = afterDiscount + taxAmount;
     
@@ -2383,8 +2383,8 @@ function showPaymentModal(totalPrice, cartItems) {
                     </div>
                 ` : ''}
                 <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-                    <span>Tax (0.001%):</span>
-                    <strong>${currentBreakdown.taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} won</strong>
+                    <span>Tax (1%):</span>
+                    <strong>${currentBreakdown.taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin: 15px 0; padding-top: 15px; border-top: 2px solid #333; font-size: 1.2em;">
                     <span><strong>Total:</strong></span>
@@ -2706,7 +2706,7 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
         if (breakdown.couponCode) {
             successMessage += `Coupon (${breakdown.couponName}): -${breakdown.discountAmount.toLocaleString('en-US')} won\n`;
         }
-        successMessage += `Tax (0.001%): ${breakdown.taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} won\n`;
+        successMessage += `Tax (1%): ${breakdown.taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won\n`;
         successMessage += `Total: ${breakdown.finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won\n\n`;
         successMessage += `You can view this order in "My Orders".`;
         
@@ -2865,11 +2865,12 @@ function displayOrdersInModal(orders) {
     });
     
     modalListContainer.innerHTML = `
-        <div style="margin-bottom: 10px;">
+        <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                 <input type="checkbox" id="select-all-orders" style="cursor: pointer;">
                 <strong>Select All</strong>
             </label>
+            <button id="delete-selected-orders-btn-top" class="btn-cancel" style="background-color: #dc3545; color: white; padding: 8px 16px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">Delete Selected</button>
         </div>
         <table class="cart-table">
             <thead>
@@ -2919,8 +2920,8 @@ function displayOrdersInModal(orders) {
                 </div>
             ` : ''}
             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                <span>Total Tax (0.001%):</span>
-                <strong>${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} won</strong>
+                <span>Total Tax (1%):</span>
+                <strong>${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin: 15px 0; padding-top: 15px; border-top: 2px solid #333; font-size: 1.2em;">
                 <span><strong>Grand Total:</strong></span>
@@ -2931,7 +2932,6 @@ function displayOrdersInModal(orders) {
             Total Orders: <strong>${orders.length}</strong>
         </div>
         <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button id="delete-selected-orders-btn" class="btn-cancel" style="background-color: #dc3545; color: white;">Delete Selected</button>
             <button id="download-orders-pdf-btn" class="btn-payment">Download as PDF</button>
             <button id="download-orders-image-btn" class="btn-payment">Download as Image</button>
         </div>
@@ -2970,9 +2970,26 @@ function displayOrdersInModal(orders) {
         }
     }
     
-    // Update delete button state
+    // Update delete button state (for backward compatibility, but top button is used)
     function updateDeleteButtonState() {
-        const deleteBtn = document.getElementById('delete-selected-orders-btn');
+        // This function is kept for compatibility but the actual button is at the top
+    }
+    
+    // Add delete selected orders button functionality (top button)
+    const deleteSelectedBtnTop = document.getElementById('delete-selected-orders-btn-top');
+    if (deleteSelectedBtnTop) {
+        deleteSelectedBtnTop.addEventListener('click', async () => {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const selectedOrderIds = Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.orderId));
+            if (selectedOrderIds.length > 0) {
+                await deleteSelectedOrders(selectedOrderIds);
+            }
+        });
+    }
+    
+    // Update delete button state for top button
+    function updateDeleteButtonStateTop() {
+        const deleteBtn = document.getElementById('delete-selected-orders-btn-top');
         const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
         if (deleteBtn) {
             deleteBtn.disabled = checkedBoxes.length === 0;
@@ -2981,20 +2998,14 @@ function displayOrdersInModal(orders) {
         }
     }
     
-    // Add delete selected orders button functionality
-    const deleteSelectedBtn = document.getElementById('delete-selected-orders-btn');
-    if (deleteSelectedBtn) {
-        const newDeleteBtn = deleteSelectedBtn.cloneNode(true);
-        deleteSelectedBtn.parentNode.replaceChild(newDeleteBtn, deleteSelectedBtn);
-        newDeleteBtn.addEventListener('click', async () => {
-            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
-            const selectedOrderIds = Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.orderId));
-            if (selectedOrderIds.length > 0) {
-                await deleteSelectedOrders(selectedOrderIds);
-            }
-        });
-        updateDeleteButtonState(); // Initialize button state
-    }
+    // Update delete button state function to also update top button
+    const originalUpdateDeleteButtonState = updateDeleteButtonState;
+    updateDeleteButtonState = function() {
+        originalUpdateDeleteButtonState();
+        updateDeleteButtonStateTop();
+    };
+    
+    updateDeleteButtonStateTop(); // Initialize button state
     
     // Add download PDF button functionality
     const downloadPdfBtn = document.getElementById('download-orders-pdf-btn');
