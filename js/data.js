@@ -2177,9 +2177,9 @@ function downloadOrdersAsImage(orders) {
                 
                 ctx.fillText(item.name || 'Unknown', 20, yPos);
                 ctx.fillText(`#${order.id}`, 300, yPos);
-                ctx.fillText(`$${(item.price || 0).toLocaleString('en-US')}`, 450, yPos);
+                ctx.fillText(`${(item.price || 0).toLocaleString('en-US')} won`, 450, yPos);
                 ctx.fillText(item.quantity || 0, 550, yPos);
-                ctx.fillText(`$${itemTotal.toLocaleString('en-US')}`, 600, yPos);
+                ctx.fillText(`${itemTotal.toLocaleString('en-US')} won`, 600, yPos);
                 ctx.fillText(formattedDate, 750, yPos);
                 ctx.fillText(`****${order.cardNumber || ''}`, 950, yPos);
                 
@@ -2195,7 +2195,7 @@ function downloadOrdersAsImage(orders) {
         // Summary (English format)
         yPos = canvas.height - 80;
         ctx.font = 'bold 18px Arial';
-        ctx.fillText(`Grand Total: $${grandTotal.toLocaleString('en-US')}`, 20, yPos);
+        ctx.fillText(`Grand Total: ${grandTotal.toLocaleString('en-US')} won`, 20, yPos);
         ctx.fillText(`Total Orders: ${orders.length}`, 20, yPos + 30);
         
         // Convert canvas to image and download
