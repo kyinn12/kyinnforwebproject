@@ -2970,9 +2970,15 @@ function displayOrdersInModal(orders) {
         }
     }
     
-    // Update delete button state (for backward compatibility, but top button is used)
+    // Update delete button state
     function updateDeleteButtonState() {
-        // This function is kept for compatibility but the actual button is at the top
+        const deleteBtn = document.getElementById('delete-selected-orders-btn-top');
+        const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+        if (deleteBtn) {
+            deleteBtn.disabled = checkedBoxes.length === 0;
+            deleteBtn.style.opacity = checkedBoxes.length === 0 ? '0.5' : '1';
+            deleteBtn.style.cursor = checkedBoxes.length === 0 ? 'not-allowed' : 'pointer';
+        }
     }
     
     // Add delete selected orders button functionality (top button)
@@ -2987,25 +2993,7 @@ function displayOrdersInModal(orders) {
         });
     }
     
-    // Update delete button state for top button
-    function updateDeleteButtonStateTop() {
-        const deleteBtn = document.getElementById('delete-selected-orders-btn-top');
-        const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
-        if (deleteBtn) {
-            deleteBtn.disabled = checkedBoxes.length === 0;
-            deleteBtn.style.opacity = checkedBoxes.length === 0 ? '0.5' : '1';
-            deleteBtn.style.cursor = checkedBoxes.length === 0 ? 'not-allowed' : 'pointer';
-        }
-    }
-    
-    // Update delete button state function to also update top button
-    const originalUpdateDeleteButtonState = updateDeleteButtonState;
-    updateDeleteButtonState = function() {
-        originalUpdateDeleteButtonState();
-        updateDeleteButtonStateTop();
-    };
-    
-    updateDeleteButtonStateTop(); // Initialize button state
+    updateDeleteButtonState(); // Initialize button state
     
     // Add download PDF button functionality
     const downloadPdfBtn = document.getElementById('download-orders-pdf-btn');
