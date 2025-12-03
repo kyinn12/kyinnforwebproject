@@ -2267,11 +2267,12 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
 
 // View Orders Function
 async function viewOrders() {
+    console.log('🔍 viewOrders() called');
     try {
         // Get orders directly from localStorage (most reliable)
         let orders = getOrders();
         console.log('📦 Orders from localStorage:', orders.length);
-        console.log('📦 Orders data:', orders);
+        console.log('📦 Orders data:', JSON.stringify(orders, null, 2));
         
         // If no local orders, try syncing from cloud (might have orders from other browsers)
         if (orders.length === 0 && USE_CLOUD_STORAGE && !USE_API) {
@@ -2299,23 +2300,31 @@ async function viewOrders() {
         }
         
         console.log('📦 Final orders to display:', orders.length);
+        console.log('📦 Final orders:', orders);
         
         // Display orders
         displayOrdersInModal(orders);
         
     } catch (err) {
-        console.error('Error viewing orders:', err);
-        alert('Error loading orders. Please try again.');
+        console.error('❌ Error viewing orders:', err);
+        alert('Error loading orders: ' + err.message);
     }
 }
 
 // Helper function to display orders in modal
 function displayOrdersInModal(orders) {
-        
+    console.log('🎨 displayOrdersInModal() called with orders:', orders);
+    
     const modal = document.getElementById('app-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalListContainer = document.getElementById('modal-list-container');
     const modalSummary = document.getElementById('modal-summary');
+    
+    console.log('🔍 Modal elements check:');
+    console.log('  - modal:', modal ? 'found' : 'NOT FOUND');
+    console.log('  - modalTitle:', modalTitle ? 'found' : 'NOT FOUND');
+    console.log('  - modalListContainer:', modalListContainer ? 'found' : 'NOT FOUND');
+    console.log('  - modalSummary:', modalSummary ? 'found' : 'NOT FOUND');
     
     if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
         console.error('❌ Modal elements not found');

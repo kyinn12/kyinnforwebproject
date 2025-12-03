@@ -134,9 +134,30 @@ document.addEventListener('DOMContentLoaded', () => {
              
              const wishlistLink = document.getElementById('wishlist-btn');
              const cartLink = document.getElementById('cart-btn');
+             const ordersLink = document.getElementById('orders-btn');
 
-             if (wishlistLink) wishlistLink.addEventListener('click', viewWishlist);
-             if (cartLink) cartLink.addEventListener('click', viewCart);
+             if (wishlistLink) wishlistLink.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 if (typeof viewWishlist === 'function') {
+                     viewWishlist();
+                 }
+             });
+             if (cartLink) cartLink.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 if (typeof viewCart === 'function') {
+                     viewCart();
+                 }
+             });
+             if (ordersLink) ordersLink.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 console.log('Orders button clicked');
+                 if (typeof viewOrders === 'function') {
+                     viewOrders();
+                 } else {
+                     console.error('viewOrders function not found');
+                     alert('Error: Orders function not available. Please refresh the page.');
+                 }
+             });
         }
     }
     
