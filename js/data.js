@@ -1014,21 +1014,14 @@ async function checkForChanges() {
             const deletedIdsChanged = JSON.stringify(currentDeletedIds) !== JSON.stringify(lastKnownDeletedIds);
             
             if (productIdsChanged || deletedIdsChanged) {
-                console.log('🔄 Changes detected from other browser! Refreshing...');
-                console.log('📦 Product IDs changed:', productIdsChanged);
-                console.log('🗑️ Deleted IDs changed:', deletedIdsChanged);
-                console.log('📋 Current deleted IDs in cloud:', currentDeletedIds);
-                console.log('📋 Previous deleted IDs:', lastKnownDeletedIds);
-                
                 // Update last known state BEFORE re-rendering
                 lastKnownProductIds = currentProductIds;
                 lastKnownDeletedIds = currentDeletedIds;
                 
                 // IMPORTANT: Update local deleted list from cloud BEFORE re-rendering
                 localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(currentDeletedIds));
-                console.log('✅ Updated local deleted list from cloud:', currentDeletedIds);
                 
-                // Re-render seller products to show updated list
+                // Re-render seller products to show updated list (silently)
                 const sellerTableBody = document.querySelector('#product-table tbody');
                 if (sellerTableBody) {
                     await renderSellerProducts();
@@ -1037,7 +1030,7 @@ async function checkForChanges() {
         }
     } catch (err) {
         // Silently fail - don't spam console with errors
-        console.debug('Auto-refresh check failed (this is normal if offline):', err.message);
+        // No console output for auto-refresh
     }
 }
 
@@ -1059,16 +1052,14 @@ function startAutoRefresh() {
     lastKnownProductIds = currentProductIds;
     lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
     
-    // Check for changes every 3 seconds
+    // Check for changes every 3 seconds (silently)
     autoRefreshInterval = setInterval(checkForChanges, 3000);
-    console.log('🔄 Auto-refresh started - checking for changes every 3 seconds');
 }
 
 function stopAutoRefresh() {
     if (autoRefreshInterval) {
         clearInterval(autoRefreshInterval);
         autoRefreshInterval = null;
-        console.log('🛑 Auto-refresh stopped');
     }
 }
 
