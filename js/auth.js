@@ -30,39 +30,67 @@ function handleRoleSwitch() {
 
 function handlePartnerLogin() {
     // Try to find the button - use setTimeout to ensure DOM is ready if called too early
+    let retryCount = 0;
+    const maxRetries = 10;
+    
     const findButton = () => {
         const partnerLoginButton = document.getElementById('partner-login-btn');
-        console.log('handlePartnerLogin called, button found:', !!partnerLoginButton);
+        console.log('handlePartnerLogin called, button found:', !!partnerLoginButton, 'retry:', retryCount);
         
         if (partnerLoginButton) {
-            // Check if listener is already attached to prevent duplicates
+            // Remove any existing listener by cloning the button (clean slate)
             if (partnerLoginButton.hasAttribute('data-listener-attached')) {
-                console.log('Partner login listener already attached, skipping');
+                console.log('Removing old listener and reattaching...');
+                const newButton = partnerLoginButton.cloneNode(true);
+                partnerLoginButton.parentNode.replaceChild(newButton, partnerLoginButton);
+                // Get the new button reference
+                const newButtonRef = document.getElementById('partner-login-btn');
+                if (newButtonRef) {
+                    attachListener(newButtonRef);
+                }
                 return;
             }
             
-            partnerLoginButton.setAttribute('data-listener-attached', 'true');
-            partnerLoginButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Partner login button clicked (handlePartnerLogin)');
-                const usernameInput = document.getElementById('username');
-                const passwordInput = document.getElementById('password');
-                const username = usernameInput ? usernameInput.value : '';
-                const password = passwordInput ? passwordInput.value : '';
-                console.log('Username:', username, 'Password:', password ? '***' : '');
-                if (username && password) {
-                    authenticateAndRedirect('seller', username, password, '../html/seller.html');
-                } else {
-                    alert('Please enter username and password');
-                }
-            });
-            console.log('Partner login button listener attached successfully');
+            attachListener(partnerLoginButton);
         } else {
-            console.warn('Partner login button not found, retrying in 100ms...');
-            // Retry after a short delay in case DOM isn't ready yet
-            setTimeout(findButton, 100);
+            retryCount++;
+            if (retryCount < maxRetries) {
+                console.warn(`Partner login button not found, retrying in 100ms... (${retryCount}/${maxRetries})`);
+                setTimeout(findButton, 100);
+            } else {
+                console.error('Partner login button not found after', maxRetries, 'retries');
+                // Last resort: try to attach directly when button becomes available
+                const observer = new MutationObserver(() => {
+                    const btn = document.getElementById('partner-login-btn');
+                    if (btn && !btn.hasAttribute('data-listener-attached')) {
+                        console.log('Button found via MutationObserver, attaching listener');
+                        attachListener(btn);
+                        observer.disconnect();
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
         }
+    };
+    
+    const attachListener = (button) => {
+        button.setAttribute('data-listener-attached', 'true');
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Partner login button clicked (handlePartnerLogin)');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const username = usernameInput ? usernameInput.value : '';
+            const password = passwordInput ? passwordInput.value : '';
+            console.log('Username:', username, 'Password:', password ? '***' : '');
+            if (username && password) {
+                authenticateAndRedirect('seller', username, password, '../html/seller.html');
+            } else {
+                alert('Please enter username and password');
+            }
+        });
+        console.log('Partner login button listener attached successfully');
     };
     
     findButton();
