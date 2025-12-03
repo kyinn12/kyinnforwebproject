@@ -405,11 +405,11 @@ async function addNewProduct(newProduct) {
     
     try {
         const productPayload = {
-            name: newProduct.name,
-            price: parseInt(newProduct.price),
-            category: newProduct.category,
-            tags: newProduct.tags.split(',').map(tag => tag.trim()),
-            stock: parseInt(newProduct.stock),
+        name: newProduct.name,
+        price: parseInt(newProduct.price),
+        category: newProduct.category,
+        tags: newProduct.tags.split(',').map(tag => tag.trim()),
+        stock: parseInt(newProduct.stock),
           imageUrl: newProduct.image || 'https://i.imgur.com/FRTPdpc.jpeg',
         };
       
@@ -427,8 +427,8 @@ async function addNewProduct(newProduct) {
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 101;
         productPayload.id = newId;
         products.push(productPayload);
-        saveProductsToStorage(products);
-        allProducts = products;
+    saveProductsToStorage(products); 
+    allProducts = products; 
       }
     } else {
       try {
@@ -474,7 +474,7 @@ async function addNewProduct(newProduct) {
         allProducts = Array.from(mergedMap.values());
       } catch (err) {
         console.warn('Error merging products:', err);
-        let products = getProductsFromStorage();
+    let products = getProductsFromStorage();
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 110;
         productPayload.id = newId;
         products.push(productPayload);
@@ -882,35 +882,58 @@ function renderProducts(productsToRender) {
         return;
     }
     
-    const wishlistIds = getWishlistIds().map(id => parseInt(id));
+    // Get wishlist IDs and normalize them
+    const wishlistIds = getWishlistIds()
+        .map(id => {
+            const normalized = typeof id === 'string' ? parseInt(id) : id;
+            return isNaN(normalized) ? 0 : normalized;
+        })
+        .filter(id => id > 0);
+    
+    // Clean up wishlist - remove IDs that don't exist in current products
+    const validProductIds = productsToRender.map(p => {
+        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+        return isNaN(pId) ? 0 : pId;
+    }).filter(id => id > 0);
+    
+    const validWishlistIds = wishlistIds.filter(id => validProductIds.includes(id));
+    if (validWishlistIds.length !== wishlistIds.length) {
+        // Some wishlist items are invalid, clean them up
+        saveWishlistIds(validWishlistIds);
+    }
+    
     const productHtmlArray = productsToRender.map(product => {
+        if (!product) return '';
+        
         const productId = typeof product.id === 'string' ? parseInt(product.id) : product.id;
-        const formattedPrice = product.price.toLocaleString('ko-KR') + '원';
-        const soldOutClass = product.stock <= 0 ? 'sold-out-overlay' : '';
-        const stockStatus = product.stock > 0 ? 'In Stock' : 'Sold Out';
-        const buttonDisabled = product.stock <= 0 ? 'disabled' : '';
-        const isWished = wishlistIds.includes(productId); 
+        if (isNaN(productId) || productId <= 0) return '';
+        
+        const formattedPrice = (product.price || 0).toLocaleString('ko-KR') + '원';
+        const soldOutClass = (product.stock || 0) <= 0 ? 'sold-out-overlay' : '';
+        const stockStatus = (product.stock || 0) > 0 ? 'In Stock' : 'Sold Out';
+        const buttonDisabled = (product.stock || 0) <= 0 ? 'disabled' : '';
+        const isWished = validWishlistIds.includes(productId); 
 
         return `
-            <div class="product-card" data-id="${productId}" data-category="${product.category}">
-                <img src="${product.imageUrl}" alt="${product.name}" class="product-image">
+            <div class="product-card" data-id="${productId}" data-category="${product.category || ''}">
+                <img src="${product.imageUrl || ''}" alt="${product.name || 'Product'}" class="product-image">
                 <div class="${soldOutClass}"></div> 
                 
                 <button class="btn-wishlist ${isWished ? 'active' : ''}" data-id="${productId}">
                     <span class="heart-icon">${isWished ? '❤️' : '♡'}</span> 
                 </button>
                 
-                <h3>${product.name}</h3>
+                <h3>${product.name || 'Unknown Product'}</h3>
                 <p class="price">${formattedPrice}</p>
-                <p class="category">Category: ${product.category}</p>
-                <p class="tags">Tags: ${product.tags.join(', ')}</p>
+                <p class="category">Category: ${product.category || 'N/A'}</p>
+                <p class="tags">Tags: ${Array.isArray(product.tags) ? product.tags.join(', ') : ''}</p>
                 
                 <button class="btn-add-to-cart btn-primary ${buttonDisabled ? 'btn-disabled' : ''}" ${buttonDisabled ? 'disabled' : ''} data-id="${productId}">
                     ${stockStatus} | Add to Cart
                 </button>
             </div>
         `;
-    });
+    }).filter(html => html.length > 0);
 
     productListContainer.innerHTML = productHtmlArray.join('');
 }
@@ -947,7 +970,7 @@ function initProductControls() {
 async function renderSellerProducts() {
     const sellerTableBody = document.querySelector('#product-table tbody');
     if (!sellerTableBody) return;
-  
+
     // Only sync from cloud if no operation is in progress (prevents race conditions)
     let products = null;
     if (USE_CLOUD_STORAGE && !USE_API && !isOperationInProgress) {
@@ -1028,7 +1051,7 @@ async function renderSellerProducts() {
                     const confirmDelete = confirm(`Do you want to delete "${productName}"?\n\nClick "OK" to delete or "Cancel" to cancel.`);
                     
                     if (confirmDelete) {
-                        deleteProduct(productId);
+            deleteProduct(productId);
                     }
                 } else {
                     console.error(`Product with ID ${productId} not found`);
@@ -1356,7 +1379,7 @@ function saveWishlistIds(ids) {
 
 function toggleWishlist(productId) {
     try {
-        let wishlistIds = getWishlistIds();
+    let wishlistIds = getWishlistIds();
         const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
         if (isNaN(normalizedId) || normalizedId <= 0) {
             console.error('Invalid product ID for wishlist:', productId);
@@ -1366,15 +1389,15 @@ function toggleWishlist(productId) {
         wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
         const index = wishlistIds.indexOf(normalizedId);
 
-        if (index === -1) {
+    if (index === -1) {
             wishlistIds.push(normalizedId);
             console.log(`Product ${normalizedId} added to Wishlist!`);
-        } else {
-            wishlistIds.splice(index, 1);
+    } else {
+        wishlistIds.splice(index, 1);
             console.log(`Product ${normalizedId} removed from Wishlist!`);
-        }
+    }
 
-        saveWishlistIds(wishlistIds); 
+    saveWishlistIds(wishlistIds); 
         loadEmbeddedProducts();
     } catch (err) {
         console.error('Error toggling wishlist:', err);
@@ -1385,7 +1408,7 @@ function toggleWishlist(productId) {
 function viewWishlist() {
     try {
         const wishlistIds = getWishlistIds().map(id => typeof id === 'string' ? parseInt(id) : id);
-        const items = allProducts
+    const items = allProducts
             .filter(p => {
                 if (!p) return false;
                 const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -1396,18 +1419,18 @@ function viewWishlist() {
                 return `
                 <div class="wishlist-item" data-id="${pId}">
                     <img src="${p.imageUrl || ''}" class="wishlist-img" alt="${p.name || 'Product'}">
-                    <div class="item-details">
+                <div class="item-details">
                         <h4>${p.name || 'Unknown Product'}</h4>
                         <p class="price">${(p.price || 0).toLocaleString('ko-KR')}원</p>
-                    </div>
-                    <button class="btn-remove-wishlist" data-id="${pId}">❌</button>
                 </div>
+                    <button class="btn-remove-wishlist" data-id="${pId}">❌</button>
+            </div>
             `;
             });
-            
-        const modalTitle = document.getElementById('modal-title');
-        const modalListContainer = document.getElementById('modal-list-container');
-        const modalSummary = document.getElementById('modal-summary');
+        
+    const modalTitle = document.getElementById('modal-title');
+    const modalListContainer = document.getElementById('modal-list-container');
+    const modalSummary = document.getElementById('modal-summary');
         const modal = document.getElementById('app-modal');
 
         if (!modalTitle || !modalListContainer || !modalSummary || !modal) {
@@ -1415,14 +1438,14 @@ function viewWishlist() {
             return;
         }
 
-        modalTitle.textContent = "My Wishlist";
-        modalListContainer.innerHTML = `<div class="wishlist-grid-container">${items.length > 0 ? items.join('') : '<p class="p-4 text-center">Your wishlist is empty.</p>'}</div>`;
+    modalTitle.textContent = "My Wishlist";
+    modalListContainer.innerHTML = `<div class="wishlist-grid-container">${items.length > 0 ? items.join('') : '<p class="p-4 text-center">Your wishlist is empty.</p>'}</div>`;
         modalSummary.innerHTML = `Total Items: <strong>${items.length}</strong>`;
 
         modal.style.display = 'flex';
 
-        document.querySelectorAll('.btn-remove-wishlist').forEach(button => {
-            button.addEventListener('click', (e) => {
+    document.querySelectorAll('.btn-remove-wishlist').forEach(button => {
+        button.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 const buttonElement = e.currentTarget || e.target.closest('.btn-remove-wishlist');
@@ -1431,8 +1454,8 @@ function viewWishlist() {
                     toggleWishlist(idToRemove);
                     viewWishlist();
                 }
-            });
         });
+    });
     } catch (err) {
         console.error('Error viewing wishlist:', err);
         alert('Error loading wishlist. Please try again.');
@@ -1459,8 +1482,8 @@ function saveCartItems(items) {
 
 function addToCart(productId) {
     try {
-        let cartItems = getCartItems();
-        
+    let cartItems = getCartItems();
+    
         const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
         if (isNaN(normalizedId) || normalizedId <= 0) {
             console.error('Invalid product ID for cart:', productId);
@@ -1479,13 +1502,13 @@ function addToCart(productId) {
         }
         
         if (product.stock <= (cartItems[normalizedId] || 0)) {
-            alert("Cannot add more. Stock limit reached or item sold out.");
-            return;
-        }
+        alert("Cannot add more. Stock limit reached or item sold out.");
+        return;
+    }
 
         cartItems[normalizedId] = (cartItems[normalizedId] || 0) + 1;
-        
-        saveCartItems(cartItems);
+    
+    saveCartItems(cartItems);
         console.log(`Product ${normalizedId} added to Cart. Current quantity: ${cartItems[normalizedId]}`);
     } catch (err) {
         console.error('Error adding to cart:', err);
@@ -1495,13 +1518,13 @@ function addToCart(productId) {
 
 function viewCart() {
     try {
-        const cartItems = getCartItems();
-        const itemIds = Object.keys(cartItems);
+    const cartItems = getCartItems();
+    const itemIds = Object.keys(cartItems);
 
-        let totalPrice = 0;
+    let totalPrice = 0;
         const validItems = [];
 
-        const itemsHtml = itemIds.map(id => {
+    const itemsHtml = itemIds.map(id => {
             const searchId = parseInt(id);
             if (isNaN(searchId)) return '';
             
@@ -1523,10 +1546,10 @@ function viewCart() {
             }
             
             const itemTotal = (product.price || 0) * quantity;
-            totalPrice += itemTotal;
+        totalPrice += itemTotal;
             validItems.push({ id: searchId, quantity });
 
-            return `
+        return `
                 <tr data-id="${id}">
                     <td><img src="${product.imageUrl || ''}" class="cart-img" alt="${product.name || 'Product'}">${product.name || 'Unknown Product'}</td>
                     <td>${product.category || 'N/A'}</td>
@@ -1536,40 +1559,40 @@ function viewCart() {
                         <span class="cart-qty" data-id="${id}">${quantity}</span>
                         <button class="btn-qty btn-qty-plus" data-id="${id}">+</button>
                     </td>
-                    <td>${itemTotal.toLocaleString('ko-KR')}원</td>
-                    <td><button class="btn-remove-cart" data-id="${id}">Remove</button></td>
-                </tr>
-            `;
+                <td>${itemTotal.toLocaleString('ko-KR')}원</td>
+                <td><button class="btn-remove-cart" data-id="${id}">Remove</button></td>
+            </tr>
+        `;
         }).filter(html => html.length > 0).join('');
 
-        const modalTitle = document.getElementById('modal-title');
-        const modalListContainer = document.getElementById('modal-list-container');
-        const modalSummary = document.getElementById('modal-summary');
-        const modal = document.getElementById('app-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalListContainer = document.getElementById('modal-list-container');
+    const modalSummary = document.getElementById('modal-summary');
+    const modal = document.getElementById('app-modal');
 
         if (!modalTitle || !modalListContainer || !modalSummary || !modal) {
             console.error('Modal elements not found');
             return;
         }
 
-        modalTitle.textContent = "Shopping Cart";
-        modalListContainer.innerHTML = `
-            <table class="cart-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsHtml.length > 0 ? itemsHtml : '<tr><td colspan="6" class="text-center">Your cart is empty.</td></tr>'}
-                </tbody>
-            </table>
-        `;
+    modalTitle.textContent = "Shopping Cart";
+    modalListContainer.innerHTML = `
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${itemsHtml.length > 0 ? itemsHtml : '<tr><td colspan="6" class="text-center">Your cart is empty.</td></tr>'}
+            </tbody>
+        </table>
+    `;
         modalSummary.innerHTML = `
             <div>
                 Grand Total: <span class="total-price" id="cart-grand-total">${totalPrice.toLocaleString('ko-KR')}원</span>
@@ -1577,20 +1600,20 @@ function viewCart() {
             <button id="go-to-payment-btn" class="btn-payment">Go to Payment</button>
         `;
 
-        modal.style.display = 'flex';
+    modal.style.display = 'flex';
 
-        document.querySelectorAll('.btn-remove-cart').forEach(button => {
-            button.addEventListener('click', (e) => {
+    document.querySelectorAll('.btn-remove-cart').forEach(button => {
+        button.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 const buttonElement = e.currentTarget || e.target.closest('.btn-remove-cart');
                 const idToRemove = buttonElement ? parseInt(buttonElement.dataset.id) : null;
                 if (idToRemove && !isNaN(idToRemove)) {
-                    removeProductFromCart(idToRemove);
+            removeProductFromCart(idToRemove);
                     viewCart();
                 }
-            });
         });
+    });
 
         document.querySelectorAll('.btn-qty-plus').forEach(button => {
             button.addEventListener('click', (e) => {
