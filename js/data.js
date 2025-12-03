@@ -73,7 +73,6 @@ async function fetchProductsFromFile() {
         if (res.ok) {
           const data = await res.json();
           const products = data.products || data;
-          console.log(`✅ Successfully loaded ${products.length} products from ${path}`);
           return products.map(p => ({
             ...p,
             id: typeof p.id === 'string' ? parseInt(p.id) : p.id
@@ -122,14 +121,12 @@ async function resetCloudStorage() {
         
         if (JSONBIN_API_KEY) {
             headers['X-Master-Key'] = JSONBIN_API_KEY;
-            console.log('🔑 Using API key to reset cloud storage');
         } else {
             console.warn('⚠️ No API key provided - reset will fail');
             return false;
         }
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
-        console.log('🔄 Resetting cloud storage to clean state...');
         
         // Reset to empty state
         const response = await fetch(url, {
@@ -142,13 +139,9 @@ async function resetCloudStorage() {
         });
         
         if (response.ok) {
-            console.log('✅ Cloud storage reset successfully!');
-            console.log('✅ All products and deleted lists cleared from cloud');
-            
             // Also clear local storage
             localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
             localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify([]));
-            console.log('✅ Local storage also cleared');
             
             return true;
         } else {
@@ -165,7 +158,6 @@ async function resetCloudStorage() {
 // Make reset function available globally for console access
 if (typeof window !== 'undefined') {
     window.resetCloudStorage = resetCloudStorage;
-    console.log('💡 To reset cloud storage, run: resetCloudStorage() in the console');
 }
 
 async function syncToCloudStorage(products) {
@@ -181,8 +173,6 @@ async function syncToCloudStorage(products) {
         // Add API key if available (required for write operations)
         if (JSONBIN_API_KEY) {
             headers['X-Master-Key'] = JSONBIN_API_KEY;
-            // Debug: Log first few characters to verify key is set (don't log full key for security)
-            console.log('🔑 Using API key:', JSONBIN_API_KEY.substring(0, 10) + '...');
         } else {
             console.warn('⚠️ No API key provided - write operations will fail');
         }
@@ -191,9 +181,6 @@ async function syncToCloudStorage(products) {
         const deletedProducts = getDeletedProductIds();
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
-        console.log('📤 Syncing to:', url);
-        console.log('📦 Products to sync:', products.length);
-        console.log('🗑️ Deleted products to sync:', deletedProducts.length);
         
         const response = await fetch(url, {
             method: 'PUT',
@@ -205,9 +192,6 @@ async function syncToCloudStorage(products) {
         });
         
         if (response.ok) {
-            const result = await response.json().catch(() => ({}));
-            console.log('✅ Synced to cloud storage successfully - all browsers will see this change');
-            console.log('📦 Synced products:', products.length);
             return true;
         } else {
             const errorData = await response.json().catch(() => ({}));
@@ -250,12 +234,6 @@ async function syncFromCloudStorage() {
         }
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`;
-        console.log('📥 Syncing from:', url);
-        if (JSONBIN_API_KEY) {
-            console.log('🔑 Using API key:', JSONBIN_API_KEY.substring(0, 10) + '...');
-        } else {
-            console.log('ℹ️ No API key - bin must be public for reads');
-        }
         
         const res = await fetch(url, {
             headers: headers
@@ -271,11 +249,9 @@ async function syncFromCloudStorage() {
                 // Cloud deleted list is the source of truth
                 if (Array.isArray(cloudDeletedProducts)) {
                     localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(cloudDeletedProducts));
-                    console.log('✅ Synced deleted products list from cloud:', cloudDeletedProducts.length, 'deleted IDs:', cloudDeletedProducts);
                 } else {
                     // If cloud doesn't have deletedProducts, initialize empty array
                     localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify([]));
-                    console.log('✅ Initialized empty deleted products list');
                 }
                 
                 // Get all products: cloud (from storage), local storage, and items.json
@@ -331,22 +307,16 @@ async function syncFromCloudStorage() {
                 // Filter out deleted products and update allProducts
                 // Use the cloud deleted list (already synced to localStorage above)
                 const deletedIds = getDeletedProductIds();
-                console.log('🔍 Filtering products. Deleted IDs to exclude:', deletedIds);
                 
-                const beforeFilter = Array.from(mergedMap.values()).length;
                 const finalProducts = Array.from(mergedMap.values()).filter(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     // Normalize deleted IDs for comparison
                     const normalizedDeletedIds = deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did);
                     const isDeleted = normalizedDeletedIds.includes(id);
-                    if (isDeleted) {
-                        console.log('🚫 Filtering out deleted product ID:', id, '(was in deleted list:', deletedIds, ')');
-                    }
                     return !isNaN(id) && id > 0 && !isDeleted;
                 });
                 
                 allProducts = finalProducts; // Update global allProducts
-                console.log('✅ Synced from cloud storage:', cloudProducts.length, 'cloud products,', fileProducts.length, 'from items.json,', beforeFilter, 'before filter,', finalProducts.length, 'after filtering deleted');
                 return finalProducts;
             }
         } else {
@@ -455,9 +425,7 @@ async function addNewProduct(newProduct) {
         // Force sync to cloud storage after add (wait for it to complete)
         if (USE_CLOUD_STORAGE) {
           const syncSuccess = await syncToCloudStorage(storageProducts2);
-          if (syncSuccess) {
-            console.log('✅ Product added and synced - visible in all browsers now!');
-          } else {
+          if (!syncSuccess) {
             console.warn('⚠️ Product added locally but failed to sync to cloud.');
             console.warn('⚠️ Other browsers may not see it. Check console for API key instructions.');
           }
@@ -551,9 +519,7 @@ async function updateProduct(id, updatedProduct) {
           // Force sync to cloud storage after update (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
             const syncSuccess = await syncToCloudStorage(storageProducts);
-            if (syncSuccess) {
-              console.log('✅ Product updated and synced - visible in all browsers now!');
-            } else {
+            if (!syncSuccess) {
               console.warn('⚠️ Update saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
             }
@@ -569,7 +535,6 @@ async function updateProduct(id, updatedProduct) {
             }
           });
           allProducts = Array.from(mergedMap.values());
-          console.log(`✅ Product ID ${normalizedId} updated successfully.`);
         } else {
           console.warn(`Product ID ${normalizedId} not found in localStorage`);
           alert('Product not found. It may have been deleted or is from items.json.');
@@ -623,32 +588,19 @@ async function deleteProduct(id) {
           addToDeletedProducts(normalizedId);
           // Get the updated deleted list AFTER adding
           const deletedIds = getDeletedProductIds();
-          console.log('🗑️ Deleted product ID (from items.json):', normalizedId);
-          console.log('🗑️ Updated deleted list:', deletedIds);
-          console.log('🗑️ Verifying deleted list in localStorage:', localStorage.getItem(DELETED_PRODUCTS_KEY));
-          
           // Sync deleted list AND current storage products to cloud
           if (USE_CLOUD_STORAGE) {
-            // Double-check deleted list is correct before syncing
-            const verifyDeleted = getDeletedProductIds();
-            console.log('🗑️ Verifying deleted list before sync:', verifyDeleted);
-            
             // Wait a moment to ensure localStorage is updated
             await new Promise(resolve => setTimeout(resolve, 100));
             
             // Get fresh deleted list one more time
             const finalDeletedList = getDeletedProductIds();
-            console.log('🗑️ Final deleted list to sync:', finalDeletedList);
             
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
-              console.log('✅ Product deleted (from items.json) and synced - removed from all browsers now!');
-              console.log('🗑️ Deleted IDs synced to cloud:', finalDeletedList);
-              
               // Update last known state immediately after successful sync
               if (lastKnownDeletedIds !== null) {
                 lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
-                console.log('✅ Updated lastKnownDeletedIds:', lastKnownDeletedIds);
               }
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
@@ -674,7 +626,6 @@ async function deleteProduct(id) {
           
           // Save locally first
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
-          console.log('🗑️ Removed product from storage. Storage products now:', storageProducts.length);
           
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
@@ -683,8 +634,6 @@ async function deleteProduct(id) {
             
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
-              console.log('✅ Product deleted (from storage) and synced - removed from all browsers now!');
-              
               // Update last known state immediately after successful sync
               const currentProductIds = allProducts.map(p => {
                 const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -692,8 +641,6 @@ async function deleteProduct(id) {
               }).filter(id => id > 0).sort((a, b) => a - b);
               lastKnownProductIds = currentProductIds;
               lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
-              console.log('✅ Updated lastKnownProductIds:', lastKnownProductIds);
-              console.log('✅ Updated lastKnownDeletedIds:', lastKnownDeletedIds);
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
@@ -702,7 +649,6 @@ async function deleteProduct(id) {
         }
         
         const deletedIds = getDeletedProductIds();
-        console.log('🔍 After delete - Deleted IDs list:', deletedIds);
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
@@ -712,14 +658,9 @@ async function deleteProduct(id) {
           const isDeleted = normalizedDeletedIds.includes(pId);
           if (!isNaN(pId) && pId > 0 && !isDeleted) {
             mergedMap.set(pId, { ...p, id: pId });
-          } else if (isDeleted) {
-            console.log('🚫 Excluding deleted product ID:', pId);
           }
         });
         allProducts = Array.from(mergedMap.values());
-        console.log(`✅ Product ID ${normalizedId} deleted successfully.`);
-        console.log(`📊 Total products after delete: ${allProducts.length}`);
-        console.log(`📋 Products in list:`, allProducts.map(p => p.id));
       } catch (err) {
         console.error('Error deleting product:', err);
         alert('Error deleting product. Please try again.');
@@ -878,7 +819,6 @@ async function renderSellerProducts() {
             // syncFromCloudStorage now includes items.json + cloud + local, and updates allProducts
             if (products && Array.isArray(products) && products.length > 0) {
                 allProducts = products; // Use synced products (already filtered and merged)
-                console.log('✅ Using synced products from cloud:', products.length);
             } else {
                 console.warn('⚠️ Sync returned empty or invalid products, using fallback');
             }
@@ -894,7 +834,6 @@ async function renderSellerProducts() {
         allProducts = products;
       } else {
         // Fallback: build from local data
-        console.log('📦 Building products from local data (fallback)');
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
@@ -940,7 +879,6 @@ async function renderSellerProducts() {
             const buttonElement = e.currentTarget || e.target.closest('.btn-seller-delete');
             const productId = buttonElement ? parseInt(buttonElement.dataset.id) : null;
             if (productId && !isNaN(productId)) {
-                console.log(`🗑️ Delete button clicked - Attempting to delete product ID ${productId}.`);
                 deleteProduct(productId);
             } else {
                 console.error('❌ Could not get product ID from delete button. Button element:', buttonElement);
