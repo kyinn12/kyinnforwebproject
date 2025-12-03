@@ -677,11 +677,13 @@ async function deleteProduct(id) {
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
-              return;
+              // Don't return here - continue to update allProducts so UI reflects the local deletion
             }
           }
         }
         
+        // ALWAYS update allProducts to reflect the deletion, even if cloud sync failed
+        // The product was already removed from localStorage, so UI should show it's deleted
         const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
