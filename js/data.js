@@ -2010,10 +2010,12 @@ function downloadOrdersAsPDF(orders) {
         doc.setFont(undefined, 'bold');
         doc.text('My Orders', 14, 30);
         
-        // Date
+        // Date (English format)
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
-        doc.text(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 14, 40);
+        const generatedDate = new Date();
+        const dateStr = `${generatedDate.getFullYear()}-${String(generatedDate.getMonth() + 1).padStart(2, '0')}-${String(generatedDate.getDate()).padStart(2, '0')}`;
+        doc.text(`Generated: ${dateStr}`, 14, 40);
         
         // Prepare table data
         const tableData = [];
@@ -2023,11 +2025,8 @@ function downloadOrdersAsPDF(orders) {
             if (!order || !order.items || !Array.isArray(order.items)) return;
             
             const orderDate = new Date(order.date);
-            const formattedDate = orderDate.toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+            // English date format: YYYY-MM-DD
+            const formattedDate = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
             
             order.items.forEach(item => {
                 const itemTotal = (item.price || 0) * (item.quantity || 0);
@@ -2036,9 +2035,9 @@ function downloadOrdersAsPDF(orders) {
                 tableData.push([
                     item.name || 'Unknown',
                     `#${order.id}`,
-                    `${(item.price || 0).toLocaleString('ko-KR')}원`,
+                    `$${(item.price || 0).toLocaleString('en-US')}`,
                     item.quantity || 0,
-                    `${itemTotal.toLocaleString('ko-KR')}원`,
+                    `$${itemTotal.toLocaleString('en-US')}`,
                     formattedDate,
                     `****${order.cardNumber || ''}`
                 ]);
@@ -2058,7 +2057,7 @@ function downloadOrdersAsPDF(orders) {
                 doc.setTextColor(200, 200, 200);
                 doc.setFontSize(60);
                 doc.setFont(undefined, 'bold');
-                doc.text('Codélook', pageWidth / 2, pageHeight / 2, {
+                doc.text('Codelook', pageWidth / 2, pageHeight / 2, {
                     angle: 45,
                     align: 'center',
                     baseline: 'middle'
@@ -2068,7 +2067,7 @@ function downloadOrdersAsPDF(orders) {
                 doc.setTextColor(220, 53, 69);
                 doc.setFontSize(24);
                 doc.setFont(undefined, 'bold');
-                doc.text('✓ CONFIRMED PAYMENT', pageWidth - 20, 20, {
+                doc.text('CONFIRMED PAYMENT', pageWidth - 20, 20, {
                     angle: 0,
                     align: 'right'
                 });
@@ -2078,11 +2077,11 @@ function downloadOrdersAsPDF(orders) {
             }
         });
         
-        // Add summary
+        // Add summary (English format)
         const finalY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(12);
         doc.setFont(undefined, 'bold');
-        doc.text(`Grand Total: ${grandTotal.toLocaleString('ko-KR')}원`, 14, finalY);
+        doc.text(`Grand Total: $${grandTotal.toLocaleString('en-US')}`, 14, finalY);
         doc.text(`Total Orders: ${orders.length}`, 14, finalY + 10);
         
         // Save PDF
@@ -2107,7 +2106,7 @@ function downloadOrdersAsImage(orders) {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Add Codélook watermark (diagonal, semi-transparent)
+        // Add Codelook watermark (diagonal, semi-transparent)
         ctx.save();
         ctx.globalAlpha = 0.1;
         ctx.fillStyle = '#cccccc';
@@ -2116,7 +2115,7 @@ function downloadOrdersAsImage(orders) {
         ctx.textBaseline = 'middle';
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(-Math.PI / 4); // 45 degrees
-        ctx.fillText('Codélook', 0, 0);
+        ctx.fillText('Codelook', 0, 0);
         ctx.restore();
         
         // Add "Confirmed Payment" red seal (top right)
@@ -2125,7 +2124,7 @@ function downloadOrdersAsImage(orders) {
         ctx.font = 'bold 28px Arial';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
-        ctx.fillText('✓ CONFIRMED PAYMENT', canvas.width - 20, 20);
+        ctx.fillText('CONFIRMED PAYMENT', canvas.width - 20, 20);
         ctx.restore();
         
         // Title
@@ -2134,9 +2133,11 @@ function downloadOrdersAsImage(orders) {
         ctx.textAlign = 'left';
         ctx.fillText('My Orders', 20, 60);
         
-        // Date
+        // Date (English format)
         ctx.font = '16px Arial';
-        ctx.fillText(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 20, 90);
+        const genDate = new Date();
+        const dateString = `${genDate.getFullYear()}-${String(genDate.getMonth() + 1).padStart(2, '0')}-${String(genDate.getDate()).padStart(2, '0')}`;
+        ctx.fillText(`Generated: ${dateString}`, 20, 90);
         
         // Table header
         let yPos = 130;
@@ -2167,11 +2168,8 @@ function downloadOrdersAsImage(orders) {
             if (!order || !order.items || !Array.isArray(order.items)) return;
             
             const orderDate = new Date(order.date);
-            const formattedDate = orderDate.toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+            // English date format: YYYY-MM-DD
+            const formattedDate = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
             
             order.items.forEach(item => {
                 const itemTotal = (item.price || 0) * (item.quantity || 0);
@@ -2179,9 +2177,9 @@ function downloadOrdersAsImage(orders) {
                 
                 ctx.fillText(item.name || 'Unknown', 20, yPos);
                 ctx.fillText(`#${order.id}`, 300, yPos);
-                ctx.fillText(`${(item.price || 0).toLocaleString('ko-KR')}원`, 450, yPos);
+                ctx.fillText(`$${(item.price || 0).toLocaleString('en-US')}`, 450, yPos);
                 ctx.fillText(item.quantity || 0, 550, yPos);
-                ctx.fillText(`${itemTotal.toLocaleString('ko-KR')}원`, 600, yPos);
+                ctx.fillText(`$${itemTotal.toLocaleString('en-US')}`, 600, yPos);
                 ctx.fillText(formattedDate, 750, yPos);
                 ctx.fillText(`****${order.cardNumber || ''}`, 950, yPos);
                 
@@ -2194,10 +2192,10 @@ function downloadOrdersAsImage(orders) {
             });
         });
         
-        // Summary
+        // Summary (English format)
         yPos = canvas.height - 80;
         ctx.font = 'bold 18px Arial';
-        ctx.fillText(`Grand Total: ${grandTotal.toLocaleString('ko-KR')}원`, 20, yPos);
+        ctx.fillText(`Grand Total: $${grandTotal.toLocaleString('en-US')}`, 20, yPos);
         ctx.fillText(`Total Orders: ${orders.length}`, 20, yPos + 30);
         
         // Convert canvas to image and download
