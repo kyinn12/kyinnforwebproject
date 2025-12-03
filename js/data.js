@@ -8,6 +8,8 @@ let autoRefreshInterval = null; // For auto-refreshing seller page
 // Race condition prevention: operation locks
 let isOperationInProgress = false; // Prevents concurrent operations
 let isSyncing = false; // Prevents concurrent cloud syncs
+let isDeleting = false; // Specific lock for delete operations to prevent race conditions
+let deleteQueue = []; // Queue for delete operations if one is already in progress
 
 const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
@@ -628,16 +630,36 @@ async function updateProduct(id, updatedProduct) {
 }
 
 async function deleteProduct(id) {
-    // Prevent concurrent operations
-    if (isOperationInProgress) {
-        console.warn('⚠️ Another operation is in progress. Please wait...');
-        return;
+    const normalizedId = typeof id === 'string' ? parseInt(id) : id;
+    
+    // STRONG race condition prevention: Queue delete operations
+    if (isDeleting || isOperationInProgress || isSyncing) {
+        // If a delete is already in progress, queue this one
+        if (isDeleting) {
+            deleteQueue.push(normalizedId);
+            console.warn(`⚠️ Delete operation queued for product ${normalizedId}. Another delete is in progress.`);
+            return;
+        }
+        // If other operation is in progress, wait a bit and retry
+        console.warn('⚠️ Another operation is in progress. Waiting...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (isDeleting || isOperationInProgress || isSyncing) {
+            deleteQueue.push(normalizedId);
+            return;
+        }
     }
     
+    // Set delete lock immediately
+    isDeleting = true;
     isOperationInProgress = true;
     
+    // Temporarily stop auto-refresh to prevent interference
+    const wasAutoRefreshing = autoRefreshInterval !== null;
+    if (wasAutoRefreshing) {
+        stopAutoRefresh();
+    }
+    
     try {
-        const normalizedId = typeof id === 'string' ? parseInt(id) : id;
         
         if (USE_API) {
       try {
@@ -682,28 +704,68 @@ async function deleteProduct(id) {
           
           // Sync deleted list AND current storage products to cloud
           if (USE_CLOUD_STORAGE) {
-            // Wait to ensure localStorage write is complete
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait longer to ensure localStorage write is complete
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             // Get fresh deleted list to ensure it's up to date
-            const finalDeletedList = getDeletedProductIds();
+            let finalDeletedList = getDeletedProductIds();
             
-            // Retry sync up to 3 times if it fails
+            // Verify the deleted ID is in the list
+            if (!finalDeletedList.includes(normalizedId)) {
+              // Force add it again
+              addToDeletedProducts(normalizedId);
+              await new Promise(resolve => setTimeout(resolve, 100));
+              finalDeletedList = getDeletedProductIds();
+            }
+            
+            // Retry sync up to 5 times with longer delays for stronger race condition prevention
             let syncSuccess = false;
-            for (let attempt = 0; attempt < 3 && !syncSuccess; attempt++) {
+            for (let attempt = 0; attempt < 5 && !syncSuccess; attempt++) {
               if (attempt > 0) {
-                await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Exponential backoff
+                // Longer exponential backoff: 500ms, 1000ms, 2000ms, 3000ms
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.min(attempt, 6)));
               }
+              
+              // Double-check deleted list before each sync attempt
+              const currentDeletedList = getDeletedProductIds();
+              if (!currentDeletedList.includes(normalizedId)) {
+                addToDeletedProducts(normalizedId);
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+              
               syncSuccess = await syncToCloudStorage(storageProducts);
+              
+              // Verify sync succeeded by checking cloud
+              if (syncSuccess) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                const verifyHeaders = {};
+                if (JSONBIN_API_KEY) {
+                  verifyHeaders['X-Master-Key'] = JSONBIN_API_KEY;
+                }
+                const verifyRes = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`, {
+                  headers: verifyHeaders
+                });
+                if (verifyRes.ok) {
+                  const verifyData = await verifyRes.json();
+                  const cloudDeleted = verifyData.record?.deletedProducts || [];
+                  const normalizedCloudDeleted = cloudDeleted.map(did => typeof did === 'string' ? parseInt(did) : did);
+                  if (!normalizedCloudDeleted.includes(normalizedId)) {
+                    // Sync didn't actually work, retry
+                    syncSuccess = false;
+                    console.warn(`⚠️ Delete verification failed for product ${normalizedId}, retrying...`);
+                  }
+                }
+              }
             }
             
             if (syncSuccess) {
               // Update last known state immediately after successful sync
+              finalDeletedList = getDeletedProductIds();
               if (lastKnownDeletedIds !== null) {
                 lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
               }
             } else {
-              console.warn('⚠️ Delete saved locally but failed to sync to cloud after 3 attempts.');
+              console.warn('⚠️ Delete saved locally but failed to sync to cloud after 5 attempts.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
             }
           }
@@ -744,24 +806,89 @@ async function deleteProduct(id) {
           
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
-            // Wait to ensure localStorage write is complete
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait longer to ensure localStorage write is complete
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             // syncToCloudStorage automatically includes deletedProducts from localStorage
             // Make sure deleted list is current before syncing
-            const currentDeletedList = getDeletedProductIds();
+            let currentDeletedList = getDeletedProductIds();
             
-            // Retry sync up to 3 times if it fails
+            // Verify product is removed from storage
+            const verifyStorage = getProductsFromStorage();
+            const stillInStorage = verifyStorage.some(p => {
+              const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+              return pId === normalizedId;
+            });
+            if (stillInStorage) {
+              // Force remove again
+              storageProducts = storageProducts.filter(p => {
+                const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return pId !== normalizedId;
+              });
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            // Retry sync up to 5 times with verification for stronger race condition prevention
             let syncSuccess = false;
-            for (let attempt = 0; attempt < 3 && !syncSuccess; attempt++) {
+            for (let attempt = 0; attempt < 5 && !syncSuccess; attempt++) {
               if (attempt > 0) {
-                await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Exponential backoff
+                // Longer exponential backoff: 500ms, 1000ms, 2000ms, 3000ms
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.min(attempt, 6)));
               }
+              
+              // Re-verify storage before each sync
+              const currentStorage = getProductsFromStorage();
+              const stillExists = currentStorage.some(p => {
+                const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return pId === normalizedId;
+              });
+              if (stillExists) {
+                storageProducts = currentStorage.filter(p => {
+                  const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                  return pId !== normalizedId;
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+              
               syncSuccess = await syncToCloudStorage(storageProducts);
+              
+              // Verify sync succeeded by checking cloud
+              if (syncSuccess) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                const verifyHeaders = {};
+                if (JSONBIN_API_KEY) {
+                  verifyHeaders['X-Master-Key'] = JSONBIN_API_KEY;
+                }
+                const verifyRes = await fetch(`${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}/latest`, {
+                  headers: verifyHeaders
+                });
+                if (verifyRes.ok) {
+                  const verifyData = await verifyRes.json();
+                  const cloudProducts = verifyData.record?.products || [];
+                  const cloudDeleted = verifyData.record?.deletedProducts || [];
+                  const normalizedCloudDeleted = cloudDeleted.map(did => typeof did === 'string' ? parseInt(did) : did);
+                  
+                  // Check if product still exists in cloud products OR is not in deleted list
+                  const stillInCloud = cloudProducts.some(p => {
+                    const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return pId === normalizedId;
+                  });
+                  const notInDeleted = !normalizedCloudDeleted.includes(normalizedId);
+                  
+                  if (stillInCloud || notInDeleted) {
+                    // Sync didn't actually work, retry
+                    syncSuccess = false;
+                    console.warn(`⚠️ Delete verification failed for product ${normalizedId}, retrying...`);
+                  }
+                }
+              }
             }
             
             if (syncSuccess) {
               // Update last known state immediately after successful sync
+              currentDeletedList = getDeletedProductIds();
               const currentProductIds = allProducts.map(p => {
                 const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                 return isNaN(id) ? 0 : id;
@@ -769,7 +896,7 @@ async function deleteProduct(id) {
               lastKnownProductIds = currentProductIds;
               lastKnownDeletedIds = currentDeletedList.sort((a, b) => a - b);
             } else {
-              console.warn('⚠️ Delete saved locally but failed to sync to cloud after 3 attempts.');
+              console.warn('⚠️ Delete saved locally but failed to sync to cloud after 5 attempts.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
               // Don't return here - continue to update allProducts so UI reflects the local deletion
             }
@@ -797,12 +924,29 @@ async function deleteProduct(id) {
       }
     }
     } finally {
+      // Release locks
+      isDeleting = false;
       isOperationInProgress = false;
+      
+      // Restart auto-refresh if it was running
+      if (wasAutoRefreshing) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before restarting
+        startAutoRefresh();
+      }
+      
+      // Process queued delete operations
+      if (deleteQueue.length > 0) {
+        const nextId = deleteQueue.shift();
+        // Process next delete after a short delay
+        setTimeout(() => {
+          deleteProduct(nextId);
+        }, 500);
+      }
     }
   
     // Re-render to show updated list (will sync from cloud if enabled)
-    // Small delay to ensure cloud sync completes
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Longer delay to ensure cloud sync completes
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     // Re-render seller page if on seller page
     const sellerTableBody = document.querySelector('#product-table tbody');
@@ -1098,8 +1242,8 @@ let lastKnownDeletedIds = null;
 async function checkForChanges() {
     if (!USE_CLOUD_STORAGE || USE_API) return;
     
-    // Skip check if an operation is in progress to prevent race conditions
-    if (isOperationInProgress || isSyncing) {
+    // STRONG race condition prevention: Skip check if ANY operation is in progress
+    if (isOperationInProgress || isSyncing || isDeleting) {
         return;
     }
     
