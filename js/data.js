@@ -1967,8 +1967,8 @@ async function saveOrders(orders) {
     }
 }
 
-// Download orders as PDF file with watermark and seal
-function downloadOrdersAsPDF(orders) {
+// Download orders as PDF file with watermark and seal (Korean version)
+function downloadOrdersAsPDFKorean(orders) {
     try {
         if (typeof window.jspdf === 'undefined') {
             alert('PDF library not loaded. Please refresh the page.');
@@ -1980,11 +1980,11 @@ function downloadOrdersAsPDF(orders) {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         
-        // Add Codélook watermark across the whole page (diagonal, semi-transparent)
+        // Add Codelook watermark across the whole page (diagonal, semi-transparent)
         doc.setTextColor(200, 200, 200); // Light gray
         doc.setFontSize(60);
         doc.setFont(undefined, 'bold');
-        doc.text('Codélook', pageWidth / 2, pageHeight / 2, {
+        doc.text('Codelook', pageWidth / 2, pageHeight / 2, {
             angle: 45,
             align: 'center',
             baseline: 'middle'
@@ -1994,7 +1994,133 @@ function downloadOrdersAsPDF(orders) {
         doc.setTextColor(220, 53, 69); // Red color
         doc.setFontSize(24);
         doc.setFont(undefined, 'bold');
-        const sealText = '✓ CONFIRMED PAYMENT';
+        const sealText = 'CONFIRMED PAYMENT';
+        const sealX = pageWidth - 20;
+        const sealY = 20;
+        doc.text(sealText, sealX, sealY, {
+            angle: 0,
+            align: 'right'
+        });
+        
+        // Reset text color for content
+        doc.setTextColor(0, 0, 0);
+        
+        // Title
+        doc.setFontSize(18);
+        doc.setFont(undefined, 'bold');
+        doc.text('My Orders', 14, 30);
+        
+        // Date (Korean format)
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        const generatedDate = new Date();
+        const dateStr = `${generatedDate.getFullYear()}. ${generatedDate.getMonth() + 1}. ${generatedDate.getDate()}.`;
+        doc.text(`Generated: ${dateStr}`, 14, 40);
+        
+        // Prepare table data (Korean format)
+        const tableData = [];
+        let grandTotal = 0;
+        
+        orders.forEach(order => {
+            if (!order || !order.items || !Array.isArray(order.items)) return;
+            
+            const orderDate = new Date(order.date);
+            // Korean date format: YYYY. MM. DD
+            const formattedDate = `${orderDate.getFullYear()}. ${String(orderDate.getMonth() + 1).padStart(2, '0')}. ${String(orderDate.getDate()).padStart(2, '0')}.`;
+            
+            order.items.forEach(item => {
+                const itemTotal = (item.price || 0) * (item.quantity || 0);
+                grandTotal += itemTotal;
+                
+                tableData.push([
+                    item.name || 'Unknown',
+                    `#${order.id}`,
+                    `${(item.price || 0).toLocaleString('ko-KR')}원`,
+                    item.quantity || 0,
+                    `${itemTotal.toLocaleString('ko-KR')}원`,
+                    formattedDate,
+                    `****${order.cardNumber || ''}`
+                ]);
+            });
+        });
+        
+        // Add table
+        doc.autoTable({
+            head: [['Product', 'Order #', 'Price', 'Qty', 'Total', 'Date', 'Card']],
+            body: tableData,
+            startY: 45,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [0, 0, 0] },
+            margin: { top: 45 },
+            didDrawPage: function (data) {
+                // Add watermark on every page
+                doc.setTextColor(200, 200, 200);
+                doc.setFontSize(60);
+                doc.setFont(undefined, 'bold');
+                doc.text('Codelook', pageWidth / 2, pageHeight / 2, {
+                    angle: 45,
+                    align: 'center',
+                    baseline: 'middle'
+                });
+                
+                // Add red seal on every page
+                doc.setTextColor(220, 53, 69);
+                doc.setFontSize(24);
+                doc.setFont(undefined, 'bold');
+                doc.text('CONFIRMED PAYMENT', pageWidth - 20, 20, {
+                    angle: 0,
+                    align: 'right'
+                });
+                
+                // Reset color
+                doc.setTextColor(0, 0, 0);
+            }
+        });
+        
+        // Add summary (Korean format)
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Grand Total: ${grandTotal.toLocaleString('ko-KR')}원`, 14, finalY);
+        doc.text(`Total Orders: ${orders.length}`, 14, finalY + 10);
+        
+        // Save PDF
+        doc.save(`my-orders-korean-${new Date().toISOString().split('T')[0]}.pdf`);
+        alert('Orders downloaded as Korean PDF file!');
+    } catch (err) {
+        console.error('Error downloading PDF:', err);
+        alert('Error downloading PDF. Please try again.');
+    }
+}
+
+// Download orders as PDF file with watermark and seal (English version)
+function downloadOrdersAsPDFEnglish(orders) {
+    try {
+        if (typeof window.jspdf === 'undefined') {
+            alert('PDF library not loaded. Please refresh the page.');
+            return;
+        }
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        
+        // Add Codelook watermark across the whole page (diagonal, semi-transparent)
+        doc.setTextColor(200, 200, 200); // Light gray
+        doc.setFontSize(60);
+        doc.setFont(undefined, 'bold');
+        doc.text('Codelook', pageWidth / 2, pageHeight / 2, {
+            angle: 45,
+            align: 'center',
+            baseline: 'middle'
+        });
+        
+        // Add "Confirmed Payment" red seal/stamp (continuous, appears on every page)
+        doc.setTextColor(220, 53, 69); // Red color
+        doc.setFontSize(24);
+        doc.setFont(undefined, 'bold');
+        const sealText = 'CONFIRMED PAYMENT';
         const sealX = pageWidth - 20;
         const sealY = 20;
         doc.text(sealText, sealX, sealY, {
@@ -2017,7 +2143,7 @@ function downloadOrdersAsPDF(orders) {
         const dateStr = `${generatedDate.getFullYear()}-${String(generatedDate.getMonth() + 1).padStart(2, '0')}-${String(generatedDate.getDate()).padStart(2, '0')}`;
         doc.text(`Generated: ${dateStr}`, 14, 40);
         
-        // Prepare table data
+        // Prepare table data (English format)
         const tableData = [];
         let grandTotal = 0;
         
@@ -2085,8 +2211,8 @@ function downloadOrdersAsPDF(orders) {
         doc.text(`Total Orders: ${orders.length}`, 14, finalY + 10);
         
         // Save PDF
-        doc.save(`my-orders-${new Date().toISOString().split('T')[0]}.pdf`);
-        alert('Orders downloaded as PDF file!');
+        doc.save(`my-orders-english-${new Date().toISOString().split('T')[0]}.pdf`);
+        alert('Orders downloaded as English PDF file!');
     } catch (err) {
         console.error('Error downloading PDF:', err);
         alert('Error downloading PDF. Please try again.');
@@ -2706,7 +2832,8 @@ function displayOrdersInModal(orders) {
         </div>
         <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <button id="delete-selected-orders-btn" class="btn-cancel" style="background-color: #dc3545; color: white;">Delete Selected</button>
-            <button id="download-orders-pdf-btn" class="btn-payment">Download as PDF</button>
+            <button id="download-orders-pdf-korean-btn" class="btn-payment">Download as PDF (Korean)</button>
+            <button id="download-orders-pdf-english-btn" class="btn-payment">Download as PDF (English)</button>
             <button id="download-orders-image-btn" class="btn-payment">Download as Image</button>
         </div>
     `;
@@ -2770,14 +2897,25 @@ function displayOrdersInModal(orders) {
         updateDeleteButtonState(); // Initialize button state
     }
     
-    // Add download PDF button functionality
-    const downloadPdfBtn = document.getElementById('download-orders-pdf-btn');
-    if (downloadPdfBtn) {
-        const newPdfBtn = downloadPdfBtn.cloneNode(true);
-        downloadPdfBtn.parentNode.replaceChild(newPdfBtn, downloadPdfBtn);
-        newPdfBtn.addEventListener('click', () => {
+    // Add download PDF Korean button functionality
+    const downloadPdfKoreanBtn = document.getElementById('download-orders-pdf-korean-btn');
+    if (downloadPdfKoreanBtn) {
+        const newPdfKoreanBtn = downloadPdfKoreanBtn.cloneNode(true);
+        downloadPdfKoreanBtn.parentNode.replaceChild(newPdfKoreanBtn, downloadPdfKoreanBtn);
+        newPdfKoreanBtn.addEventListener('click', () => {
             // Use the original orders that were displayed (not affected by deletions)
-            downloadOrdersAsPDF(orders);
+            downloadOrdersAsPDFKorean(orders);
+        });
+    }
+    
+    // Add download PDF English button functionality
+    const downloadPdfEnglishBtn = document.getElementById('download-orders-pdf-english-btn');
+    if (downloadPdfEnglishBtn) {
+        const newPdfEnglishBtn = downloadPdfEnglishBtn.cloneNode(true);
+        downloadPdfEnglishBtn.parentNode.replaceChild(newPdfEnglishBtn, downloadPdfEnglishBtn);
+        newPdfEnglishBtn.addEventListener('click', () => {
+            // Use the original orders that were displayed (not affected by deletions)
+            downloadOrdersAsPDFEnglish(orders);
         });
     }
     
