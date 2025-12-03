@@ -2025,6 +2025,11 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
     isOperationInProgress = true;
     
     try {
+        // IMPORTANT: Sync from cloud FIRST to get latest stock before processing payment
+        if (USE_CLOUD_STORAGE && !USE_API) {
+            await syncFromCloudStorage();
+        }
+        
         // Validate all items are still available and in stock
         const validItems = [];
         for (const item of cartItems) {
@@ -2107,23 +2112,17 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
                 
                 if (fileProductIndex !== -1) {
                     // Product from items.json - update in storage (create a copy with updated stock)
-                    const originalFileStock = fileProducts[fileProductIndex].stock;
-                    const newStock = Math.max(0, originalFileStock - item.quantity);
-                    
-                    // Add to storage products if not already there, or update existing
+                    fileProducts[fileProductIndex].stock = Math.max(0, fileProducts[fileProductIndex].stock - item.quantity);
+                    // Add to storage products if not already there
                     const existingInStorage = storageProducts.findIndex(p => {
                         const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                         return pId === normalizedId;
                     });
                     if (existingInStorage !== -1) {
-                        // Update existing storage product stock
                         storageProducts[existingInStorage].stock = Math.max(0, storageProducts[existingInStorage].stock - item.quantity);
                     } else {
-                        // Create a copy with updated stock from items.json
-                        storageProducts.push({ 
-                            ...fileProducts[fileProductIndex], 
-                            stock: newStock 
-                        });
+                        // Create a copy with updated stock
+                        storageProducts.push({ ...fileProducts[fileProductIndex], stock: Math.max(0, fileProducts[fileProductIndex].stock) });
                     }
                 } else {
                     // Product from storage - update directly
@@ -2153,13 +2152,13 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
             if (USE_CLOUD_STORAGE) {
                 const syncSuccess = await syncToCloudStorage(storageProducts);
                 if (!syncSuccess) {
-                    console.warn('⚠️ Payment processed but stock update failed to sync to cloud.');
-                    console.warn('⚠️ Other browsers may not see the stock changes. Check console for API key instructions.');
+                    console.warn('⚠️ Stock updated locally but failed to sync to cloud.');
+                    console.warn('⚠️ Other browsers may not see the stock change.');
                 }
             }
         }
         
-        // Add order (this also syncs to cloud via saveOrders -> syncToCloudStorage)
+        // Add order (this will also sync orders to cloud via saveOrders)
         addOrder(order);
         
         // Clear cart
@@ -2172,16 +2171,10 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
             modal.style.display = 'none';
         }
         
-        alert(`Payment successful! Order #${order.id}\nTotal: ${totalPrice.toLocaleString('ko-KR')}원\n\nYour order has been saved. You can view it in "My Orders".`);
+        alert(`Payment successful! Order #${order.id}\nTotal: ${totalPrice.toLocaleString('ko-KR')}원`);
         
-        // Reload products to show updated stock (this will sync from cloud if enabled)
+        // Reload products to show updated stock
         await loadEmbeddedProducts();
-        
-        // Also re-render seller page if on seller page to show updated stock
-        const sellerTableBody = document.querySelector('#product-table tbody');
-        if (sellerTableBody) {
-            await renderSellerProducts();
-        }
         
     } catch (err) {
         console.error('Error processing payment:', err);
