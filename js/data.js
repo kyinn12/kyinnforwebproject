@@ -837,17 +837,34 @@ async function renderSellerProducts() {
     const deleteButtons = document.querySelectorAll('.btn-seller-delete');
     deleteButtons.forEach(button => {
         button.addEventListener('click', (e) => {
-            const productId = parseInt(e.target.dataset.id);
-            console.log(`Attempting to delete product ID ${productId}.`);
-            deleteProduct(productId);
+            e.preventDefault();
+            e.stopPropagation();
+            // Use currentTarget to get the button element, not the clicked child element
+            const buttonElement = e.currentTarget || e.target.closest('.btn-seller-delete');
+            const productId = buttonElement ? parseInt(buttonElement.dataset.id) : null;
+            if (productId && !isNaN(productId)) {
+                console.log(`🗑️ Delete button clicked - Attempting to delete product ID ${productId}.`);
+                deleteProduct(productId);
+            } else {
+                console.error('❌ Could not get product ID from delete button. Button element:', buttonElement);
+                console.error('❌ Event target:', e.target, 'Current target:', e.currentTarget);
+            }
         });
     });
 
     const editButtons = document.querySelectorAll('.btn-seller-edit');
     editButtons.forEach(button => {
         button.addEventListener('click', (e) => {
-            const productId = parseInt(e.target.dataset.id);
-            startEditProduct(productId);
+            e.preventDefault();
+            e.stopPropagation();
+            // Use currentTarget to get the button element, not the clicked child element
+            const buttonElement = e.currentTarget || e.target.closest('.btn-seller-edit');
+            const productId = buttonElement ? parseInt(buttonElement.dataset.id) : null;
+            if (productId && !isNaN(productId)) {
+                startEditProduct(productId);
+            } else {
+                console.error('❌ Could not get product ID from edit button.');
+            }
         });
     });
 }
