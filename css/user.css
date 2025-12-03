@@ -1,19 +1,30 @@
-/* Modern User Page Styles */
+/* Modern User Page Styles - Black & Dark Blue Theme */
 
 :root {
-    --primary-red: #A00000;
-    --primary-red-dark: #800000;
-    --primary-red-light: #c00000;
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-red: linear-gradient(135deg, #A00000 0%, #800000 100%);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-    --shadow-hover: 0 12px 40px rgba(160, 0, 0, 0.25);
+    --dark-blue: #1a237e;
+    --dark-blue-light: #283593;
+    --dark-blue-lighter: #3949ab;
+    --dark-blue-lightest: #5c6bc0;
+    --black: #000000;
+    --black-light: #1a1a1a;
+    --black-lighter: #2a2a2a;
+    --gradient-blue: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+    --gradient-blue-hover: linear-gradient(135deg, #283593 0%, #5c6bc0 100%);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(26, 35, 126, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 12px 40px rgba(57, 73, 171, 0.5);
 }
 
 * {
     box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #000000 0%, #1a237e 50%, #000000 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #ffffff;
 }
 
 #product-list-container {
@@ -27,15 +38,16 @@
 }
 
 .product-card {
-    background: white;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(26, 35, 126, 0.3) 100%);
     padding: 0;
     border-radius: 20px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 2px solid rgba(57, 73, 171, 0.3);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-align: center;
     overflow: hidden;
     position: relative;
+    backdrop-filter: blur(10px);
 }
 
 .product-card::before {
@@ -45,7 +57,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--gradient-red);
+    background: var(--gradient-blue);
     transform: scaleX(0);
     transition: transform 0.4s ease;
 }
@@ -57,7 +69,7 @@
 .product-card:hover {
     transform: translateY(-10px) scale(1.02);
     box-shadow: var(--shadow-hover);
-    border-color: rgba(160, 0, 0, 0.2);
+    border-color: var(--dark-blue-lighter);
 }
 
 .product-card .product-image {
@@ -78,7 +90,7 @@
 }
 
 .product-card h3 {
-    color: #333;
+    color: #ffffff;
     margin-top: 10px;
     font-size: 1.2em;
     font-weight: 700;
@@ -92,7 +104,7 @@
 .product-card .price {
     font-size: 1.6em;
     font-weight: 800;
-    background: var(--gradient-red);
+    background: linear-gradient(135deg, #5c6bc0 0%, #3949ab 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -101,7 +113,7 @@
 }
 
 .product-card .category, .product-card .tags {
-    color: #666;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.85em;
     margin: 5px 0;
 }
@@ -109,10 +121,12 @@
 .product-card .category {
     display: inline-block;
     padding: 4px 12px;
-    background: #f0f0f0;
+    background: rgba(57, 73, 171, 0.3);
+    border: 1px solid rgba(57, 73, 171, 0.5);
     border-radius: 20px;
     font-weight: 600;
     margin-top: 10px;
+    color: #ffffff;
 }
 
 #control-panel {
@@ -121,15 +135,16 @@
     align-items: center;
     gap: 15px;
     padding: 20px 30px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(57, 73, 171, 0.3);
     position: sticky;
     top: 80px;
     z-index: 400;
     flex-wrap: wrap;
     box-shadow: var(--shadow-sm);
+    border-top: 2px solid rgba(57, 73, 171, 0.2);
 }
 
 .filter-btn, #sort-options {
@@ -139,20 +154,21 @@
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 600;
-    border: 2px solid #e0e0e0;
-    background: white;
-    color: #333;
+    border: 2px solid rgba(57, 73, 171, 0.4);
+    background: rgba(26, 35, 126, 0.2);
+    color: #ffffff;
     box-shadow: var(--shadow-sm);
 }
 
 .filter-btn:hover, #sort-options:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-    border-color: var(--primary-red);
+    border-color: var(--dark-blue-lighter);
+    background: rgba(57, 73, 171, 0.3);
 }
 
 .filter-btn.active {
-    background: var(--gradient-red);
+    background: var(--gradient-blue);
     color: white;
     border-color: transparent;
     box-shadow: var(--shadow-md);
@@ -161,24 +177,30 @@
 
 #search-input {
     padding: 10px 20px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid rgba(57, 73, 171, 0.4);
     border-radius: 25px;
     font-size: 0.95em;
     width: 250px;
     transition: all 0.3s ease;
-    background: white;
+    background: rgba(26, 35, 126, 0.2);
+    color: #ffffff;
     box-shadow: var(--shadow-sm);
+}
+
+#search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 #search-input:focus {
     outline: none;
-    border-color: var(--primary-red);
+    border-color: var(--dark-blue-lighter);
+    background: rgba(26, 35, 126, 0.3);
     box-shadow: var(--shadow-md);
     width: 300px;
 }
 
 .btn-primary {
-    background: var(--gradient-red);
+    background: var(--gradient-blue);
     color: white;
     border: none;
     margin-top: 10px;
@@ -191,13 +213,14 @@
 }
 
 .btn-primary:hover {
+    background: var(--gradient-blue-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
 .btn-disabled {
-    background: #e0e0e0;
-    color: #999;
+    background: rgba(57, 73, 171, 0.2);
+    color: rgba(255, 255, 255, 0.5);
     border: none;
     cursor: not-allowed;
     margin-top: 10px;
@@ -212,9 +235,9 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
-    border: 2px solid rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(57, 73, 171, 0.4);
     border-radius: 50%;
     width: 45px;
     height: 45px;
@@ -228,14 +251,15 @@
 }
 
 .btn-wishlist:hover {
-    background: white;
+    background: rgba(26, 35, 126, 0.8);
+    border-color: var(--dark-blue-lighter);
     transform: scale(1.1) rotate(5deg);
     box-shadow: var(--shadow-md);
 }
 
 .heart-icon {
     font-size: 1.4em;
-    color: #666;
+    color: rgba(255, 255, 255, 0.7);
     transition: all 0.3s ease;
 }
 
@@ -259,7 +283,7 @@
     width: 100%;
     height: 100%;
     overflow: auto;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(5px);
     justify-content: center;
     align-items: center;
@@ -272,7 +296,8 @@
 }
 
 .modal-content {
-    background: white;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(26, 35, 126, 0.4) 100%);
+    border: 2px solid rgba(57, 73, 171, 0.4);
     margin: auto;
     padding: 25px;
     border-radius: 20px;
@@ -280,11 +305,12 @@
     max-width: 700px;
     box-shadow: var(--shadow-lg);
     position: relative;
-    color: #333;
+    color: #ffffff;
     animation: slideUp 0.4s ease;
     max-height: 85vh;
     overflow-y: auto;
     overflow-x: hidden;
+    backdrop-filter: blur(20px);
 }
 
 @keyframes slideUp {
@@ -299,8 +325,8 @@
 }
 
 #modal-title {
-    color: #000;
-    border-bottom: 3px solid var(--primary-red);
+    color: #ffffff;
+    border-bottom: 3px solid var(--dark-blue-lighter);
     padding-bottom: 15px;
     margin-top: 0;
     margin-bottom: 25px;
@@ -321,12 +347,12 @@
 }
 
 #modal-list-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: rgba(26, 35, 126, 0.2);
     border-radius: 10px;
 }
 
 #modal-list-container::-webkit-scrollbar-thumb {
-    background: var(--primary-red);
+    background: var(--gradient-blue);
     border-radius: 10px;
 }
 
@@ -344,15 +370,16 @@
 .cart-table th, .cart-table td {
     padding: 10px 8px;
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid rgba(57, 73, 171, 0.2);
     font-size: 0.85em;
     word-wrap: break-word;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #ffffff;
 }
 
 .cart-table th {
-    background: var(--gradient-red);
+    background: var(--gradient-blue);
     color: white;
     font-weight: 700;
     text-transform: uppercase;
@@ -361,7 +388,7 @@
 }
 
 .cart-table tr:hover {
-    background: #f9f9f9;
+    background: rgba(57, 73, 171, 0.1);
 }
 
 .cart-table .cart-img {
@@ -377,7 +404,7 @@
 .total-price {
     font-size: 1.8em;
     font-weight: 800;
-    background: var(--gradient-red);
+    background: linear-gradient(135deg, #5c6bc0 0%, #3949ab 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -386,9 +413,10 @@
 .btn-qty {
     padding: 6px 12px;
     margin: 0 5px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid rgba(57, 73, 171, 0.4);
     border-radius: 8px;
-    background: white;
+    background: rgba(26, 35, 126, 0.2);
+    color: #ffffff;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -396,8 +424,8 @@
 }
 
 .btn-qty:hover {
-    background: #f0f0f0;
-    border-color: var(--primary-red);
+    background: rgba(57, 73, 171, 0.3);
+    border-color: var(--dark-blue-lighter);
     transform: scale(1.1);
 }
 
@@ -405,7 +433,7 @@
     padding: 14px 28px;
     border-radius: 12px;
     border: none;
-    background: var(--gradient-red);
+    background: var(--gradient-blue);
     color: white;
     font-weight: 700;
     cursor: pointer;
@@ -417,6 +445,7 @@
 }
 
 .btn-payment:hover {
+    background: var(--gradient-blue-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-hover);
 }
@@ -424,17 +453,17 @@
 .btn-cancel {
     padding: 12px 24px;
     border-radius: 12px;
-    border: 2px solid #e0e0e0;
-    background: white;
-    color: #333;
+    border: 2px solid rgba(57, 73, 171, 0.4);
+    background: rgba(26, 35, 126, 0.2);
+    color: #ffffff;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-cancel:hover {
-    background: #f0f0f0;
-    border-color: #999;
+    background: rgba(57, 73, 171, 0.3);
+    border-color: var(--dark-blue-lighter);
     transform: translateY(-2px);
 }
 
@@ -444,7 +473,7 @@
     align-items: center;
     margin-top: 30px;
     padding-top: 20px;
-    border-top: 2px solid #f0f0f0;
+    border-top: 2px solid rgba(57, 73, 171, 0.3);
     flex-wrap: wrap;
     gap: 15px;
 }
@@ -459,12 +488,13 @@
 }
 
 #modal-close-btn {
-    background: #333;
+    background: rgba(26, 35, 126, 0.6);
     color: white;
+    border: 1px solid rgba(57, 73, 171, 0.4);
 }
 
 #modal-close-btn:hover {
-    background: #000;
+    background: rgba(26, 35, 126, 0.8);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
@@ -490,8 +520,8 @@
 .wishlist-item {
     display: flex;
     align-items: center;
-    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
-    border: 2px solid #f0f0f0;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(26, 35, 126, 0.3) 100%);
+    border: 2px solid rgba(57, 73, 171, 0.3);
     border-radius: 16px;
     padding: 15px;
     position: relative;
@@ -502,7 +532,7 @@
 .wishlist-item:hover {
     transform: translateY(-5px);
     box-shadow: var(--shadow-md);
-    border-color: var(--primary-red);
+    border-color: var(--dark-blue-lighter);
 }
 
 .wishlist-img {
@@ -522,12 +552,12 @@
 .wishlist-item h4 {
     margin: 0;
     font-size: 1.1em;
-    color: #333;
+    color: #ffffff;
     font-weight: 700;
 }
 
 .wishlist-item .price {
-    background: var(--gradient-red);
+    background: linear-gradient(135deg, #5c6bc0 0%, #3949ab 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -540,14 +570,14 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #e0e0e0;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(57, 73, 171, 0.4);
     border-radius: 50%;
     width: 35px;
     height: 35px;
     font-size: 1.2em;
     cursor: pointer;
-    color: #999;
+    color: rgba(255, 255, 255, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -558,6 +588,7 @@
 .btn-remove-wishlist:hover {
     color: #dc3545;
     border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.2);
     transform: scale(1.1) rotate(90deg);
     box-shadow: var(--shadow-md);
 }
