@@ -1967,23 +1967,153 @@ async function saveOrders(orders) {
     }
 }
 
-// Download orders as JSON file
-function downloadOrdersAsJSON(orders) {
+// Download orders as PDF file
+function downloadOrdersAsPDF(orders) {
     try {
-        const ordersJSON = JSON.stringify(orders, null, 2); // Pretty print with 2-space indent
-        const blob = new Blob([ordersJSON], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `my-orders-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        alert('Orders downloaded as JSON file!');
+        if (typeof window.jspdf === 'undefined') {
+            alert('PDF library not loaded. Please refresh the page.');
+            return;
+        }
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Title
+        doc.setFontSize(18);
+        doc.text('My Orders', 14, 20);
+        
+        // Date
+        doc.setFontSize(10);
+        doc.text(`Generated: ${new Date().toLocaleDateString('ko-KR')}`, 14, 30);
+        
+        // Prepare table data
+        const tableData = [];
+        let grandTotal = 0;
+        
+        orders.forEach(order => {
+            if (!order || !order.items || !Array.isArray(order.items)) return;
+            
+            const orderDate = new Date(order.date);
+            const formattedDate = orderDate.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            order.items.forEach(item => {
+                const itemTotal = (item.price || 0) * (item.quantity || 0);
+                grandTotal += itemTotal;
+                
+                tableData.push([
+                    item.name || 'Unknown',
+                    `#${order.id}`,
+                    `${(item.price || 0).toLocaleString('ko-KR')}원`,
+                    item.quantity || 0,
+                    `${itemTotal.toLocaleString('ko-KR')}원`,
+                    formattedDate,
+                    `****${order.cardNumber || ''}`
+                ]);
+            });
+        });
+        
+        // Add table
+        doc.autoTable({
+            head: [['Product', 'Order #', 'Price', 'Qty', 'Total', 'Date', 'Card']],
+            body: tableData,
+            startY: 35,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [0, 0, 0] },
+            margin: { top: 35 }
+        });
+        
+        // Add summary
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(12);
+        doc.text(`Grand Total: ${grandTotal.toLocaleString('ko-KR')}원`, 14, finalY);
+        doc.text(`Total Orders: ${orders.length}`, 14, finalY + 10);
+        
+        // Save PDF
+        doc.save(`my-orders-${new Date().toISOString().split('T')[0]}.pdf`);
+        alert('Orders downloaded as PDF file!');
     } catch (err) {
-        console.error('Error downloading orders:', err);
-        alert('Error downloading orders. Please try again.');
+        console.error('Error downloading PDF:', err);
+        alert('Error downloading PDF. Please try again.');
+    }
+}
+
+// Download orders as Excel file
+function downloadOrdersAsExcel(orders) {
+    try {
+        if (typeof XLSX === 'undefined') {
+            alert('Excel library not loaded. Please refresh the page.');
+            return;
+        }
+        
+        // Prepare worksheet data
+        const worksheetData = [];
+        
+        // Header row
+        worksheetData.push(['Product', 'Order #', 'Price', 'Quantity', 'Total', 'Date', 'Card Number']);
+        
+        let grandTotal = 0;
+        
+        orders.forEach(order => {
+            if (!order || !order.items || !Array.isArray(order.items)) return;
+            
+            const orderDate = new Date(order.date);
+            const formattedDate = orderDate.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            order.items.forEach(item => {
+                const itemTotal = (item.price || 0) * (item.quantity || 0);
+                grandTotal += itemTotal;
+                
+                worksheetData.push([
+                    item.name || 'Unknown Product',
+                    order.id,
+                    item.price || 0,
+                    item.quantity || 0,
+                    itemTotal,
+                    formattedDate,
+                    `****${order.cardNumber || ''}`
+                ]);
+            });
+        });
+        
+        // Add summary rows
+        worksheetData.push([]);
+        worksheetData.push(['Grand Total', '', '', '', grandTotal, '', '']);
+        worksheetData.push(['Total Orders', '', '', '', orders.length, '', '']);
+        
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 30 }, // Product
+            { wch: 15 }, // Order #
+            { wch: 15 }, // Price
+            { wch: 10 }, // Quantity
+            { wch: 15 }, // Total
+            { wch: 25 }, // Date
+            { wch: 15 }  // Card
+        ];
+        
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'My Orders');
+        
+        // Save file
+        XLSX.writeFile(wb, `my-orders-${new Date().toISOString().split('T')[0]}.xlsx`);
+        alert('Orders downloaded as Excel file!');
+    } catch (err) {
+        console.error('Error downloading Excel:', err);
+        alert('Error downloading Excel. Please try again.');
     }
 }
 
@@ -2415,18 +2545,30 @@ function displayOrdersInModal(orders) {
         <div>
             Total Orders: <strong>${orders.length}</strong>
         </div>
-        <button id="download-orders-json-btn" class="btn-payment" style="margin-top: 10px;">Download Orders as JSON</button>
+        <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+            <button id="download-orders-pdf-btn" class="btn-payment">Download as PDF</button>
+            <button id="download-orders-excel-btn" class="btn-payment">Download as Excel</button>
+        </div>
     `;
     modal.style.display = 'flex';
     
-    // Add download JSON button functionality
-    const downloadBtn = document.getElementById('download-orders-json-btn');
-    if (downloadBtn) {
-        // Remove any existing listeners
-        const newBtn = downloadBtn.cloneNode(true);
-        downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
-        newBtn.addEventListener('click', () => {
-            downloadOrdersAsJSON(orders);
+    // Add download PDF button functionality
+    const downloadPdfBtn = document.getElementById('download-orders-pdf-btn');
+    if (downloadPdfBtn) {
+        const newPdfBtn = downloadPdfBtn.cloneNode(true);
+        downloadPdfBtn.parentNode.replaceChild(newPdfBtn, downloadPdfBtn);
+        newPdfBtn.addEventListener('click', () => {
+            downloadOrdersAsPDF(orders);
+        });
+    }
+    
+    // Add download Excel button functionality
+    const downloadExcelBtn = document.getElementById('download-orders-excel-btn');
+    if (downloadExcelBtn) {
+        const newExcelBtn = downloadExcelBtn.cloneNode(true);
+        downloadExcelBtn.parentNode.replaceChild(newExcelBtn, downloadExcelBtn);
+        newExcelBtn.addEventListener('click', () => {
+            downloadOrdersAsExcel(orders);
         });
     }
 }
