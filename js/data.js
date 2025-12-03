@@ -623,7 +623,7 @@ async function deleteProduct(id) {
           addToDeletedProducts(normalizedId);
           // Get the updated deleted list AFTER adding
           const deletedIds = getDeletedProductIds();
-          console.log('🗑️ Deleted product ID:', normalizedId);
+          console.log('🗑️ Deleted product ID (from items.json):', normalizedId);
           console.log('🗑️ Updated deleted list:', deletedIds);
           console.log('🗑️ Verifying deleted list in localStorage:', localStorage.getItem(DELETED_PRODUCTS_KEY));
           
@@ -632,10 +632,24 @@ async function deleteProduct(id) {
             // Double-check deleted list is correct before syncing
             const verifyDeleted = getDeletedProductIds();
             console.log('🗑️ Verifying deleted list before sync:', verifyDeleted);
+            
+            // Wait a moment to ensure localStorage is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Get fresh deleted list one more time
+            const finalDeletedList = getDeletedProductIds();
+            console.log('🗑️ Final deleted list to sync:', finalDeletedList);
+            
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
               console.log('✅ Product deleted (from items.json) and synced - removed from all browsers now!');
-              console.log('🗑️ Deleted IDs synced to cloud:', verifyDeleted);
+              console.log('🗑️ Deleted IDs synced to cloud:', finalDeletedList);
+              
+              // Update last known state immediately after successful sync
+              if (lastKnownDeletedIds !== null) {
+                lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
+                console.log('✅ Updated lastKnownDeletedIds:', lastKnownDeletedIds);
+              }
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
@@ -664,9 +678,22 @@ async function deleteProduct(id) {
           
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
+            // Wait a moment to ensure localStorage is updated
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
               console.log('✅ Product deleted (from storage) and synced - removed from all browsers now!');
+              
+              // Update last known state immediately after successful sync
+              const currentProductIds = allProducts.map(p => {
+                const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return isNaN(id) ? 0 : id;
+              }).filter(id => id > 0).sort((a, b) => a - b);
+              lastKnownProductIds = currentProductIds;
+              lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
+              console.log('✅ Updated lastKnownProductIds:', lastKnownProductIds);
+              console.log('✅ Updated lastKnownDeletedIds:', lastKnownDeletedIds);
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
@@ -990,10 +1017,16 @@ async function checkForChanges() {
                 console.log('🔄 Changes detected from other browser! Refreshing...');
                 console.log('📦 Product IDs changed:', productIdsChanged);
                 console.log('🗑️ Deleted IDs changed:', deletedIdsChanged);
+                console.log('📋 Current deleted IDs in cloud:', currentDeletedIds);
+                console.log('📋 Previous deleted IDs:', lastKnownDeletedIds);
                 
-                // Update last known state
+                // Update last known state BEFORE re-rendering
                 lastKnownProductIds = currentProductIds;
                 lastKnownDeletedIds = currentDeletedIds;
+                
+                // IMPORTANT: Update local deleted list from cloud BEFORE re-rendering
+                localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(currentDeletedIds));
+                console.log('✅ Updated local deleted list from cloud:', currentDeletedIds);
                 
                 // Re-render seller products to show updated list
                 const sellerTableBody = document.querySelector('#product-table tbody');
