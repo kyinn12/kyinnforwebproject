@@ -2844,16 +2844,16 @@ function displayOrdersInModal(orders) {
                     <td style="vertical-align: middle; text-align: center;">
                         <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" data-item-index="${itemIndex}" id="order-item-${uniqueItemId}" style="width: 20px; height: 20px; cursor: pointer;">
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                         <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
-                        ${item.name || 'Unknown Product'}
+                        <span style="display: inline-block; vertical-align: middle; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">${item.name || 'Unknown Product'}</span>
                     </td>
-                    <td>Order #${order.id}${isFirstItem && order.couponCode ? `<br><small style="color: #28a745;">${order.couponName || order.couponCode}</small>` : ''}</td>
-                    <td>${(item.price || 0).toLocaleString('en-US')} won</td>
-                    <td>${item.quantity || 0}</td>
-                    <td>${itemTotal.toLocaleString('en-US')} won</td>
-                    <td>${formattedDate}</td>
-                    <td>****${order.cardNumber || ''}</td>
+                    <td style="font-size: 0.8em;">Order #${order.id}${isFirstItem && order.couponCode ? `<br><small style="color: #28a745; font-size: 0.75em;">${order.couponName || order.couponCode}</small>` : ''}</td>
+                    <td style="white-space: nowrap;">${(item.price || 0).toLocaleString('en-US')} won</td>
+                    <td style="text-align: center;">${item.quantity || 0}</td>
+                    <td style="white-space: nowrap;">${itemTotal.toLocaleString('en-US')} won</td>
+                    <td style="font-size: 0.75em;">${formattedDate}</td>
+                    <td style="font-size: 0.8em;">****${order.cardNumber || ''}</td>
                 </tr>
             `;
             
@@ -2872,14 +2872,14 @@ function displayOrdersInModal(orders) {
         <table class="cart-table">
             <thead>
                 <tr>
-                    <th style="width: 50px;">Select</th>
-                    <th>Product</th>
-                    <th>Order #</th>
-                    <th>Price</th>
-                    <th>Qty</th>
-                    <th>Total</th>
-                    <th>Date</th>
-                    <th>Card</th>
+                    <th style="width: 40px;">Select</th>
+                    <th style="width: 25%;">Product</th>
+                    <th style="width: 15%;">Order #</th>
+                    <th style="width: 12%;">Price</th>
+                    <th style="width: 8%;">Qty</th>
+                    <th style="width: 12%;">Total</th>
+                    <th style="width: 18%;">Date</th>
+                    <th style="width: 10%;">Card</th>
                 </tr>
             </thead>
             <tbody>
