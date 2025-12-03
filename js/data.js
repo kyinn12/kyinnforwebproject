@@ -1937,27 +1937,33 @@ function getOrders() {
 
 async function saveOrders(orders) {
     // Save to localStorage FIRST (immediate) - this is JSON format
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    
-    // Verify it was saved
-    const verifyOrders = getOrders();
-    if (verifyOrders.length !== orders.length) {
-        console.error('⚠️ Order save verification failed! Retrying...');
+    try {
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    }
-    
-    console.log('✅ Orders saved to localStorage (JSON format):', orders.length, 'orders');
-    
-    // Sync orders to cloud storage (JSONBin.io) - saves as JSON in cloud
-    if (USE_CLOUD_STORAGE && !USE_API) {
-        // Get current products to sync along with orders
-        const storageProducts = getProductsFromStorage();
-        const syncSuccess = await syncToCloudStorage(storageProducts);
-        if (syncSuccess) {
-            console.log('✅ Orders synced to cloud storage (JSON format)');
-        } else {
-            console.warn('⚠️ Orders saved locally but cloud sync failed');
+        
+        // Verify it was saved
+        const verifyOrders = getOrders();
+        if (verifyOrders.length !== orders.length) {
+            console.error('⚠️ Order save verification failed! Retrying...');
+            localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
         }
+        
+        console.log('✅ Orders saved to localStorage (JSON format):', orders.length, 'orders');
+        console.log('✅ Orders data:', JSON.stringify(orders, null, 2));
+        
+        // Sync orders to cloud storage (JSONBin.io) - saves as JSON in cloud
+        if (USE_CLOUD_STORAGE && !USE_API) {
+            // Get current products to sync along with orders
+            const storageProducts = getProductsFromStorage();
+            const syncSuccess = await syncToCloudStorage(storageProducts);
+            if (syncSuccess) {
+                console.log('✅ Orders synced to cloud storage (JSON format)');
+            } else {
+                console.warn('⚠️ Orders saved locally but cloud sync failed');
+            }
+        }
+    } catch (err) {
+        console.error('❌ Error saving orders:', err);
+        alert('Error saving orders. Please try again.');
     }
 }
 
@@ -2210,24 +2216,30 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
         }
         
         // Add order (this will also sync orders to cloud via saveOrders)
+        console.log('💳 Adding order to storage:', order);
         addOrder(order);
         
         // Wait a moment for localStorage write to complete
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Verify order was saved
         let savedOrders = getOrders();
-        console.log('Order saved. Total orders now:', savedOrders.length);
-        console.log('Latest order:', savedOrders[0]);
+        console.log('✅ Order saved. Total orders now:', savedOrders.length);
+        console.log('✅ Latest order:', savedOrders[0]);
+        console.log('✅ All orders:', savedOrders);
         
         // Double-check: if order not found, save again
         const orderExists = savedOrders.some(o => o.id === order.id);
         if (!orderExists) {
             console.warn('⚠️ Order not found after save, retrying...');
-            addOrder(order);
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Get current orders and add the new one
+            const currentOrders = getOrders();
+            currentOrders.unshift(order);
+            await saveOrders(currentOrders);
+            await new Promise(resolve => setTimeout(resolve, 200));
             savedOrders = getOrders();
-            console.log('After retry, total orders:', savedOrders.length);
+            console.log('✅ After retry, total orders:', savedOrders.length);
+            console.log('✅ Order exists now:', savedOrders.some(o => o.id === order.id));
         }
         
         // Clear cart
@@ -2256,137 +2268,156 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
 // View Orders Function
 async function viewOrders() {
     try {
-        // First, get orders from localStorage (immediate)
+        // Get orders directly from localStorage (most reliable)
         let orders = getOrders();
-        console.log('Orders from localStorage:', orders.length, orders);
+        console.log('📦 Orders from localStorage:', orders.length);
+        console.log('📦 Orders data:', orders);
         
-        // Then sync from cloud storage to get latest orders (but don't overwrite if local has more)
-        if (USE_CLOUD_STORAGE && !USE_API) {
+        // If no local orders, try syncing from cloud (might have orders from other browsers)
+        if (orders.length === 0 && USE_CLOUD_STORAGE && !USE_API) {
+            console.log('No local orders found, syncing from cloud...');
             try {
                 await syncFromCloudStorage();
-                // Get orders again after sync
-                const cloudOrders = getOrders();
-                console.log('Orders after cloud sync:', cloudOrders.length, cloudOrders);
-                // Use the one with more orders (cloud might have more from other browsers)
-                if (cloudOrders.length > orders.length) {
-                    orders = cloudOrders;
-                } else if (orders.length > 0 && cloudOrders.length === 0) {
-                    // If local has orders but cloud doesn't, keep local (might be new order not synced yet)
-                    console.log('Keeping local orders (cloud sync may have failed or cleared)');
-                } else {
-                    orders = cloudOrders.length > 0 ? cloudOrders : orders;
-                }
+                orders = getOrders(); // Get merged orders after sync
+                console.log('📦 Orders after cloud sync:', orders.length);
             } catch (err) {
                 console.warn('Cloud sync failed, using local orders:', err);
-                // Use local orders if cloud sync fails
             }
-        }
-        
-        console.log('Final orders to display:', orders.length, orders);
-        
-        if (orders.length === 0) {
-            const modal = document.getElementById('app-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalListContainer = document.getElementById('modal-list-container');
-            const modalSummary = document.getElementById('modal-summary');
-            
-            if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
-                console.error('Modal elements not found');
-                return;
-            }
-            
-            modalTitle.textContent = "My Orders";
-            modalListContainer.innerHTML = '<p class="p-4 text-center">You have no orders yet.</p>';
-            modalSummary.innerHTML = '';
-            modal.style.display = 'flex';
-            return;
-        }
-        
-        // Create table format similar to cart
-        let allItemsHtml = '';
-        let grandTotal = 0;
-        
-        orders.forEach(order => {
-            const orderDate = new Date(order.date);
-            const formattedDate = orderDate.toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            order.items.forEach(item => {
-                const itemTotal = (item.price || 0) * (item.quantity || 0);
-                grandTotal += itemTotal;
-                
-                allItemsHtml += `
-                    <tr>
-                        <td>
-                            <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
-                            ${item.name || 'Unknown Product'}
-                        </td>
-                        <td>Order #${order.id}</td>
-                        <td>${(item.price || 0).toLocaleString('ko-KR')}원</td>
-                        <td>${item.quantity || 0}</td>
-                        <td>${itemTotal.toLocaleString('ko-KR')}원</td>
-                        <td>${formattedDate}</td>
-                        <td>****${order.cardNumber || ''}</td>
-                    </tr>
-                `;
-            });
-        });
-        
-        const modal = document.getElementById('app-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalListContainer = document.getElementById('modal-list-container');
-        const modalSummary = document.getElementById('modal-summary');
-        
-        if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
-            console.error('Modal elements not found');
-            return;
-        }
-        
-        modalTitle.textContent = "My Orders";
-        modalListContainer.innerHTML = `
-            <table class="cart-table">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Order #</th>
-                        <th>Price</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                        <th>Date</th>
-                        <th>Card</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${allItemsHtml.length > 0 ? allItemsHtml : '<tr><td colspan="7" class="text-center">You have no orders yet.</td></tr>'}
-                </tbody>
-            </table>
-        `;
-        modalSummary.innerHTML = `
-            <div>
-                Grand Total: <span class="total-price">${grandTotal.toLocaleString('ko-KR')}원</span>
-            </div>
-            <div>
-                Total Orders: <strong>${orders.length}</strong>
-            </div>
-            <button id="download-orders-json-btn" class="btn-payment" style="margin-top: 10px;">Download Orders as JSON</button>
-        `;
-        modal.style.display = 'flex';
-        
-        // Add download JSON button functionality
-        const downloadBtn = document.getElementById('download-orders-json-btn');
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', () => {
-                downloadOrdersAsJSON(orders);
+        } else if (USE_CLOUD_STORAGE && !USE_API) {
+            // Background sync to get any new orders from other browsers (don't wait)
+            syncFromCloudStorage().then(() => {
+                // After sync completes, update display if we got more orders
+                const updatedOrders = getOrders();
+                if (updatedOrders.length > orders.length) {
+                    console.log('📦 Found more orders after sync, updating display...');
+                    // Re-render with updated orders
+                    displayOrdersInModal(updatedOrders);
+                }
+            }).catch(err => {
+                console.warn('Background sync failed:', err);
             });
         }
+        
+        console.log('📦 Final orders to display:', orders.length);
+        
+        // Display orders
+        displayOrdersInModal(orders);
         
     } catch (err) {
         console.error('Error viewing orders:', err);
         alert('Error loading orders. Please try again.');
+    }
+}
+
+// Helper function to display orders in modal
+function displayOrdersInModal(orders) {
+        
+    const modal = document.getElementById('app-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalListContainer = document.getElementById('modal-list-container');
+    const modalSummary = document.getElementById('modal-summary');
+    
+    if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
+        console.error('❌ Modal elements not found');
+        alert('Error: Modal elements not found. Please refresh the page.');
+        return;
+    }
+    
+    modalTitle.textContent = "My Orders";
+    
+    if (!orders || orders.length === 0) {
+        modalListContainer.innerHTML = '<p class="p-4 text-center">You have no orders yet.</p>';
+        modalSummary.innerHTML = '';
+        modal.style.display = 'flex';
+        return;
+    }
+    
+    // Validate orders array
+    if (!Array.isArray(orders)) {
+        console.error('❌ Orders is not an array:', orders);
+        modalListContainer.innerHTML = '<p class="p-4 text-center">Error: Invalid orders data.</p>';
+        modalSummary.innerHTML = '';
+        modal.style.display = 'flex';
+        return;
+    }
+    
+    // Create table format similar to cart
+    let allItemsHtml = '';
+    let grandTotal = 0;
+    
+    orders.forEach(order => {
+        if (!order || !order.items || !Array.isArray(order.items)) {
+            console.warn('⚠️ Invalid order structure:', order);
+            return;
+        }
+        
+        const orderDate = new Date(order.date);
+        const formattedDate = orderDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        order.items.forEach(item => {
+            const itemTotal = (item.price || 0) * (item.quantity || 0);
+            grandTotal += itemTotal;
+            
+            allItemsHtml += `
+                <tr>
+                    <td>
+                        <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
+                        ${item.name || 'Unknown Product'}
+                    </td>
+                    <td>Order #${order.id}</td>
+                    <td>${(item.price || 0).toLocaleString('ko-KR')}원</td>
+                    <td>${item.quantity || 0}</td>
+                    <td>${itemTotal.toLocaleString('ko-KR')}원</td>
+                    <td>${formattedDate}</td>
+                    <td>****${order.cardNumber || ''}</td>
+                </tr>
+            `;
+        });
+    });
+    
+    modalListContainer.innerHTML = `
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Order #</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Date</th>
+                    <th>Card</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${allItemsHtml.length > 0 ? allItemsHtml : '<tr><td colspan="7" class="text-center">You have no orders yet.</td></tr>'}
+            </tbody>
+        </table>
+    `;
+    modalSummary.innerHTML = `
+        <div>
+            Grand Total: <span class="total-price">${grandTotal.toLocaleString('ko-KR')}원</span>
+        </div>
+        <div>
+            Total Orders: <strong>${orders.length}</strong>
+        </div>
+        <button id="download-orders-json-btn" class="btn-payment" style="margin-top: 10px;">Download Orders as JSON</button>
+    `;
+    modal.style.display = 'flex';
+    
+    // Add download JSON button functionality
+    const downloadBtn = document.getElementById('download-orders-json-btn');
+    if (downloadBtn) {
+        // Remove any existing listeners
+        const newBtn = downloadBtn.cloneNode(true);
+        downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+        newBtn.addEventListener('click', () => {
+            downloadOrdersAsJSON(orders);
+        });
     }
 }
