@@ -1936,7 +1936,7 @@ function getOrders() {
 }
 
 async function saveOrders(orders) {
-    // Save to localStorage FIRST (immediate)
+    // Save to localStorage FIRST (immediate) - this is JSON format
     localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
     
     // Verify it was saved
@@ -1946,13 +1946,38 @@ async function saveOrders(orders) {
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
     }
     
-    // Sync orders to cloud storage (async, don't wait)
+    console.log('✅ Orders saved to localStorage (JSON format):', orders.length, 'orders');
+    
+    // Sync orders to cloud storage (JSONBin.io) - saves as JSON in cloud
     if (USE_CLOUD_STORAGE && !USE_API) {
         // Get current products to sync along with orders
         const storageProducts = getProductsFromStorage();
-        syncToCloudStorage(storageProducts).catch(err => {
-            console.error('Error syncing orders to cloud:', err);
-        });
+        const syncSuccess = await syncToCloudStorage(storageProducts);
+        if (syncSuccess) {
+            console.log('✅ Orders synced to cloud storage (JSON format)');
+        } else {
+            console.warn('⚠️ Orders saved locally but cloud sync failed');
+        }
+    }
+}
+
+// Download orders as JSON file
+function downloadOrdersAsJSON(orders) {
+    try {
+        const ordersJSON = JSON.stringify(orders, null, 2); // Pretty print with 2-space indent
+        const blob = new Blob([ordersJSON], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `my-orders-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        alert('Orders downloaded as JSON file!');
+    } catch (err) {
+        console.error('Error downloading orders:', err);
+        alert('Error downloading orders. Please try again.');
     }
 }
 
@@ -2348,8 +2373,17 @@ async function viewOrders() {
             <div>
                 Total Orders: <strong>${orders.length}</strong>
             </div>
+            <button id="download-orders-json-btn" class="btn-payment" style="margin-top: 10px;">Download Orders as JSON</button>
         `;
         modal.style.display = 'flex';
+        
+        // Add download JSON button functionality
+        const downloadBtn = document.getElementById('download-orders-json-btn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+                downloadOrdersAsJSON(orders);
+            });
+        }
         
     } catch (err) {
         console.error('Error viewing orders:', err);
