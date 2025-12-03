@@ -33,11 +33,21 @@ const JSONBIN_API_KEY_STORAGE_KEY = 'JSONBIN_API_KEY';
 // If you get 401 errors, verify your API key at https://jsonbin.io/app/account/api-keys
 // The key should start with $2a$10$ and be exactly 60 characters long.
 // Users should set their own key via: localStorage.setItem('JSONBIN_API_KEY', 'your-complete-60-char-key')
-const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // Fallback default key (verify this is complete)
+// WARNING: The default key below is INCOMPLETE (58 chars instead of 60). This will cause 401 errors.
+// Replace it with your complete 60-character API key from JSONBin.io.
+const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // INCOMPLETE - Missing 2 characters
 // Get API key from localStorage first, fallback to default (for development only)
 function getJsonBinApiKey() {
     const storedKey = localStorage.getItem(JSONBIN_API_KEY_STORAGE_KEY);
-    return storedKey || JSONBIN_API_KEY_DEFAULT;
+    const key = storedKey || JSONBIN_API_KEY_DEFAULT;
+    
+    // Validate key length (bcrypt hashes should be exactly 60 characters)
+    if (key && key.length !== 60) {
+        console.warn(`⚠️ JSONBin API key length is ${key.length}, expected 60 characters. This may cause 401 authentication errors.`);
+        console.warn('⚠️ Please set a complete 60-character API key via: localStorage.setItem("JSONBIN_API_KEY", "your-complete-key")');
+    }
+    
+    return key;
 }
 // Note: Use getJsonBinApiKey() function instead of JSONBIN_API_KEY constant to get fresh value from localStorage
 
