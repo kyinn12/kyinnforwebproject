@@ -16,7 +16,6 @@
             <a href="#home-section">Home</a>
             <a href="#about-section">About us</a>
             <a href="../html/partner_login.html">Partnership</a> 
-            <a href="#" id="orders-btn-main">My Orders</a>
             <a href="../html/login.html" class="login-button">Login</a> 
         </nav>
     </header>
@@ -89,18 +88,6 @@
 
     </main>
     
-    <!-- Modal for My Orders -->
-    <div id="app-modal" class="modal-backdrop" style="display: none;">
-        <div class="modal-content">
-            <h2 id="modal-title"></h2>
-            <div id="modal-list-container"></div>
-            <div id="modal-footer">
-                <div id="modal-summary"></div>
-                <button id="modal-close-btn">Close</button>
-            </div>
-        </div>
-    </div>
-    
     <footer class="footer">
         &copy; 2025 Còdelook. All rights reserved.
     </footer>
@@ -156,52 +143,6 @@
             startAutoSlide();
         });
 
-        // Add My Orders functionality
-        document.addEventListener('DOMContentLoaded', () => {
-            const ordersBtn = document.getElementById('orders-btn-main');
-            const modalCloseBtn = document.getElementById('modal-close-btn');
-            
-            // Close modal button
-            if (modalCloseBtn) {
-                modalCloseBtn.addEventListener('click', () => {
-                    const modal = document.getElementById('app-modal');
-                    if (modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            }
-            
-            // Close modal when clicking outside
-            const modal = document.getElementById('app-modal');
-            if (modal) {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            }
-            
-            if (ordersBtn) {
-                ordersBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // Check if user is logged in
-                    const userRole = localStorage.getItem('userRole');
-                    if (userRole === 'buyer') {
-                        // User is logged in, show orders
-                        if (typeof viewOrders === 'function') {
-                            viewOrders();
-                        } else {
-                            // If viewOrders is not available, redirect to user page
-                            window.location.href = '../html/user.html';
-                        }
-                    } else {
-                        // User not logged in, redirect to login
-                        alert('Please login to view your orders.');
-                        window.location.href = '../html/login.html';
-                    }
-                });
-            }
-        });
     </script>
     </body>
 </html>
