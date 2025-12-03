@@ -1352,61 +1352,88 @@ function saveWishlistIds(ids) {
 }
 
 function toggleWishlist(productId) {
-    let wishlistIds = getWishlistIds();
-    const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
-    wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id);
-    const index = wishlistIds.indexOf(normalizedId);
+    try {
+        let wishlistIds = getWishlistIds();
+        const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
+        if (isNaN(normalizedId) || normalizedId <= 0) {
+            console.error('Invalid product ID for wishlist:', productId);
+            return;
+        }
+        
+        wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
+        const index = wishlistIds.indexOf(normalizedId);
 
-    if (index === -1) {
-        wishlistIds.push(normalizedId);
-        console.log(`Product ${normalizedId} added to Wishlist!`);
-    } else {
-        wishlistIds.splice(index, 1);
-        console.log(`Product ${normalizedId} removed from Wishlist!`);
+        if (index === -1) {
+            wishlistIds.push(normalizedId);
+            console.log(`Product ${normalizedId} added to Wishlist!`);
+        } else {
+            wishlistIds.splice(index, 1);
+            console.log(`Product ${normalizedId} removed from Wishlist!`);
+        }
+
+        saveWishlistIds(wishlistIds); 
+        loadEmbeddedProducts();
+    } catch (err) {
+        console.error('Error toggling wishlist:', err);
+        alert('Error updating wishlist. Please try again.');
     }
-
-    saveWishlistIds(wishlistIds); 
-    loadEmbeddedProducts();
 }
 
 function viewWishlist() {
-    const wishlistIds = getWishlistIds().map(id => typeof id === 'string' ? parseInt(id) : id);
-    const items = allProducts
-        .filter(p => {
-            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-            return wishlistIds.includes(pId);
-        })
-        .map(p => {
-            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-            return `
-            <div class="wishlist-item" data-id="${pId}">
-                <img src="${p.imageUrl}" class="wishlist-img" alt="${p.name}">
-                <div class="item-details">
-                    <h4>${p.name}</h4>
-                    <p class="price">${p.price.toLocaleString('ko-KR')}원</p>
+    try {
+        const wishlistIds = getWishlistIds().map(id => typeof id === 'string' ? parseInt(id) : id);
+        const items = allProducts
+            .filter(p => {
+                if (!p) return false;
+                const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return !isNaN(pId) && pId > 0 && wishlistIds.includes(pId);
+            })
+            .map(p => {
+                const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return `
+                <div class="wishlist-item" data-id="${pId}">
+                    <img src="${p.imageUrl || ''}" class="wishlist-img" alt="${p.name || 'Product'}">
+                    <div class="item-details">
+                        <h4>${p.name || 'Unknown Product'}</h4>
+                        <p class="price">${(p.price || 0).toLocaleString('ko-KR')}원</p>
+                    </div>
+                    <button class="btn-remove-wishlist" data-id="${pId}">❌</button>
                 </div>
-                <button class="btn-remove-wishlist" data-id="${pId}">❌</button>
-            </div>
-        `;
+            `;
+            });
+            
+        const modalTitle = document.getElementById('modal-title');
+        const modalListContainer = document.getElementById('modal-list-container');
+        const modalSummary = document.getElementById('modal-summary');
+        const modal = document.getElementById('app-modal');
+
+        if (!modalTitle || !modalListContainer || !modalSummary || !modal) {
+            console.error('Modal elements not found');
+            return;
+        }
+
+        modalTitle.textContent = "My Wishlist";
+        modalListContainer.innerHTML = `<div class="wishlist-grid-container">${items.length > 0 ? items.join('') : '<p class="p-4 text-center">Your wishlist is empty.</p>'}</div>`;
+        modalSummary.innerHTML = `Total Items: <strong>${items.length}</strong>`;
+
+        modal.style.display = 'flex';
+
+        document.querySelectorAll('.btn-remove-wishlist').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const buttonElement = e.currentTarget || e.target.closest('.btn-remove-wishlist');
+                const idToRemove = buttonElement ? parseInt(buttonElement.dataset.id) : null;
+                if (idToRemove && !isNaN(idToRemove)) {
+                    toggleWishlist(idToRemove);
+                    viewWishlist();
+                }
+            });
         });
-        
-    const modalTitle = document.getElementById('modal-title');
-    const modalListContainer = document.getElementById('modal-list-container');
-    const modalSummary = document.getElementById('modal-summary');
-
-    modalTitle.textContent = "My Wishlist";
-    modalListContainer.innerHTML = `<div class="wishlist-grid-container">${items.length > 0 ? items.join('') : '<p class="p-4 text-center">Your wishlist is empty.</p>'}</div>`;
-    modalSummary.innerHTML = `Total Items: <strong>${wishlistIds.length}</strong>`;
-
-    document.getElementById('app-modal').style.display = 'flex';
-
-    document.querySelectorAll('.btn-remove-wishlist').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const idToRemove = parseInt(e.target.dataset.id);
-            toggleWishlist(idToRemove);
-            viewWishlist();
-        });
-    });
+    } catch (err) {
+        console.error('Error viewing wishlist:', err);
+        alert('Error loading wishlist. Please try again.');
+    }
 }
 
 function updateCartCount(count) {
@@ -1428,119 +1455,178 @@ function saveCartItems(items) {
 }
 
 function addToCart(productId) {
-    let cartItems = getCartItems();
-    
-    const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
-    const product = allProducts.find(p => {
-        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-        return pId === normalizedId;
-    });
-    if (!product || product.stock <= (cartItems[normalizedId] || 0)) {
-        alert("Cannot add more. Stock limit reached or item sold out.");
-        return;
-    }
+    try {
+        let cartItems = getCartItems();
+        
+        const normalizedId = typeof productId === 'string' ? parseInt(productId) : productId;
+        if (isNaN(normalizedId) || normalizedId <= 0) {
+            console.error('Invalid product ID for cart:', productId);
+            return;
+        }
+        
+        const product = allProducts.find(p => {
+            if (!p) return false;
+            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return !isNaN(pId) && pId === normalizedId;
+        });
+        
+        if (!product) {
+            alert("Product not found. It may have been deleted.");
+            return;
+        }
+        
+        if (product.stock <= (cartItems[normalizedId] || 0)) {
+            alert("Cannot add more. Stock limit reached or item sold out.");
+            return;
+        }
 
-    cartItems[normalizedId] = (cartItems[normalizedId] || 0) + 1;
-    
-    saveCartItems(cartItems);
-    console.log(`Product ${normalizedId} added to Cart. Current quantity: ${cartItems[normalizedId]}`);
+        cartItems[normalizedId] = (cartItems[normalizedId] || 0) + 1;
+        
+        saveCartItems(cartItems);
+        console.log(`Product ${normalizedId} added to Cart. Current quantity: ${cartItems[normalizedId]}`);
+    } catch (err) {
+        console.error('Error adding to cart:', err);
+        alert('Error adding product to cart. Please try again.');
+    }
 }
 
 function viewCart() {
-    const cartItems = getCartItems();
-    const itemIds = Object.keys(cartItems);
+    try {
+        const cartItems = getCartItems();
+        const itemIds = Object.keys(cartItems);
 
-    let totalPrice = 0;
+        let totalPrice = 0;
+        const validItems = [];
 
-    const itemsHtml = itemIds.map(id => {
-        const searchId = parseInt(id);
-        const product = allProducts.find(p => {
-            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-            return pId === searchId;
-        });
-        if (!product) return ''; 
+        const itemsHtml = itemIds.map(id => {
+            const searchId = parseInt(id);
+            if (isNaN(searchId)) return '';
+            
+            const product = allProducts.find(p => {
+                if (!p) return false;
+                const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return !isNaN(pId) && pId === searchId;
+            });
+            if (!product) {
+                // Product was deleted, remove it from cart
+                removeProductFromCart(searchId);
+                return '';
+            } 
 
-        const quantity = cartItems[id];
-        const itemTotal = product.price * quantity;
-        totalPrice += itemTotal;
+            const quantity = cartItems[id] || 0;
+            if (quantity <= 0) {
+                removeProductFromCart(searchId);
+                return '';
+            }
+            
+            const itemTotal = (product.price || 0) * quantity;
+            totalPrice += itemTotal;
+            validItems.push({ id: searchId, quantity });
 
-        return `
-            <tr data-id="${id}">
-                <td><img src="${product.imageUrl}" class="cart-img" alt="${product.name}">${product.name}</td>
-                <td>${product.category}</td>
-                <td>${product.price.toLocaleString('ko-KR')}원</td>
-                <td>
-                    <button class="btn-qty btn-qty-minus" data-id="${id}">-</button>
-                    <span class="cart-qty" data-id="${id}">${quantity}</span>
-                    <button class="btn-qty btn-qty-plus" data-id="${id}">+</button>
-                </td>
-                <td>${itemTotal.toLocaleString('ko-KR')}원</td>
-                <td><button class="btn-remove-cart" data-id="${id}">Remove</button></td>
-            </tr>
-        `;
-    }).join('');
-
-    const modalTitle = document.getElementById('modal-title');
-    const modalListContainer = document.getElementById('modal-list-container');
-    const modalSummary = document.getElementById('modal-summary');
-    const modal = document.getElementById('app-modal');
-
-    modalTitle.textContent = "Shopping Cart";
-    modalListContainer.innerHTML = `
-        <table class="cart-table">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Qty</th>
-                    <th>Total</th>
-                    <th>Action</th>
+            return `
+                <tr data-id="${id}">
+                    <td><img src="${product.imageUrl || ''}" class="cart-img" alt="${product.name || 'Product'}">${product.name || 'Unknown Product'}</td>
+                    <td>${product.category || 'N/A'}</td>
+                    <td>${(product.price || 0).toLocaleString('ko-KR')}원</td>
+                    <td>
+                        <button class="btn-qty btn-qty-minus" data-id="${id}">-</button>
+                        <span class="cart-qty" data-id="${id}">${quantity}</span>
+                        <button class="btn-qty btn-qty-plus" data-id="${id}">+</button>
+                    </td>
+                    <td>${itemTotal.toLocaleString('ko-KR')}원</td>
+                    <td><button class="btn-remove-cart" data-id="${id}">Remove</button></td>
                 </tr>
-            </thead>
-            <tbody>
-                ${itemsHtml.length > 0 ? itemsHtml : '<tr><td colspan="6" class="text-center">Your cart is empty.</td></tr>'}
-            </tbody>
-        </table>
-    `;
-    modalSummary.innerHTML = `
-        <div>
-            Grand Total: <span class="total-price" id="cart-grand-total">${totalPrice.toLocaleString('ko-KR')}원</span>
-        </div>
-        <button id="go-to-payment-btn" class="btn-payment">Go to Payment</button>
-    `;
+            `;
+        }).filter(html => html.length > 0).join('');
 
-    modal.style.display = 'flex';
+        const modalTitle = document.getElementById('modal-title');
+        const modalListContainer = document.getElementById('modal-list-container');
+        const modalSummary = document.getElementById('modal-summary');
+        const modal = document.getElementById('app-modal');
 
-    document.querySelectorAll('.btn-remove-cart').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const idToRemove = parseInt(e.target.dataset.id);
-            removeProductFromCart(idToRemove);
-            viewCart();
+        if (!modalTitle || !modalListContainer || !modalSummary || !modal) {
+            console.error('Modal elements not found');
+            return;
+        }
+
+        modalTitle.textContent = "Shopping Cart";
+        modalListContainer.innerHTML = `
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml.length > 0 ? itemsHtml : '<tr><td colspan="6" class="text-center">Your cart is empty.</td></tr>'}
+                </tbody>
+            </table>
+        `;
+        modalSummary.innerHTML = `
+            <div>
+                Grand Total: <span class="total-price" id="cart-grand-total">${totalPrice.toLocaleString('ko-KR')}원</span>
+            </div>
+            <button id="go-to-payment-btn" class="btn-payment">Go to Payment</button>
+        `;
+
+        modal.style.display = 'flex';
+
+        document.querySelectorAll('.btn-remove-cart').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const buttonElement = e.currentTarget || e.target.closest('.btn-remove-cart');
+                const idToRemove = buttonElement ? parseInt(buttonElement.dataset.id) : null;
+                if (idToRemove && !isNaN(idToRemove)) {
+                    removeProductFromCart(idToRemove);
+                    viewCart();
+                }
+            });
         });
-    });
 
-    document.querySelectorAll('.btn-qty-plus').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const id = parseInt(e.target.dataset.id);
-            changeCartQuantity(id, 1);
-            viewCart();
+        document.querySelectorAll('.btn-qty-plus').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const buttonElement = e.currentTarget || e.target.closest('.btn-qty-plus');
+                const id = buttonElement ? parseInt(buttonElement.dataset.id) : null;
+                if (id && !isNaN(id)) {
+                    changeCartQuantity(id, 1);
+                    viewCart();
+                }
+            });
         });
-    });
 
-    document.querySelectorAll('.btn-qty-minus').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const id = parseInt(e.target.dataset.id);
-            changeCartQuantity(id, -1);
-            viewCart();
+        document.querySelectorAll('.btn-qty-minus').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const buttonElement = e.currentTarget || e.target.closest('.btn-qty-minus');
+                const id = buttonElement ? parseInt(buttonElement.dataset.id) : null;
+                if (id && !isNaN(id)) {
+                    changeCartQuantity(id, -1);
+                    viewCart();
+                }
+            });
         });
-    });
 
-    const paymentBtn = document.getElementById('go-to-payment-btn');
-    if (paymentBtn) {
-        paymentBtn.addEventListener('click', () => {
-            alert(`Proceeding to payment. ${document.getElementById('cart-grand-total').textContent}`);
-        });
+        const paymentBtn = document.getElementById('go-to-payment-btn');
+        if (paymentBtn) {
+            paymentBtn.addEventListener('click', () => {
+                const grandTotal = document.getElementById('cart-grand-total');
+                if (grandTotal) {
+                    alert(`Proceeding to payment. ${grandTotal.textContent}`);
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Error viewing cart:', err);
+        alert('Error loading cart. Please try again.');
     }
 }
 
