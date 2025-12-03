@@ -2935,6 +2935,29 @@ function displayOrdersInModal(orders) {
     `;
     modal.style.display = 'flex';
     
+    // Update select all checkbox state
+    function updateSelectAllState() {
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        }
+    }
+    
+    // Update delete button state
+    function updateDeleteButtonState() {
+        const deleteBtn = document.getElementById('delete-selected-orders-btn-top');
+        const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+        if (deleteBtn) {
+            deleteBtn.disabled = checkedBoxes.length === 0;
+            deleteBtn.style.opacity = checkedBoxes.length === 0 ? '0.5' : '1';
+            deleteBtn.style.cursor = checkedBoxes.length === 0 ? 'not-allowed' : 'pointer';
+        }
+    }
+    
     // Wait a moment for DOM to be ready, then attach event listeners
     setTimeout(() => {
         // Add select all functionality
@@ -2984,28 +3007,6 @@ function displayOrdersInModal(orders) {
         updateSelectAllState();
         updateDeleteButtonState();
     }, 100);
-    
-    // Update select all checkbox state
-    function updateSelectAllState() {
-        const checkboxes = document.querySelectorAll('.order-checkbox');
-        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
-        const someChecked = Array.from(checkboxes).some(cb => cb.checked);
-        if (selectAllCheckbox) {
-            selectAllCheckbox.checked = allChecked;
-            selectAllCheckbox.indeterminate = someChecked && !allChecked;
-        }
-    }
-    
-    // Update delete button state
-    function updateDeleteButtonState() {
-        const deleteBtn = document.getElementById('delete-selected-orders-btn-top');
-        const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
-        if (deleteBtn) {
-            deleteBtn.disabled = checkedBoxes.length === 0;
-            deleteBtn.style.opacity = checkedBoxes.length === 0 ? '0.5' : '1';
-            deleteBtn.style.cursor = checkedBoxes.length === 0 ? 'not-allowed' : 'pointer';
-        }
-    }
     
     // Add delete selected orders button functionality (top button)
     const deleteSelectedBtnTop = document.getElementById('delete-selected-orders-btn-top');
