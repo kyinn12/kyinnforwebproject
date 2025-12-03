@@ -2219,7 +2219,11 @@ async function viewOrders() {
             return;
         }
         
-        const ordersHtml = orders.map(order => {
+        // Create table format similar to cart
+        let allItemsHtml = '';
+        let grandTotal = 0;
+        
+        orders.forEach(order => {
             const orderDate = new Date(order.date);
             const formattedDate = orderDate.toLocaleDateString('ko-KR', {
                 year: 'numeric',
@@ -2229,33 +2233,26 @@ async function viewOrders() {
                 minute: '2-digit'
             });
             
-            const itemsHtml = order.items.map(item => `
-                <div class="order-item">
-                    <img src="${item.imageUrl || ''}" class="order-item-img" alt="${item.name || 'Product'}">
-                    <div class="order-item-details">
-                        <h4>${item.name || 'Unknown Product'}</h4>
-                        <p>Price: ${(item.price || 0).toLocaleString('ko-KR')}원 × ${item.quantity}</p>
-                        <p>Subtotal: ${((item.price || 0) * item.quantity).toLocaleString('ko-KR')}원</p>
-                    </div>
-                </div>
-            `).join('');
-            
-            return `
-                <div class="order-card">
-                    <div class="order-header">
-                        <h3>Order #${order.id}</h3>
-                        <p class="order-date">${formattedDate}</p>
-                    </div>
-                    <div class="order-items">
-                        ${itemsHtml}
-                    </div>
-                    <div class="order-footer">
-                        <p class="order-total">Total: <strong>${order.totalPrice.toLocaleString('ko-KR')}원</strong></p>
-                        <p class="order-card-info">Card: ****${order.cardNumber}</p>
-                    </div>
-                </div>
-            `;
-        }).join('');
+            order.items.forEach(item => {
+                const itemTotal = (item.price || 0) * (item.quantity || 0);
+                grandTotal += itemTotal;
+                
+                allItemsHtml += `
+                    <tr>
+                        <td>
+                            <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
+                            ${item.name || 'Unknown Product'}
+                        </td>
+                        <td>Order #${order.id}</td>
+                        <td>${(item.price || 0).toLocaleString('ko-KR')}원</td>
+                        <td>${item.quantity || 0}</td>
+                        <td>${itemTotal.toLocaleString('ko-KR')}원</td>
+                        <td>${formattedDate}</td>
+                        <td>****${order.cardNumber || ''}</td>
+                    </tr>
+                `;
+            });
+        });
         
         const modal = document.getElementById('app-modal');
         const modalTitle = document.getElementById('modal-title');
@@ -2268,8 +2265,32 @@ async function viewOrders() {
         }
         
         modalTitle.textContent = "My Orders";
-        modalListContainer.innerHTML = `<div class="orders-container">${ordersHtml}</div>`;
-        modalSummary.innerHTML = `Total Orders: <strong>${orders.length}</strong>`;
+        modalListContainer.innerHTML = `
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Order #</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Date</th>
+                        <th>Card</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${allItemsHtml.length > 0 ? allItemsHtml : '<tr><td colspan="7" class="text-center">You have no orders yet.</td></tr>'}
+                </tbody>
+            </table>
+        `;
+        modalSummary.innerHTML = `
+            <div>
+                Grand Total: <span class="total-price">${grandTotal.toLocaleString('ko-KR')}원</span>
+            </div>
+            <div>
+                Total Orders: <strong>${orders.length}</strong>
+            </div>
+        `;
         modal.style.display = 'flex';
         
     } catch (err) {
