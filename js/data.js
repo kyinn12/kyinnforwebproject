@@ -2308,6 +2308,45 @@ async function deleteSelectedOrders(orderIds) {
     }
 }
 
+// Coupon validation function
+function validateCoupon(couponCode) {
+    if (!couponCode) return { valid: false, discount: 0, name: '' };
+    
+    const normalizedCode = couponCode.toLowerCase().trim();
+    
+    // Coupon codes: new memship (20%), christamas (35%), new year (50%)
+    if (normalizedCode === 'new memship' || normalizedCode === 'new membership') {
+        return { valid: true, discount: 0.20, name: 'New Membership (20% off)' };
+    } else if (normalizedCode === 'christamas' || normalizedCode === 'christmas') {
+        return { valid: true, discount: 0.35, name: 'Christmas (35% off)' };
+    } else if (normalizedCode === 'new year') {
+        return { valid: true, discount: 0.50, name: 'New Year (50% off)' };
+    }
+    
+    return { valid: false, discount: 0, name: '' };
+}
+
+// Calculate payment breakdown
+function calculatePaymentBreakdown(subtotal, couponCode) {
+    const coupon = validateCoupon(couponCode);
+    const discountAmount = coupon.valid ? subtotal * coupon.discount : 0;
+    const afterDiscount = subtotal - discountAmount;
+    const taxRate = 0.00001; // 0.001% tax
+    const taxAmount = afterDiscount * taxRate;
+    const finalTotal = afterDiscount + taxAmount;
+    
+    return {
+        subtotal,
+        couponCode: coupon.valid ? couponCode : null,
+        couponName: coupon.name,
+        discountAmount,
+        afterDiscount,
+        taxRate,
+        taxAmount,
+        finalTotal
+    };
+}
+
 // Payment Modal and Processing
 function showPaymentModal(totalPrice, cartItems) {
     const modal = document.getElementById('app-modal');
@@ -2321,14 +2360,53 @@ function showPaymentModal(totalPrice, cartItems) {
     }
     
     modalTitle.textContent = "Payment";
+    
+    // Initial calculation without coupon
+    let currentBreakdown = calculatePaymentBreakdown(totalPrice, '');
+    
+    const updatePaymentSummary = () => {
+        const couponCode = document.getElementById('coupon-code')?.value || '';
+        currentBreakdown = calculatePaymentBreakdown(totalPrice, couponCode);
+        
+        const summaryDiv = document.getElementById('payment-summary-details');
+        if (summaryDiv) {
+            summaryDiv.innerHTML = `
+                <h3 style="margin-top: 0; color: #333; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">Order Summary</h3>
+                <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                    <span>Subtotal:</span>
+                    <strong>${currentBreakdown.subtotal.toLocaleString('en-US')} won</strong>
+                </div>
+                ${currentBreakdown.couponCode ? `
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; color: #28a745;">
+                        <span>Coupon (${currentBreakdown.couponName}):</span>
+                        <strong>-${currentBreakdown.discountAmount.toLocaleString('en-US')} won</strong>
+                    </div>
+                ` : ''}
+                <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                    <span>Tax (0.001%):</span>
+                    <strong>${currentBreakdown.taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} won</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 15px 0; padding-top: 15px; border-top: 2px solid #333; font-size: 1.2em;">
+                    <span><strong>Total:</strong></span>
+                    <strong style="color: #A00000; font-size: 1.3em;">${currentBreakdown.finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won</strong>
+                </div>
+                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">Items: ${cartItems.length}</p>
+            `;
+        }
+    };
+    
     modalListContainer.innerHTML = `
         <div class="payment-form">
-            <div class="payment-summary">
-                <h3>Order Summary</h3>
-                <p>Total Amount: <strong>${totalPrice.toLocaleString('ko-KR')}원</strong></p>
-                <p>Items: ${cartItems.length}</p>
+            <div id="payment-summary-details" class="payment-summary">
+                <!-- Will be populated by updatePaymentSummary -->
             </div>
             <div class="payment-inputs">
+                <label for="coupon-code">Coupon Code (Optional):</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="coupon-code" placeholder="Enter coupon code" style="flex: 1;">
+                    <button id="apply-coupon-btn" class="btn-cancel" style="padding: 10px 20px;">Apply</button>
+                </div>
+                <div id="coupon-message" style="margin-bottom: 15px; min-height: 20px;"></div>
                 <label for="card-number">Card Number:</label>
                 <input type="text" id="card-number" placeholder="Enter any card number">
                 <label for="card-password">Card Password:</label>
@@ -2342,6 +2420,47 @@ function showPaymentModal(totalPrice, cartItems) {
     `;
     
     modal.style.display = 'flex';
+    
+    // Initial summary update
+    updatePaymentSummary();
+    
+    // Coupon code input handler
+    const couponInput = document.getElementById('coupon-code');
+    const applyCouponBtn = document.getElementById('apply-coupon-btn');
+    const couponMessage = document.getElementById('coupon-message');
+    
+    const applyCoupon = () => {
+        const couponCode = couponInput?.value || '';
+        const coupon = validateCoupon(couponCode);
+        
+        if (couponCode && !coupon.valid) {
+            couponMessage.innerHTML = `<span style="color: #dc3545;">Invalid coupon code. Valid codes: "new memship" (20% off), "christamas" (35% off), "new year" (50% off)</span>`;
+        } else if (coupon.valid) {
+            couponMessage.innerHTML = `<span style="color: #28a745; font-weight: bold;">✓ ${coupon.name} applied!</span>`;
+            updatePaymentSummary();
+        } else {
+            couponMessage.innerHTML = '';
+            updatePaymentSummary();
+        }
+    };
+    
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', applyCoupon);
+    }
+    
+    if (couponInput) {
+        couponInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyCoupon();
+            }
+        });
+        couponInput.addEventListener('input', () => {
+            if (!couponInput.value) {
+                couponMessage.innerHTML = '';
+                updatePaymentSummary();
+            }
+        });
+    }
     
     // Format card number with spaces
     const cardNumberInput = document.getElementById('card-number');
@@ -2362,6 +2481,7 @@ function showPaymentModal(totalPrice, cartItems) {
         confirmBtn.addEventListener('click', async () => {
             const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '') || '';
             const cardPassword = document.getElementById('card-password')?.value || '';
+            const couponCode = document.getElementById('coupon-code')?.value || '';
             
             // Accept any card number and password (no validation)
             if (!cardNumber || cardNumber.trim() === '') {
@@ -2374,8 +2494,11 @@ function showPaymentModal(totalPrice, cartItems) {
                 return;
             }
             
-            // Process payment
-            await processPayment(cartItems, totalPrice, cardNumber);
+            // Recalculate breakdown with current coupon
+            const finalBreakdown = calculatePaymentBreakdown(totalPrice, couponCode);
+            
+            // Process payment with coupon and tax
+            await processPayment(cartItems, totalPrice, cardNumber, couponCode, finalBreakdown);
         });
     }
     
@@ -2388,7 +2511,7 @@ function showPaymentModal(totalPrice, cartItems) {
     }
 }
 
-async function processPayment(cartItems, totalPrice, cardNumber) {
+async function processPayment(cartItems, totalPrice, cardNumber, couponCode = '', breakdown = null) {
     if (isOperationInProgress) {
         alert('Another operation is in progress. Please wait...');
         return;
@@ -2437,12 +2560,22 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
             return;
         }
         
-        // Create order
+        // Calculate breakdown if not provided
+        if (!breakdown) {
+            breakdown = calculatePaymentBreakdown(totalPrice, couponCode);
+        }
+        
+        // Create order with coupon and tax information
         const order = {
             id: Date.now(), // Simple ID based on timestamp
             date: new Date().toISOString(),
             items: validItems,
-            totalPrice: totalPrice,
+            subtotal: breakdown.subtotal,
+            couponCode: breakdown.couponCode,
+            couponName: breakdown.couponName,
+            discountAmount: breakdown.discountAmount,
+            taxAmount: breakdown.taxAmount,
+            totalPrice: breakdown.finalTotal, // Final total including discount and tax
             cardNumber: cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : cardNumber // Store last 4 digits or full number if shorter
         };
         
@@ -2567,7 +2700,17 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
             modal.style.display = 'none';
         }
         
-        alert(`Payment successful! Order #${order.id}\nTotal: ${totalPrice.toLocaleString('ko-KR')}원\n\nYou can view this order in "My Orders".`);
+        // Build success message with breakdown
+        let successMessage = `Payment successful! Order #${order.id}\n\n`;
+        successMessage += `Subtotal: ${breakdown.subtotal.toLocaleString('en-US')} won\n`;
+        if (breakdown.couponCode) {
+            successMessage += `Coupon (${breakdown.couponName}): -${breakdown.discountAmount.toLocaleString('en-US')} won\n`;
+        }
+        successMessage += `Tax (0.001%): ${breakdown.taxAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} won\n`;
+        successMessage += `Total: ${breakdown.finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won\n\n`;
+        successMessage += `You can view this order in "My Orders".`;
+        
+        alert(successMessage);
         
         // Reload products to show updated stock
         await loadEmbeddedProducts();
@@ -2678,7 +2821,7 @@ function displayOrdersInModal(orders) {
         
         uniqueOrderIds.add(order.id);
         const orderDate = new Date(order.date);
-        const formattedDate = orderDate.toLocaleDateString('ko-KR', {
+        const formattedDate = orderDate.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -2686,11 +2829,14 @@ function displayOrdersInModal(orders) {
             minute: '2-digit'
         });
         
+        // Use final total if available (includes discount and tax), otherwise calculate from items
+        const orderTotal = order.totalPrice || order.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+        grandTotal += orderTotal;
+        
         // First row of each order has checkbox
         let isFirstItem = true;
         order.items.forEach((item, itemIndex) => {
             const itemTotal = (item.price || 0) * (item.quantity || 0);
-            grandTotal += itemTotal;
             
             const checkboxCell = isFirstItem ? `
                 <td rowspan="${order.items.length}" style="vertical-align: middle; text-align: center;">
@@ -2705,10 +2851,10 @@ function displayOrdersInModal(orders) {
                         <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
                         ${item.name || 'Unknown Product'}
                     </td>
-                    <td>Order #${order.id}</td>
-                    <td>${(item.price || 0).toLocaleString('ko-KR')}원</td>
+                    <td>Order #${order.id}${isFirstItem && order.couponCode ? `<br><small style="color: #28a745;">${order.couponName || order.couponCode}</small>` : ''}</td>
+                    <td>${(item.price || 0).toLocaleString('en-US')} won</td>
                     <td>${item.quantity || 0}</td>
-                    <td>${itemTotal.toLocaleString('ko-KR')}원</td>
+                    <td>${itemTotal.toLocaleString('en-US')} won</td>
                     <td>${formattedDate}</td>
                     <td>****${order.cardNumber || ''}</td>
                 </tr>
@@ -2743,9 +2889,43 @@ function displayOrdersInModal(orders) {
             </tbody>
         </table>
     `;
+    // Calculate totals with coupon and tax breakdown
+    let totalSubtotal = 0;
+    let totalDiscount = 0;
+    let totalTax = 0;
+    
+    orders.forEach(order => {
+        if (order.subtotal !== undefined) {
+            totalSubtotal += order.subtotal;
+            totalDiscount += (order.discountAmount || 0);
+            totalTax += (order.taxAmount || 0);
+        } else {
+            // Fallback for old orders without breakdown
+            const orderSubtotal = order.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+            totalSubtotal += orderSubtotal;
+        }
+    });
+    
     modalSummary.innerHTML = `
-        <div>
-            Grand Total: <span class="total-price">${grandTotal.toLocaleString('ko-KR')}원</span>
+        <div style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>Subtotal:</span>
+                <strong>${totalSubtotal.toLocaleString('en-US')} won</strong>
+            </div>
+            ${totalDiscount > 0 ? `
+                <div style="display: flex; justify-content: space-between; margin: 5px 0; color: #28a745;">
+                    <span>Total Discount:</span>
+                    <strong>-${totalDiscount.toLocaleString('en-US')} won</strong>
+                </div>
+            ` : ''}
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                <span>Total Tax (0.001%):</span>
+                <strong>${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} won</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 15px 0; padding-top: 15px; border-top: 2px solid #333; font-size: 1.2em;">
+                <span><strong>Grand Total:</strong></span>
+                <span class="total-price">${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} won</span>
+            </div>
         </div>
         <div>
             Total Orders: <strong>${orders.length}</strong>
