@@ -2842,7 +2842,7 @@ function displayOrdersInModal(orders) {
             allItemsHtml += `
                 <tr>
                     <td style="vertical-align: middle; text-align: center;">
-                        <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" data-item-index="${itemIndex}" id="order-item-${uniqueItemId}">
+                        <input type="checkbox" class="order-checkbox" data-order-id="${order.id}" data-item-index="${itemIndex}" id="order-item-${uniqueItemId}" style="width: 20px; height: 20px; cursor: pointer;">
                     </td>
                     <td>
                         <img src="${item.imageUrl || ''}" class="cart-img" alt="${item.name || 'Product'}">
@@ -2935,26 +2935,55 @@ function displayOrdersInModal(orders) {
     `;
     modal.style.display = 'flex';
     
-    // Add select all functionality
-    const selectAllCheckbox = document.getElementById('select-all-orders');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('.order-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
+    // Wait a moment for DOM to be ready, then attach event listeners
+    setTimeout(() => {
+        // Add select all functionality
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        if (selectAllCheckbox) {
+            // Remove any existing listeners by cloning
+            const newSelectAll = selectAllCheckbox.cloneNode(true);
+            selectAllCheckbox.parentNode.replaceChild(newSelectAll, selectAllCheckbox);
+            
+            newSelectAll.addEventListener('change', (e) => {
+                const checkboxes = document.querySelectorAll('.order-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+                updateDeleteButtonState();
             });
-            updateDeleteButtonState();
+        }
+        
+        // Add individual checkbox change handlers
+        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+        orderCheckboxes.forEach(checkbox => {
+            // Remove any existing listeners by cloning
+            const newCheckbox = checkbox.cloneNode(true);
+            checkbox.parentNode.replaceChild(newCheckbox, checkbox);
+            
+            newCheckbox.addEventListener('change', () => {
+                updateSelectAllState();
+                updateDeleteButtonState();
+            });
+            
+            // Also make the entire row clickable
+            const row = newCheckbox.closest('tr');
+            if (row) {
+                row.style.cursor = 'pointer';
+                row.addEventListener('click', (e) => {
+                    // Don't toggle if clicking directly on checkbox
+                    if (e.target !== newCheckbox && e.target.type !== 'checkbox') {
+                        newCheckbox.checked = !newCheckbox.checked;
+                        updateSelectAllState();
+                        updateDeleteButtonState();
+                    }
+                });
+            }
         });
-    }
-    
-    // Add individual checkbox change handlers
-    const orderCheckboxes = document.querySelectorAll('.order-checkbox');
-    orderCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            updateSelectAllState();
-            updateDeleteButtonState();
-        });
-    });
+        
+        // Initialize states
+        updateSelectAllState();
+        updateDeleteButtonState();
+    }, 100);
     
     // Update select all checkbox state
     function updateSelectAllState() {
