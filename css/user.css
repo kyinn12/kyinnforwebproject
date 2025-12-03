@@ -374,6 +374,27 @@ body {
     color: var(--text-dark);
 }
 
+/* Prevent price column from wrapping */
+.cart-table td:nth-child(4),
+.cart-table th:nth-child(4) {
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+/* Prevent total column from wrapping */
+.cart-table td:nth-child(6),
+.cart-table th:nth-child(6) {
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+/* Prevent Qty column from wrapping */
+.cart-table td:nth-child(5),
+.cart-table th:nth-child(5) {
+    white-space: nowrap;
+    text-align: center;
+}
+
 .cart-table th {
     background: var(--primary-color);
     color: white;
