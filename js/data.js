@@ -15,6 +15,7 @@ const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
 const CART_KEY = 'codedlookCart';       
 const DELETED_PRODUCTS_KEY = 'codedlookDeletedProducts';
+const ORDERS_KEY = 'codedlookOrders';
 const API_BASE_URL = 'http://localhost:4000';
 const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
 
@@ -199,8 +200,9 @@ async function syncToCloudStorage(products) {
             console.warn('⚠️ No API key provided - write operations will fail');
         }
         
-        // Also sync deleted products list so deletions sync across browsers
+        // Also sync deleted products list and orders so deletions and orders sync across browsers
         const deletedProducts = getDeletedProductIds();
+        const orders = getOrders();
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
         
@@ -209,7 +211,8 @@ async function syncToCloudStorage(products) {
             headers: headers,
             body: JSON.stringify({ 
                 products,
-                deletedProducts 
+                deletedProducts,
+                orders
             })
         });
         
@@ -267,6 +270,17 @@ async function syncFromCloudStorage() {
             const data = await res.json();
             const cloudProducts = data.record?.products || [];
             const cloudDeletedProducts = data.record?.deletedProducts || [];
+            const cloudOrders = data.record?.orders || [];
+            
+            // Sync orders from cloud
+            if (Array.isArray(cloudOrders)) {
+                localStorage.setItem(ORDERS_KEY, JSON.stringify(cloudOrders));
+            } else {
+                // Initialize empty orders if not in cloud
+                if (!localStorage.getItem(ORDERS_KEY)) {
+                    localStorage.setItem(ORDERS_KEY, JSON.stringify([]));
+                }
+            }
             
             if (Array.isArray(cloudProducts)) {
                 // Always sync deleted products list from cloud (even if empty)
@@ -1853,10 +1867,7 @@ function viewCart() {
         const paymentBtn = document.getElementById('go-to-payment-btn');
         if (paymentBtn) {
             paymentBtn.addEventListener('click', () => {
-                const grandTotal = document.getElementById('cart-grand-total');
-                if (grandTotal) {
-                    alert(`Proceeding to payment. ${grandTotal.textContent}`);
-                }
+                showPaymentModal(totalPrice, validItems);
             });
         }
     } catch (err) {
@@ -1900,4 +1911,364 @@ function changeCartQuantity(productId, delta) {
 
     cartItems[normalizedId] = newQty;
     saveCartItems(cartItems);
+}
+
+// Orders Management Functions
+function getOrders() {
+    const ordersJson = localStorage.getItem(ORDERS_KEY);
+    return ordersJson ? JSON.parse(ordersJson) : [];
+}
+
+function saveOrders(orders) {
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    // Sync orders to cloud storage
+    if (USE_CLOUD_STORAGE && !USE_API) {
+        // Get current products to sync along with orders
+        const storageProducts = getProductsFromStorage();
+        syncToCloudStorage(storageProducts).catch(err => {
+            console.error('Error syncing orders to cloud:', err);
+        });
+    }
+}
+
+function addOrder(order) {
+    const orders = getOrders();
+    orders.unshift(order); // Add to beginning (newest first)
+    saveOrders(orders);
+}
+
+// Payment Modal and Processing
+function showPaymentModal(totalPrice, cartItems) {
+    const modal = document.getElementById('app-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalListContainer = document.getElementById('modal-list-container');
+    const modalSummary = document.getElementById('modal-summary');
+    
+    if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
+        alert('Payment modal elements not found');
+        return;
+    }
+    
+    modalTitle.textContent = "Payment";
+    modalListContainer.innerHTML = `
+        <div class="payment-form">
+            <div class="payment-summary">
+                <h3>Order Summary</h3>
+                <p>Total Amount: <strong>${totalPrice.toLocaleString('ko-KR')}원</strong></p>
+                <p>Items: ${cartItems.length}</p>
+            </div>
+            <div class="payment-inputs">
+                <label for="card-number">Card Number:</label>
+                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" pattern="[0-9 ]{13,19}">
+                <label for="card-password">Card Password:</label>
+                <input type="password" id="card-password" placeholder="Enter card password" maxlength="4" pattern="[0-9]{4}">
+            </div>
+            <div class="payment-actions">
+                <button id="confirm-payment-btn" class="btn-payment">Confirm Payment</button>
+                <button id="cancel-payment-btn" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    
+    // Format card number with spaces
+    const cardNumberInput = document.getElementById('card-number');
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '');
+            if (value.length > 0) {
+                value = value.match(/.{1,4}/g).join(' ');
+                if (value.length > 19) value = value.substring(0, 19);
+                e.target.value = value;
+            }
+        });
+    }
+    
+    // Confirm payment button
+    const confirmBtn = document.getElementById('confirm-payment-btn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async () => {
+            const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '') || '';
+            const cardPassword = document.getElementById('card-password')?.value || '';
+            
+            if (!cardNumber || cardNumber.length < 13 || cardNumber.length > 16) {
+                alert('Please enter a valid card number (13-16 digits)');
+                return;
+            }
+            
+            if (!cardPassword || cardPassword.length !== 4 || !/^\d{4}$/.test(cardPassword)) {
+                alert('Please enter a valid 4-digit card password');
+                return;
+            }
+            
+            // Process payment
+            await processPayment(cartItems, totalPrice, cardNumber);
+        });
+    }
+    
+    // Cancel button
+    const cancelBtn = document.getElementById('cancel-payment-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+}
+
+async function processPayment(cartItems, totalPrice, cardNumber) {
+    if (isOperationInProgress) {
+        alert('Another operation is in progress. Please wait...');
+        return;
+    }
+    
+    isOperationInProgress = true;
+    
+    try {
+        // Validate all items are still available and in stock
+        const validItems = [];
+        for (const item of cartItems) {
+            const product = allProducts.find(p => {
+                const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                return pId === item.id;
+            });
+            
+            if (!product) {
+                alert(`Product ID ${item.id} is no longer available. Please refresh your cart.`);
+                isOperationInProgress = false;
+                return;
+            }
+            
+            if (product.stock < item.quantity) {
+                alert(`Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}`);
+                isOperationInProgress = false;
+                return;
+            }
+            
+            validItems.push({
+                id: item.id,
+                name: product.name,
+                price: product.price,
+                quantity: item.quantity,
+                imageUrl: product.imageUrl
+            });
+        }
+        
+        if (validItems.length === 0) {
+            alert('No valid items to purchase');
+            isOperationInProgress = false;
+            return;
+        }
+        
+        // Create order
+        const order = {
+            id: Date.now(), // Simple ID based on timestamp
+            date: new Date().toISOString(),
+            items: validItems,
+            totalPrice: totalPrice,
+            cardNumber: cardNumber.substring(cardNumber.length - 4) // Store only last 4 digits
+        };
+        
+        // Update stock for all items
+        if (USE_API) {
+            // Update via API
+            for (const item of validItems) {
+                const product = allProducts.find(p => {
+                    const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return pId === item.id;
+                });
+                if (product) {
+                    try {
+                        await fetch(`${API_BASE_URL}/products/${item.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ stock: product.stock - item.quantity })
+                        });
+                    } catch (err) {
+                        console.error(`Failed to update stock for product ${item.id}:`, err);
+                    }
+                }
+            }
+            allProducts = await fetchProductsFromApi();
+        } else {
+            // Update in localStorage and cloud
+            const fileProducts = await fetchProductsFromFile();
+            let storageProducts = getProductsFromStorage();
+            
+            // Update stock for each item
+            for (const item of validItems) {
+                const normalizedId = typeof item.id === 'string' ? parseInt(item.id) : item.id;
+                
+                // Check if product is from items.json or storage
+                const fileProductIndex = fileProducts.findIndex(p => {
+                    const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return pId === normalizedId;
+                });
+                
+                if (fileProductIndex !== -1) {
+                    // Product from items.json - update in storage (create a copy with updated stock)
+                    const originalFileStock = fileProducts[fileProductIndex].stock;
+                    const newStock = Math.max(0, originalFileStock - item.quantity);
+                    
+                    // Add to storage products if not already there, or update existing
+                    const existingInStorage = storageProducts.findIndex(p => {
+                        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                        return pId === normalizedId;
+                    });
+                    if (existingInStorage !== -1) {
+                        // Update existing storage product stock
+                        storageProducts[existingInStorage].stock = Math.max(0, storageProducts[existingInStorage].stock - item.quantity);
+                    } else {
+                        // Create a copy with updated stock from items.json
+                        storageProducts.push({ 
+                            ...fileProducts[fileProductIndex], 
+                            stock: newStock 
+                        });
+                    }
+                } else {
+                    // Product from storage - update directly
+                    const storageIndex = storageProducts.findIndex(p => {
+                        const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                        return pId === normalizedId;
+                    });
+                    if (storageIndex !== -1) {
+                        storageProducts[storageIndex].stock = Math.max(0, storageProducts[storageIndex].stock - item.quantity);
+                    }
+                }
+                
+                // Update in allProducts
+                const allProductsIndex = allProducts.findIndex(p => {
+                    const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    return pId === normalizedId;
+                });
+                if (allProductsIndex !== -1) {
+                    allProducts[allProductsIndex].stock = Math.max(0, allProducts[allProductsIndex].stock - item.quantity);
+                }
+            }
+            
+            // Save updated products
+            saveProductsToStorage(storageProducts);
+            
+            // Sync to cloud storage (includes products, deletedProducts, and orders)
+            if (USE_CLOUD_STORAGE) {
+                const syncSuccess = await syncToCloudStorage(storageProducts);
+                if (!syncSuccess) {
+                    console.warn('⚠️ Payment processed but stock update failed to sync to cloud.');
+                    console.warn('⚠️ Other browsers may not see the stock changes. Check console for API key instructions.');
+                }
+            }
+        }
+        
+        // Add order (this also syncs to cloud via saveOrders -> syncToCloudStorage)
+        addOrder(order);
+        
+        // Clear cart
+        localStorage.setItem(CART_KEY, JSON.stringify({}));
+        updateCartCount(0);
+        
+        // Close modal and show success
+        const modal = document.getElementById('app-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        alert(`Payment successful! Order #${order.id}\nTotal: ${totalPrice.toLocaleString('ko-KR')}원\n\nYour order has been saved. You can view it in "My Orders".`);
+        
+        // Reload products to show updated stock (this will sync from cloud if enabled)
+        await loadEmbeddedProducts();
+        
+        // Also re-render seller page if on seller page to show updated stock
+        const sellerTableBody = document.querySelector('#product-table tbody');
+        if (sellerTableBody) {
+            await renderSellerProducts();
+        }
+        
+    } catch (err) {
+        console.error('Error processing payment:', err);
+        alert('Payment failed. Please try again.');
+    } finally {
+        isOperationInProgress = false;
+    }
+}
+
+// View Orders Function
+function viewOrders() {
+    try {
+        const orders = getOrders();
+        
+        if (orders.length === 0) {
+            const modal = document.getElementById('app-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalListContainer = document.getElementById('modal-list-container');
+            const modalSummary = document.getElementById('modal-summary');
+            
+            if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
+                console.error('Modal elements not found');
+                return;
+            }
+            
+            modalTitle.textContent = "My Orders";
+            modalListContainer.innerHTML = '<p class="p-4 text-center">You have no orders yet.</p>';
+            modalSummary.innerHTML = '';
+            modal.style.display = 'flex';
+            return;
+        }
+        
+        const ordersHtml = orders.map(order => {
+            const orderDate = new Date(order.date);
+            const formattedDate = orderDate.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const itemsHtml = order.items.map(item => `
+                <div class="order-item">
+                    <img src="${item.imageUrl || ''}" class="order-item-img" alt="${item.name || 'Product'}">
+                    <div class="order-item-details">
+                        <h4>${item.name || 'Unknown Product'}</h4>
+                        <p>Price: ${(item.price || 0).toLocaleString('ko-KR')}원 × ${item.quantity}</p>
+                        <p>Subtotal: ${((item.price || 0) * item.quantity).toLocaleString('ko-KR')}원</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            return `
+                <div class="order-card">
+                    <div class="order-header">
+                        <h3>Order #${order.id}</h3>
+                        <p class="order-date">${formattedDate}</p>
+                    </div>
+                    <div class="order-items">
+                        ${itemsHtml}
+                    </div>
+                    <div class="order-footer">
+                        <p class="order-total">Total: <strong>${order.totalPrice.toLocaleString('ko-KR')}원</strong></p>
+                        <p class="order-card-info">Card: ****${order.cardNumber}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        const modal = document.getElementById('app-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalListContainer = document.getElementById('modal-list-container');
+        const modalSummary = document.getElementById('modal-summary');
+        
+        if (!modal || !modalTitle || !modalListContainer || !modalSummary) {
+            console.error('Modal elements not found');
+            return;
+        }
+        
+        modalTitle.textContent = "My Orders";
+        modalListContainer.innerHTML = `<div class="orders-container">${ordersHtml}</div>`;
+        modalSummary.innerHTML = `Total Orders: <strong>${orders.length}</strong>`;
+        modal.style.display = 'flex';
+        
+    } catch (err) {
+        console.error('Error viewing orders:', err);
+        alert('Error loading orders. Please try again.');
+    }
 }
