@@ -2312,14 +2312,14 @@ async function deleteSelectedOrders(orderIds) {
 function validateCoupon(couponCode) {
     if (!couponCode) return { valid: false, discount: 0, name: '' };
     
-    const normalizedCode = couponCode.toLowerCase().trim();
+    const normalizedCode = couponCode.trim();
     
-    // Coupon codes: new memship (20%), christamas (35%), new year (50%)
-    if (normalizedCode === 'new memship' || normalizedCode === 'new membership') {
+    // Coupon codes: 1111 (20%), 2525 (35%), 2026 (50%)
+    if (normalizedCode === '1111') {
         return { valid: true, discount: 0.20, name: 'New Membership (20% off)' };
-    } else if (normalizedCode === 'christamas' || normalizedCode === 'christmas') {
+    } else if (normalizedCode === '2525') {
         return { valid: true, discount: 0.35, name: 'Christmas (35% off)' };
-    } else if (normalizedCode === 'new year') {
+    } else if (normalizedCode === '2026') {
         return { valid: true, discount: 0.50, name: 'New Year (50% off)' };
     }
     
@@ -2434,7 +2434,7 @@ function showPaymentModal(totalPrice, cartItems) {
         const coupon = validateCoupon(couponCode);
         
         if (couponCode && !coupon.valid) {
-            couponMessage.innerHTML = `<span style="color: #dc3545;">Invalid coupon code. Valid codes: "new memship" (20% off), "christamas" (35% off), "new year" (50% off)</span>`;
+            couponMessage.innerHTML = `<span style="color: #dc3545;">Invalid coupon code. Valid codes: "1111" (20% off), "2525" (35% off), "2026" (50% off)</span>`;
         } else if (coupon.valid) {
             couponMessage.innerHTML = `<span style="color: #28a745; font-weight: bold;">✓ ${coupon.name} applied!</span>`;
             updatePaymentSummary();
