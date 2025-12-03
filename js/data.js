@@ -1919,9 +1919,18 @@ function getOrders() {
     return ordersJson ? JSON.parse(ordersJson) : [];
 }
 
-function saveOrders(orders) {
+async function saveOrders(orders) {
+    // Save to localStorage FIRST (immediate)
     localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    // Sync orders to cloud storage
+    
+    // Verify it was saved
+    const verifyOrders = getOrders();
+    if (verifyOrders.length !== orders.length) {
+        console.error('⚠️ Order save verification failed! Retrying...');
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    }
+    
+    // Sync orders to cloud storage (async, don't wait)
     if (USE_CLOUD_STORAGE && !USE_API) {
         // Get current products to sync along with orders
         const storageProducts = getProductsFromStorage();
@@ -1934,7 +1943,7 @@ function saveOrders(orders) {
 function addOrder(order) {
     const orders = getOrders();
     orders.unshift(order); // Add to beginning (newest first)
-    saveOrders(orders);
+    saveOrders(orders); // Save immediately
 }
 
 // Payment Modal and Processing
@@ -2162,10 +2171,23 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
         // Add order (this will also sync orders to cloud via saveOrders)
         addOrder(order);
         
+        // Wait a moment for localStorage write to complete
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Verify order was saved
-        const savedOrders = getOrders();
+        let savedOrders = getOrders();
         console.log('Order saved. Total orders now:', savedOrders.length);
         console.log('Latest order:', savedOrders[0]);
+        
+        // Double-check: if order not found, save again
+        const orderExists = savedOrders.some(o => o.id === order.id);
+        if (!orderExists) {
+            console.warn('⚠️ Order not found after save, retrying...');
+            addOrder(order);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            savedOrders = getOrders();
+            console.log('After retry, total orders:', savedOrders.length);
+        }
         
         // Clear cart
         localStorage.setItem(CART_KEY, JSON.stringify({}));
@@ -2193,13 +2215,33 @@ async function processPayment(cartItems, totalPrice, cardNumber) {
 // View Orders Function
 async function viewOrders() {
     try {
-        // Sync orders from cloud storage first to get latest orders
+        // First, get orders from localStorage (immediate)
+        let orders = getOrders();
+        console.log('Orders from localStorage:', orders.length, orders);
+        
+        // Then sync from cloud storage to get latest orders (but don't overwrite if local has more)
         if (USE_CLOUD_STORAGE && !USE_API) {
-            await syncFromCloudStorage();
+            try {
+                await syncFromCloudStorage();
+                // Get orders again after sync
+                const cloudOrders = getOrders();
+                console.log('Orders after cloud sync:', cloudOrders.length, cloudOrders);
+                // Use the one with more orders (cloud might have more from other browsers)
+                if (cloudOrders.length > orders.length) {
+                    orders = cloudOrders;
+                } else if (orders.length > 0 && cloudOrders.length === 0) {
+                    // If local has orders but cloud doesn't, keep local (might be new order not synced yet)
+                    console.log('Keeping local orders (cloud sync may have failed or cleared)');
+                } else {
+                    orders = cloudOrders.length > 0 ? cloudOrders : orders;
+                }
+            } catch (err) {
+                console.warn('Cloud sync failed, using local orders:', err);
+                // Use local orders if cloud sync fails
+            }
         }
         
-        const orders = getOrders();
-        console.log('Orders found:', orders.length, orders);
+        console.log('Final orders to display:', orders.length, orders);
         
         if (orders.length === 0) {
             const modal = document.getElementById('app-modal');
