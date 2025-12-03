@@ -29,35 +29,43 @@ function handleRoleSwitch() {
 }
 
 function handlePartnerLogin() {
-    const partnerLoginButton = document.getElementById('partner-login-btn');
-    console.log('handlePartnerLogin called, button found:', !!partnerLoginButton);
-    if (partnerLoginButton) {
-        // Check if listener is already attached to prevent duplicates
-        if (partnerLoginButton.hasAttribute('data-listener-attached')) {
-            console.log('Partner login listener already attached, skipping');
-            return;
-        }
+    // Try to find the button - use setTimeout to ensure DOM is ready if called too early
+    const findButton = () => {
+        const partnerLoginButton = document.getElementById('partner-login-btn');
+        console.log('handlePartnerLogin called, button found:', !!partnerLoginButton);
         
-        partnerLoginButton.setAttribute('data-listener-attached', 'true');
-        partnerLoginButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Partner login button clicked (handlePartnerLogin)');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const username = usernameInput ? usernameInput.value : '';
-            const password = passwordInput ? passwordInput.value : '';
-            console.log('Username:', username, 'Password:', password ? '***' : '');
-            if (username && password) {
-            authenticateAndRedirect('seller', username, password, '../html/seller.html');
-            } else {
-                alert('Please enter username and password');
+        if (partnerLoginButton) {
+            // Check if listener is already attached to prevent duplicates
+            if (partnerLoginButton.hasAttribute('data-listener-attached')) {
+                console.log('Partner login listener already attached, skipping');
+                return;
             }
-        });
-        console.log('Partner login button listener attached successfully');
-    } else {
-        console.error('Partner login button not found!');
-    }
+            
+            partnerLoginButton.setAttribute('data-listener-attached', 'true');
+            partnerLoginButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Partner login button clicked (handlePartnerLogin)');
+                const usernameInput = document.getElementById('username');
+                const passwordInput = document.getElementById('password');
+                const username = usernameInput ? usernameInput.value : '';
+                const password = passwordInput ? passwordInput.value : '';
+                console.log('Username:', username, 'Password:', password ? '***' : '');
+                if (username && password) {
+                    authenticateAndRedirect('seller', username, password, '../html/seller.html');
+                } else {
+                    alert('Please enter username and password');
+                }
+            });
+            console.log('Partner login button listener attached successfully');
+        } else {
+            console.warn('Partner login button not found, retrying in 100ms...');
+            // Retry after a short delay in case DOM isn't ready yet
+            setTimeout(findButton, 100);
+        }
+    };
+    
+    findButton();
 }
 
 function handleMainPageRedirect() {
