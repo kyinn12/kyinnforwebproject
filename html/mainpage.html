@@ -89,6 +89,18 @@
 
     </main>
     
+    <!-- Modal for My Orders -->
+    <div id="app-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <div id="modal-list-container"></div>
+            <div id="modal-footer">
+                <div id="modal-summary"></div>
+                <button id="modal-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+    
     <footer class="footer">
         &copy; 2025 Còdelook. All rights reserved.
     </footer>
@@ -143,6 +155,28 @@
         // Add My Orders functionality
         document.addEventListener('DOMContentLoaded', () => {
             const ordersBtn = document.getElementById('orders-btn-main');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            
+            // Close modal button
+            if (modalCloseBtn) {
+                modalCloseBtn.addEventListener('click', () => {
+                    const modal = document.getElementById('app-modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Close modal when clicking outside
+            const modal = document.getElementById('app-modal');
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            }
+            
             if (ordersBtn) {
                 ordersBtn.addEventListener('click', (e) => {
                     e.preventDefault();
