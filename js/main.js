@@ -101,8 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (currentPage === 'partner_login.html' || pathname.includes('partner_login.html') || href.includes('partner_login.html')) {
         console.log('Setting up partner login page handlers');
         try {
-            handlePartnerLogin();
-            handleMainPageRedirect();
+            // Ensure button handlers are set up after a small delay to guarantee DOM is ready
+            setTimeout(() => {
+                handlePartnerLogin();
+                handleMainPageRedirect();
+            }, 50);
         } catch (err) {
             console.error('Error setting up partner login handlers:', err);
         }
