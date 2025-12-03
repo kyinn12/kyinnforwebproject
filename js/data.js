@@ -603,10 +603,8 @@ async function deleteProduct(id) {
       }
     } else {
       try {
-        // Sync from cloud first to get latest state
-        if (USE_CLOUD_STORAGE) {
-            await syncFromCloudStorage();
-        }
+        // Don't sync FROM cloud at start - we'll sync TO cloud after deletion
+        // This prevents race conditions where cloud sync overwrites our local deletion
         
         const fileProducts = await fetchProductsFromFile();
         let storageProducts = getProductsFromStorage();
@@ -620,23 +618,38 @@ async function deleteProduct(id) {
           // Product is from items.json - mark as deleted
           addToDeletedProducts(normalizedId);
           
+          // Ensure localStorage is written before syncing
+          // Force a synchronous write by reading back immediately
+          const verifyDeleted = getDeletedProductIds();
+          if (!verifyDeleted.includes(normalizedId)) {
+            // Retry if not saved
+            addToDeletedProducts(normalizedId);
+          }
+          
           // Sync deleted list AND current storage products to cloud
           if (USE_CLOUD_STORAGE) {
-            // Wait a moment to ensure localStorage is updated
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // Wait to ensure localStorage write is complete
+            await new Promise(resolve => setTimeout(resolve, 100));
             
             // Get fresh deleted list to ensure it's up to date
             const finalDeletedList = getDeletedProductIds();
             
-            // Sync to cloud - syncToCloudStorage will automatically include deletedProducts from localStorage
-            const syncSuccess = await syncToCloudStorage(storageProducts);
+            // Retry sync up to 3 times if it fails
+            let syncSuccess = false;
+            for (let attempt = 0; attempt < 3 && !syncSuccess; attempt++) {
+              if (attempt > 0) {
+                await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Exponential backoff
+              }
+              syncSuccess = await syncToCloudStorage(storageProducts);
+            }
+            
             if (syncSuccess) {
               // Update last known state immediately after successful sync
               if (lastKnownDeletedIds !== null) {
                 lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
               }
             } else {
-              console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
+              console.warn('⚠️ Delete saved locally but failed to sync to cloud after 3 attempts.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
             }
           }
@@ -657,19 +670,42 @@ async function deleteProduct(id) {
             return;
           }
           
-          // Save locally first
+          // Save locally first - ensure it's written
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
+          
+          // Verify the write by reading back
+          const verifyStorage = getProductsFromStorage();
+          const stillExists = verifyStorage.some(p => {
+            const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+            return pId === normalizedId;
+          });
+          if (stillExists) {
+            // Retry if product still exists
+            storageProducts = storageProducts.filter(p => {
+              const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+              return pId !== normalizedId;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
+          }
           
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
-            // Wait a moment to ensure localStorage is updated
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Wait to ensure localStorage write is complete
+            await new Promise(resolve => setTimeout(resolve, 100));
             
             // syncToCloudStorage automatically includes deletedProducts from localStorage
             // Make sure deleted list is current before syncing
             const currentDeletedList = getDeletedProductIds();
             
-            const syncSuccess = await syncToCloudStorage(storageProducts);
+            // Retry sync up to 3 times if it fails
+            let syncSuccess = false;
+            for (let attempt = 0; attempt < 3 && !syncSuccess; attempt++) {
+              if (attempt > 0) {
+                await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Exponential backoff
+              }
+              syncSuccess = await syncToCloudStorage(storageProducts);
+            }
+            
             if (syncSuccess) {
               // Update last known state immediately after successful sync
               const currentProductIds = allProducts.map(p => {
@@ -679,7 +715,7 @@ async function deleteProduct(id) {
               lastKnownProductIds = currentProductIds;
               lastKnownDeletedIds = currentDeletedList.sort((a, b) => a - b);
             } else {
-              console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
+              console.warn('⚠️ Delete saved locally but failed to sync to cloud after 3 attempts.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
               // Don't return here - continue to update allProducts so UI reflects the local deletion
             }
