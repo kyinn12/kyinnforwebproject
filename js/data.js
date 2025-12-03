@@ -663,7 +663,7 @@ async function deleteProduct(id) {
           // Force sync to cloud storage after delete (wait for it to complete)
           if (USE_CLOUD_STORAGE) {
             // Wait a moment to ensure localStorage is updated
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
@@ -677,6 +677,7 @@ async function deleteProduct(id) {
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
+              return;
             }
           }
         }
@@ -704,7 +705,12 @@ async function deleteProduct(id) {
     // Re-render to show updated list (will sync from cloud if enabled)
     // Small delay to ensure cloud sync completes
     await new Promise(resolve => setTimeout(resolve, 500));
-    await renderSellerProducts();
+    
+    // Re-render seller page if on seller page
+    const sellerTableBody = document.querySelector('#product-table tbody');
+    if (sellerTableBody) {
+        await renderSellerProducts();
+    }
     
     // Update last known state after delete
     if (USE_CLOUD_STORAGE && !USE_API) {
@@ -984,7 +990,37 @@ async function checkForChanges() {
             const productIdsChanged = JSON.stringify(currentProductIds) !== JSON.stringify(lastKnownProductIds);
             const deletedIdsChanged = JSON.stringify(currentDeletedIds) !== JSON.stringify(lastKnownDeletedIds);
             
-            if (productIdsChanged || deletedIdsChanged) {
+            // Also check if product data changed (for edits)
+            let productDataChanged = false;
+            if (cloudProducts.length > 0 && allProducts.length > 0) {
+                // Compare product data, not just IDs
+                const cloudProductMap = new Map();
+                cloudProducts.forEach(p => {
+                    const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    if (!isNaN(id) && id > 0) {
+                        cloudProductMap.set(id, JSON.stringify(p));
+                    }
+                });
+                
+                const currentProductMap = new Map();
+                allProducts.forEach(p => {
+                    const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
+                    if (!isNaN(id) && id > 0) {
+                        currentProductMap.set(id, JSON.stringify(p));
+                    }
+                });
+                
+                // Check if any product data changed
+                for (const [id, cloudData] of cloudProductMap) {
+                    const currentData = currentProductMap.get(id);
+                    if (currentData !== cloudData) {
+                        productDataChanged = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (productIdsChanged || deletedIdsChanged || productDataChanged) {
                 // Update last known state BEFORE re-rendering
                 lastKnownProductIds = currentProductIds;
                 lastKnownDeletedIds = currentDeletedIds;
@@ -992,10 +1028,16 @@ async function checkForChanges() {
                 // IMPORTANT: Update local deleted list from cloud BEFORE re-rendering
                 localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(currentDeletedIds));
                 
-                // Re-render seller products to show updated list (silently)
+                // Re-render seller products if on seller page
                 const sellerTableBody = document.querySelector('#product-table tbody');
                 if (sellerTableBody) {
                     await renderSellerProducts();
+                }
+                
+                // Re-render user products if on user page
+                const userProductContainer = document.getElementById('product-list-container');
+                if (userProductContainer) {
+                    await loadEmbeddedProducts();
                 }
             }
         }
@@ -1006,9 +1048,10 @@ async function checkForChanges() {
 }
 
 function startAutoRefresh() {
-    // Only start if on seller page and cloud storage is enabled
+    // Start if on seller page OR user page and cloud storage is enabled
     const sellerTableBody = document.querySelector('#product-table tbody');
-    if (!sellerTableBody || !USE_CLOUD_STORAGE || USE_API) return;
+    const userProductContainer = document.getElementById('product-list-container');
+    if ((!sellerTableBody && !userProductContainer) || !USE_CLOUD_STORAGE || USE_API) return;
     
     // Clear any existing interval
     if (autoRefreshInterval) {

@@ -121,7 +121,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (hasAccess) {
              handleLogout(); 
-             loadEmbeddedProducts();     
+             loadEmbeddedProducts().then(() => {
+                 // Start auto-refresh after initial load
+                 if (typeof startAutoRefresh === 'function') {
+                     startAutoRefresh();
+                 }
+             });     
              initProductControls();
              initFilterControls();       
              initSortControls();         
