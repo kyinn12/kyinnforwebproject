@@ -1480,9 +1480,10 @@ function startEditProduct(productId) {
     stockInput.value = product.stock;
     tagsInput.value = Array.isArray(product.tags) ? product.tags.join(', ') : '';
 
-    editingProductId = productId;
+    // Use normalizedId to ensure type consistency with form submission handler
+    editingProductId = normalizedId;
     if (submitButton) submitButton.textContent = 'Save Changes';
-    if (formTitle) formTitle.textContent = `✏️ Edit Product #${productId}`;
+    if (formTitle) formTitle.textContent = `✏️ Edit Product #${normalizedId}`;
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
