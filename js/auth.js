@@ -1,5 +1,3 @@
-// js/auth.js
-
 const VALID_CREDENTIALS = {
     buyer: { id: "user", pw: "1234" },
     seller: { id: "seller", pw: "5678" }
@@ -29,7 +27,7 @@ function handleRoleSwitch() {
 }
 
 function handlePartnerLogin() {
-    // Try to find the button - use setTimeout to ensure DOM is ready if called too early
+    
     let retryCount = 0;
     const maxRetries = 10;
     
@@ -38,12 +36,12 @@ function handlePartnerLogin() {
         console.log('handlePartnerLogin called, button found:', !!partnerLoginButton, 'retry:', retryCount);
         
         if (partnerLoginButton) {
-            // Remove any existing listener by cloning the button (clean slate)
+            
             if (partnerLoginButton.hasAttribute('data-listener-attached')) {
                 console.log('Removing old listener and reattaching...');
                 const newButton = partnerLoginButton.cloneNode(true);
                 partnerLoginButton.parentNode.replaceChild(newButton, partnerLoginButton);
-                // Get the new button reference
+                
                 const newButtonRef = document.getElementById('partner-login-btn');
                 if (newButtonRef) {
                     attachListener(newButtonRef);
@@ -59,7 +57,7 @@ function handlePartnerLogin() {
                 setTimeout(findButton, 100);
             } else {
                 console.error('Partner login button not found after', maxRetries, 'retries');
-                // Last resort: try to attach directly when button becomes available
+                
                 const observer = new MutationObserver(() => {
                     const btn = document.getElementById('partner-login-btn');
                     if (btn && !btn.hasAttribute('data-listener-attached')) {

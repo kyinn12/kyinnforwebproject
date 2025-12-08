@@ -1,5 +1,3 @@
-/* Modern Partner Login Page Styles */
-
 :root {
     --primary-red: #A00000;
     --primary-red-dark: #800000;
@@ -192,7 +190,6 @@ body::before {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Seller Page Styles */
 .seller-main-content {
     max-width: 1200px;
     margin: 50px auto;

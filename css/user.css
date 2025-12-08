@@ -1,5 +1,3 @@
-/* Modern User Page Styles - Clean Modern Theme */
-
 :root {
     --primary-color: #2563eb;
     --primary-dark: #1e40af;
@@ -375,21 +373,18 @@ body {
     color: var(--text-dark);
 }
 
-/* Prevent price column from wrapping */
 .cart-table td:nth-child(4),
 .cart-table th:nth-child(4) {
     white-space: nowrap;
     min-width: 120px;
 }
 
-/* Prevent total column from wrapping */
 .cart-table td:nth-child(6),
 .cart-table th:nth-child(6) {
     white-space: nowrap;
     min-width: 120px;
 }
 
-/* Prevent Qty column from wrapping */
 .cart-table td:nth-child(5),
 .cart-table th:nth-child(5) {
     white-space: nowrap;
@@ -427,7 +422,6 @@ body {
     color: var(--primary-color);
 }
 
-/* Qty column (5th column) - for cart table */
 .cart-table td:nth-child(4):has(.btn-qty) {
     display: flex;
     align-items: center;
@@ -435,7 +429,6 @@ body {
     gap: 10px;
 }
 
-/* Qty column (5th column) - for order table */
 .cart-table td:nth-child(5) {
     white-space: nowrap;
     text-align: center;
@@ -691,7 +684,6 @@ body {
     }
 }
 
-/* Payment Form Input Styles */
 .payment-inputs {
     display: flex;
     flex-direction: column;

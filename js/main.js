@@ -1,5 +1,3 @@
-// js/main.js
-
 function closeModal() {
     const modal = document.getElementById('app-modal');
     if (modal) {
@@ -47,14 +45,12 @@ function initSellerDashboard() {
     });
 
     renderSellerProducts().then(() => {
-        // Start auto-refresh after initial render
+        
         if (typeof startAutoRefresh === 'function') {
             startAutoRefresh();
         }
     }); 
 }
-
-// Removed window.handlePartnerLoginClick - no longer needed since inline onclick was removed
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -101,11 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (currentPage === 'partner_login.html' || pathname.includes('partner_login.html') || href.includes('partner_login.html')) {
         console.log('Setting up partner login page handlers');
         try {
-            // Call immediately and also with delay to ensure it works
+            
             handlePartnerLogin();
             handleMainPageRedirect();
-            
-            // Also try after a delay as backup
+
             setTimeout(() => {
                 handlePartnerLogin();
                 handleMainPageRedirect();
@@ -121,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hasAccess) {
              handleLogout(); 
              loadEmbeddedProducts().then(() => {
-                 // Start auto-refresh after initial load
+                 
                  if (typeof startAutoRefresh === 'function') {
                      startAutoRefresh();
                  }
@@ -168,7 +163,5 @@ document.addEventListener('DOMContentLoaded', () => {
              initSellerDashboard(); 
         }
     }
-    
-    // Removed fallback handler for partner-login-btn - handlePartnerLogin() already handles it
-    // with proper duplicate prevention when on partner_login.html page
+
 });

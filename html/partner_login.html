@@ -26,13 +26,13 @@
     <script src="../js/data.js"></script>
     <script src="../js/main.js"></script>
     <script>
-        // Direct fallback event listener to ensure button is always clickable
+        
         document.addEventListener('DOMContentLoaded', () => {
             const partnerLoginBtn = document.getElementById('partner-login-btn');
             if (partnerLoginBtn) {
-                // Remove any existing onclick to prevent conflicts
+                
                 partnerLoginBtn.onclick = null;
-                // Add direct click handler as final fallback
+                
                 partnerLoginBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();

@@ -1,15 +1,12 @@
-// js/data.js
-
 const productListContainer = document.getElementById('product-list-container');
 let allProducts = []; 
 let editingProductId = null;
-let autoRefreshInterval = null; // For auto-refreshing seller page
+let autoRefreshInterval = null; 
 
-// Race condition prevention: operation locks
-let isOperationInProgress = false; // Prevents concurrent operations
-let isSyncing = false; // Prevents concurrent cloud syncs
-let isDeleting = false; // Specific lock for delete operations to prevent race conditions
-let deleteQueue = []; // Queue for delete operations if one is already in progress
+let isOperationInProgress = false; 
+let isSyncing = false; 
+let isDeleting = false; 
+let deleteQueue = []; 
 
 const STORAGE_KEY = 'codedlookProducts';
 const WISHLIST_KEY = 'codedlookWishlist'; 
@@ -17,31 +14,20 @@ const CART_KEY = 'codedlookCart';
 const DELETED_PRODUCTS_KEY = 'codedlookDeletedProducts';
 const ORDERS_KEY = 'codedlookOrders';
 const API_BASE_URL = 'http://localhost:4000';
-const USE_API = false; // Set to false for GitHub Pages (uses static JSON file)
+const USE_API = false; 
 
-// Cloud storage for sharing across browsers
-// Using JSONBin.io (free JSON storage service)
 const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b';
-const CLOUD_STORAGE_BIN_ID = '692e8f8ad0ea881f400d3e91'; // Your bin ID
-const USE_CLOUD_STORAGE = true; // Set to true to enable cloud storage
-// IMPORTANT: JSONBin.io requires an API key for write operations
-// Get your API key from: https://jsonbin.io/app/account/api-keys
-// SECURITY WARNING: For production, store API key in localStorage or environment variable
-// This is a fallback value - users should set their own key via localStorage.setItem('JSONBIN_API_KEY', 'your-key')
+const CLOUD_STORAGE_BIN_ID = '692e8f8ad0ea881f400d3e91'; 
+const USE_CLOUD_STORAGE = true; 
+
 const JSONBIN_API_KEY_STORAGE_KEY = 'JSONBIN_API_KEY';
-// IMPORTANT: This is a fallback key. JSONBin.io API keys are bcrypt hashes (60 characters).
-// If you get 401 errors, verify your API key at https://jsonbin.io/app/account/api-keys
-// The key should start with $2a$10$ and be exactly 60 characters long.
-// Users should set their own key via: localStorage.setItem('JSONBIN_API_KEY', 'your-complete-60-char-key')
-// WARNING: The default key below is INCOMPLETE (58 chars instead of 60). This will cause 401 errors.
-// Replace it with your complete 60-character API key from JSONBin.io.
-const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; // INCOMPLETE - Missing 2 characters
-// Get API key from localStorage first, fallback to default (for development only)
+
+const JSONBIN_API_KEY_DEFAULT = '$2a$10$NuhW8DlovuYhDBgGTIGsJeR0935I.7JzDzd8CkF0VVnYvgog3YZfG'; 
+
 function getJsonBinApiKey() {
     const storedKey = localStorage.getItem(JSONBIN_API_KEY_STORAGE_KEY);
     const key = storedKey || JSONBIN_API_KEY_DEFAULT;
-    
-    // Validate key length (bcrypt hashes should be exactly 60 characters)
+
     if (key && key.length !== 60) {
         console.warn(`⚠️ JSONBin API key length is ${key.length}, expected 60 characters. This may cause 401 authentication errors.`);
         console.warn('⚠️ Please set a complete 60-character API key via: localStorage.setItem("JSONBIN_API_KEY", "your-complete-key")');
@@ -49,7 +35,6 @@ function getJsonBinApiKey() {
     
     return key;
 }
-// Note: Use getJsonBinApiKey() function instead of JSONBIN_API_KEY constant to get fresh value from localStorage
 
 async function fetchProductsFromApi() {
   if (USE_API) {
@@ -74,7 +59,7 @@ async function fetchProductsFromApi() {
 
 async function fetchProductsFromFile() {
   try {
-    // Get the directory where this script is located
+    
     const scripts = document.getElementsByTagName('script');
     let scriptPath = 'js';
     for (let script of scripts) {
@@ -84,8 +69,7 @@ async function fetchProductsFromFile() {
         break;
       }
     }
-    
-    // Try multiple paths - works for both local and GitHub Pages
+
     const paths = [
       `${scriptPath}/items.json`,
       'js/items.json',
@@ -137,7 +121,6 @@ function saveProductsToStorage(products) {
     }
 }
 
-// Function to reset cloud storage to clean state
 async function resetCloudStorage() {
     if (!CLOUD_STORAGE_BIN_ID) {
         console.warn('⚠️ No cloud storage bin ID configured');
@@ -157,8 +140,7 @@ async function resetCloudStorage() {
         }
         
         const url = `${CLOUD_STORAGE_URL}/${CLOUD_STORAGE_BIN_ID}`;
-        
-        // Reset to empty state
+
         const response = await fetch(url, {
             method: 'PUT',
             headers: headers,
@@ -169,7 +151,7 @@ async function resetCloudStorage() {
         });
         
         if (response.ok) {
-            // Also clear local storage
+            
             localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
             localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify([]));
             
@@ -185,7 +167,6 @@ async function resetCloudStorage() {
     }
 }
 
-// Make reset function available globally for console access
 if (typeof window !== 'undefined') {
     window.resetCloudStorage = resetCloudStorage;
 }
@@ -195,10 +176,9 @@ async function syncToCloudStorage(products) {
         console.warn('⚠️ No cloud storage bin ID configured');
         return false;
     }
-    
-    // Prevent concurrent syncs
+
     if (isSyncing) {
-        // Wait for current sync to complete (max 5 seconds)
+        
         let waitCount = 0;
         while (isSyncing && waitCount < 50) {
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -215,16 +195,14 @@ async function syncToCloudStorage(products) {
         const headers = {
             'Content-Type': 'application/json',
         };
-        
-        // Add API key if available (required for write operations)
+
         const apiKey = getJsonBinApiKey();
         if (apiKey) {
             headers['X-Master-Key'] = apiKey;
         } else {
             console.warn('⚠️ No API key provided - write operations will fail');
         }
-        
-        // Also sync deleted products list and orders so deletions and orders sync across browsers
+
         const deletedProducts = getDeletedProductIds();
         const orders = getOrders();
         
@@ -297,27 +275,26 @@ async function syncFromCloudStorage() {
             const cloudProducts = data.record?.products || [];
             const cloudDeletedProducts = data.record?.deletedProducts || [];
             const cloudOrders = data.record?.orders || [];
-            
-            // Sync orders from cloud - merge with local orders (don't overwrite)
+
             if (Array.isArray(cloudOrders)) {
                 const localOrders = getOrders();
-                // Merge orders: combine both arrays, remove duplicates by order ID
+                
                 const orderMap = new Map();
-                // Add local orders first (newer)
+                
                 localOrders.forEach(order => {
                     orderMap.set(order.id, order);
                 });
-                // Add cloud orders (may have orders from other browsers)
+                
                 cloudOrders.forEach(order => {
                     if (!orderMap.has(order.id)) {
                         orderMap.set(order.id, order);
                     }
                 });
-                // Convert back to array, sort by ID (newest first)
+                
                 const mergedOrders = Array.from(orderMap.values()).sort((a, b) => b.id - a.id);
                 localStorage.setItem(ORDERS_KEY, JSON.stringify(mergedOrders));
             } else {
-                // Initialize empty orders if not in cloud, but keep local orders
+                
                 const localOrders = getOrders();
                 if (localOrders.length === 0 && !localStorage.getItem(ORDERS_KEY)) {
                     localStorage.setItem(ORDERS_KEY, JSON.stringify([]));
@@ -325,55 +302,41 @@ async function syncFromCloudStorage() {
             }
             
             if (Array.isArray(cloudProducts)) {
-                // Always sync deleted products list from cloud (even if empty)
-                // Cloud deleted list is the source of truth
+
                 if (Array.isArray(cloudDeletedProducts)) {
                     localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(cloudDeletedProducts));
                 } else {
-                    // If cloud doesn't have deletedProducts, initialize empty array
+                    
                     localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify([]));
                 }
-                
-                // Get all products: cloud (from storage), local storage, and items.json
+
                 const localProducts = getProductsFromStorage();
                 const fileProducts = await fetchProductsFromFile();
-                
-                // Create a map - CLOUD is source of truth, then local, then items.json
+
                 const mergedMap = new Map();
-                
-                // CLOUD is the source of truth for storage products
-                // Use cloud products directly (they are the storage products from cloud)
-                // Then add items.json products (static file)
-                
-                // Step 1: Add items.json products first (base products)
+
                 fileProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     if (!isNaN(id) && id > 0) {
                         mergedMap.set(id, { ...p, id });
                     }
                 });
-                
-                // Step 2: Add cloud products (source of truth for storage products - overrides items.json if same ID)
-                // Cloud products are the storage products synced from cloud
+
                 cloudProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     if (!isNaN(id) && id > 0) {
                         mergedMap.set(id, { ...p, id });
                     }
                 });
-                
-                // Step 3: Add any local storage products that aren't in cloud (newer local additions that haven't synced yet)
-                // Only add if they're not already in cloud (cloud is source of truth)
+
                 localProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     if (!isNaN(id) && id > 0 && !mergedMap.has(id)) {
-                        // This product exists locally but not in cloud - add it
+                        
                         mergedMap.set(id, { ...p, id });
                     }
                 });
-                
-                // Save ONLY storage products (cloud + any new local) to localStorage
-                // Exclude items.json products from storage
+
                 const fileProductIds = fileProducts.map(fp => {
                     const fid = typeof fp.id === 'string' ? parseInt(fp.id) : fp.id;
                     return isNaN(fid) ? 0 : fid;
@@ -383,20 +346,18 @@ async function syncFromCloudStorage() {
                     return !fileProductIds.includes(pid);
                 });
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProductsOnly));
-                
-                // Filter out deleted products and update allProducts
-                // Use the cloud deleted list (already synced to localStorage above)
+
                 const deletedIds = getDeletedProductIds();
                 
                 const finalProducts = Array.from(mergedMap.values()).filter(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-                    // Normalize deleted IDs for comparison
+                    
                     const normalizedDeletedIds = deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did);
                     const isDeleted = normalizedDeletedIds.includes(id);
                     return !isNaN(id) && id > 0 && !isDeleted;
                 });
                 
-                allProducts = finalProducts; // Update global allProducts
+                allProducts = finalProducts; 
                 return finalProducts;
             }
         } else {
@@ -422,7 +383,7 @@ async function syncFromCloudStorage() {
 function getDeletedProductIds() {
     const deletedJson = localStorage.getItem(DELETED_PRODUCTS_KEY);
     const ids = deletedJson ? JSON.parse(deletedJson) : [];
-    // Normalize all IDs to numbers for consistent comparison
+    
     return ids.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
 }
 
@@ -453,7 +414,7 @@ function initializeData() {
 }
 
 async function addNewProduct(newProduct) {
-    // Prevent concurrent operations
+    
     if (isOperationInProgress) {
         console.warn('⚠️ Another operation is in progress. Please wait...');
         return;
@@ -507,11 +468,9 @@ async function addNewProduct(newProduct) {
         
         let storageProducts2 = getProductsFromStorage();
         storageProducts2.push(productPayload);
-        
-        // Save locally first
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts2));
-        
-        // Force sync to cloud storage after add (wait for it to complete)
+
         if (USE_CLOUD_STORAGE) {
           const syncSuccess = await syncToCloudStorage(storageProducts2);
           if (!syncSuccess) {
@@ -548,7 +507,7 @@ async function addNewProduct(newProduct) {
 }
 
 async function updateProduct(id, updatedProduct) {
-    // Prevent concurrent operations
+    
     if (isOperationInProgress) {
         console.warn('⚠️ Another operation is in progress. Please wait...');
         return;
@@ -600,33 +559,28 @@ async function updateProduct(id, updatedProduct) {
           const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
           return isNaN(pId) ? 0 : pId;
         });
-        
-        // Check if product is from items.json or storage
+
         const isFromItemsJson = fileProductIds.includes(normalizedId);
         
         if (isFromItemsJson) {
-          // Product is from items.json - save edited version to cloud storage
-          // This will override the items.json version in the merged view
+
           const editedProduct = { ...updated, id: normalizedId };
-          
-          // Check if product already exists in storage (from previous edit)
+
           const existingIndex = storageProducts.findIndex(p => {
             const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
             return pId === normalizedId;
           });
           
           if (existingIndex !== -1) {
-            // Update existing edited version
+            
             storageProducts[existingIndex] = editedProduct;
           } else {
-            // Add new edited version (will override items.json version)
+            
             storageProducts.push(editedProduct);
           }
-          
-          // Save locally first
+
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
-          
-          // Force sync to cloud storage after update
+
           if (USE_CLOUD_STORAGE) {
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (!syncSuccess) {
@@ -635,7 +589,7 @@ async function updateProduct(id, updatedProduct) {
             }
           }
         } else {
-          // Product is from storage - update it normally
+          
           const index = storageProducts.findIndex(p => {
             const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
             return pId === normalizedId;
@@ -643,11 +597,9 @@ async function updateProduct(id, updatedProduct) {
           
           if (index !== -1) {
             storageProducts[index] = { ...storageProducts[index], ...updated, id: normalizedId };
-            
-            // Save locally first
+
             localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
-            
-            // Force sync to cloud storage after update
+
             if (USE_CLOUD_STORAGE) {
               const syncSuccess = await syncToCloudStorage(storageProducts);
               if (!syncSuccess) {
@@ -661,8 +613,7 @@ async function updateProduct(id, updatedProduct) {
             return;
           }
         }
-        
-        // Update allProducts with merged data
+
         const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
@@ -687,16 +638,15 @@ async function updateProduct(id, updatedProduct) {
 
 async function deleteProduct(id) {
     const normalizedId = typeof id === 'string' ? parseInt(id) : id;
-    
-    // STRONG race condition prevention: Queue delete operations
+
     if (isDeleting || isOperationInProgress || isSyncing) {
-        // If a delete is already in progress, queue this one
+        
         if (isDeleting) {
             deleteQueue.push(normalizedId);
             console.warn(`⚠️ Delete operation queued for product ${normalizedId}. Another delete is in progress.`);
             return;
         }
-        // If other operation is in progress, wait a bit and retry
+        
         console.warn('⚠️ Another operation is in progress. Waiting...');
         await new Promise(resolve => setTimeout(resolve, 500));
         if (isDeleting || isOperationInProgress || isSyncing) {
@@ -704,12 +654,10 @@ async function deleteProduct(id) {
             return;
         }
     }
-    
-    // Set delete lock immediately
+
     isDeleting = true;
     isOperationInProgress = true;
-    
-    // Temporarily stop auto-refresh to prevent interference
+
     const wasAutoRefreshing = autoRefreshInterval !== null;
     if (wasAutoRefreshing) {
         stopAutoRefresh();
@@ -735,9 +683,7 @@ async function deleteProduct(id) {
       }
     } else {
       try {
-        // Don't sync FROM cloud at start - we'll sync TO cloud after deletion
-        // This prevents race conditions where cloud sync overwrites our local deletion
-        
+
         const fileProducts = await fetchProductsFromFile();
         let storageProducts = getProductsFromStorage();
         
@@ -747,42 +693,35 @@ async function deleteProduct(id) {
         });
         
         if (fileProductIds.includes(normalizedId)) {
-          // Product is from items.json - mark as deleted
-          addToDeletedProducts(normalizedId);
           
-          // Ensure localStorage is written before syncing
-          // Force a synchronous write by reading back immediately
+          addToDeletedProducts(normalizedId);
+
           const verifyDeleted = getDeletedProductIds();
           if (!verifyDeleted.includes(normalizedId)) {
-            // Retry if not saved
+            
             addToDeletedProducts(normalizedId);
           }
-          
-          // Sync deleted list AND current storage products to cloud
+
           if (USE_CLOUD_STORAGE) {
-            // Wait longer to ensure localStorage write is complete
+            
             await new Promise(resolve => setTimeout(resolve, 200));
-            
-            // Get fresh deleted list to ensure it's up to date
+
             let finalDeletedList = getDeletedProductIds();
-            
-            // Verify the deleted ID is in the list
+
             if (!finalDeletedList.includes(normalizedId)) {
-              // Force add it again
+              
               addToDeletedProducts(normalizedId);
               await new Promise(resolve => setTimeout(resolve, 100));
               finalDeletedList = getDeletedProductIds();
             }
-            
-            // Retry sync up to 5 times with longer delays for stronger race condition prevention
+
             let syncSuccess = false;
             for (let attempt = 0; attempt < 5 && !syncSuccess; attempt++) {
               if (attempt > 0) {
-                // Longer exponential backoff: 500ms, 1000ms, 2000ms, 3000ms
+                
                 await new Promise(resolve => setTimeout(resolve, 500 * Math.min(attempt, 6)));
               }
-              
-              // Double-check deleted list before each sync attempt
+
               const currentDeletedList = getDeletedProductIds();
               if (!currentDeletedList.includes(normalizedId)) {
                 addToDeletedProducts(normalizedId);
@@ -790,8 +729,7 @@ async function deleteProduct(id) {
               }
               
               syncSuccess = await syncToCloudStorage(storageProducts);
-              
-              // Verify sync succeeded by checking cloud
+
               if (syncSuccess) {
                 await new Promise(resolve => setTimeout(resolve, 300));
                 const verifyHeaders = {};
@@ -807,7 +745,7 @@ async function deleteProduct(id) {
                   const cloudDeleted = verifyData.record?.deletedProducts || [];
                   const normalizedCloudDeleted = cloudDeleted.map(did => typeof did === 'string' ? parseInt(did) : did);
                   if (!normalizedCloudDeleted.includes(normalizedId)) {
-                    // Sync didn't actually work, retry
+                    
                     syncSuccess = false;
                     console.warn(`⚠️ Delete verification failed for product ${normalizedId}, retrying...`);
                   }
@@ -816,9 +754,9 @@ async function deleteProduct(id) {
             }
             
             if (syncSuccess) {
-              // Update last known state immediately after successful sync
+              
               finalDeletedList = getDeletedProductIds();
-              // Always update lastKnownDeletedIds (fixes bug where null check prevented initialization)
+              
               lastKnownDeletedIds = finalDeletedList.sort((a, b) => a - b);
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud after 5 attempts.');
@@ -826,7 +764,7 @@ async function deleteProduct(id) {
             }
           }
         } else {
-          // Product is from storage - remove it from storage
+          
           const beforeCount = storageProducts.length;
           storageProducts = storageProducts.filter(p => {
             const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -835,48 +773,42 @@ async function deleteProduct(id) {
           
           if (storageProducts.length === beforeCount) {
             console.warn(`Product ID ${normalizedId} not found in localStorage`);
-            // Product might exist in cloud but not local - still sync to ensure consistency
+            
             if (USE_CLOUD_STORAGE) {
               await syncToCloudStorage(storageProducts);
             }
             return;
           }
-          
-          // Save locally first - ensure it's written
+
           localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
-          
-          // Verify the write by reading back
+
           const verifyStorage = getProductsFromStorage();
           const stillExists = verifyStorage.some(p => {
             const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
             return pId === normalizedId;
           });
           if (stillExists) {
-            // Retry if product still exists
+            
             storageProducts = storageProducts.filter(p => {
               const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
               return pId !== normalizedId;
             });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
           }
-          
-          // Force sync to cloud storage after delete (wait for it to complete)
+
           if (USE_CLOUD_STORAGE) {
-            // Wait longer to ensure localStorage write is complete
+            
             await new Promise(resolve => setTimeout(resolve, 200));
-            
-            // syncToCloudStorage automatically includes deletedProducts from localStorage
-            // Make sure deleted list is current before syncing
+
             let currentDeletedList = getDeletedProductIds();
-            
-            // Verify product is removed from storage
+
             const verifyStorage = getProductsFromStorage();
             const stillInStorage = verifyStorage.some(p => {
               const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
               return pId === normalizedId;
             });
             if (stillInStorage) {
-              // Force remove again
+              
               storageProducts = storageProducts.filter(p => {
                 const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                 return pId !== normalizedId;
@@ -884,16 +816,14 @@ async function deleteProduct(id) {
               localStorage.setItem(STORAGE_KEY, JSON.stringify(storageProducts));
               await new Promise(resolve => setTimeout(resolve, 100));
             }
-            
-            // Retry sync up to 5 times with verification for stronger race condition prevention
+
             let syncSuccess = false;
             for (let attempt = 0; attempt < 5 && !syncSuccess; attempt++) {
               if (attempt > 0) {
-                // Longer exponential backoff: 500ms, 1000ms, 2000ms, 3000ms
+                
                 await new Promise(resolve => setTimeout(resolve, 500 * Math.min(attempt, 6)));
               }
-              
-              // Re-verify storage before each sync
+
               const currentStorage = getProductsFromStorage();
               const stillExists = currentStorage.some(p => {
                 const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -909,8 +839,7 @@ async function deleteProduct(id) {
               }
               
               syncSuccess = await syncToCloudStorage(storageProducts);
-              
-              // Verify sync succeeded by checking cloud
+
               if (syncSuccess) {
                 await new Promise(resolve => setTimeout(resolve, 300));
                 const verifyHeaders = {};
@@ -926,8 +855,7 @@ async function deleteProduct(id) {
                   const cloudProducts = verifyData.record?.products || [];
                   const cloudDeleted = verifyData.record?.deletedProducts || [];
                   const normalizedCloudDeleted = cloudDeleted.map(did => typeof did === 'string' ? parseInt(did) : did);
-                  
-                  // Check if product still exists in cloud products OR is not in deleted list
+
                   const stillInCloud = cloudProducts.some(p => {
                     const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     return pId === normalizedId;
@@ -935,7 +863,7 @@ async function deleteProduct(id) {
                   const notInDeleted = !normalizedCloudDeleted.includes(normalizedId);
                   
                   if (stillInCloud || notInDeleted) {
-                    // Sync didn't actually work, retry
+                    
                     syncSuccess = false;
                     console.warn(`⚠️ Delete verification failed for product ${normalizedId}, retrying...`);
                   }
@@ -944,7 +872,7 @@ async function deleteProduct(id) {
             }
             
             if (syncSuccess) {
-              // Update last known state immediately after successful sync
+              
               currentDeletedList = getDeletedProductIds();
               const currentProductIds = allProducts.map(p => {
                 const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -955,19 +883,17 @@ async function deleteProduct(id) {
             } else {
               console.warn('⚠️ Delete saved locally but failed to sync to cloud after 5 attempts.');
               console.warn('⚠️ Other browsers may not see the change. Check console for API key instructions.');
-              // Don't return here - continue to update allProducts so UI reflects the local deletion
+              
             }
           }
         }
-        
-        // ALWAYS update allProducts to reflect the deletion, even if cloud sync failed
-        // The product was already removed from localStorage, so UI should show it's deleted
+
         const deletedIds = getDeletedProductIds();
         const mergedProducts = [...fileProducts, ...storageProducts];
         const mergedMap = new Map();
         mergedProducts.forEach(p => {
           const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
-          // Normalize deleted IDs for comparison
+          
           const normalizedDeletedIds = deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did);
           const isDeleted = normalizedDeletedIds.includes(pId);
           if (!isNaN(pId) && pId > 0 && !isDeleted) {
@@ -981,37 +907,31 @@ async function deleteProduct(id) {
       }
     }
     } finally {
-      // Release locks
+      
       isDeleting = false;
       isOperationInProgress = false;
-      
-      // Restart auto-refresh if it was running
+
       if (wasAutoRefreshing) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before restarting
+        await new Promise(resolve => setTimeout(resolve, 1000)); 
         startAutoRefresh();
       }
-      
-      // Process queued delete operations
+
       if (deleteQueue.length > 0) {
         const nextId = deleteQueue.shift();
-        // Process next delete after a short delay
+        
         setTimeout(() => {
           deleteProduct(nextId);
         }, 500);
       }
     }
-  
-    // Re-render to show updated list (will sync from cloud if enabled)
-    // Longer delay to ensure cloud sync completes
+
     await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Re-render seller page if on seller page
+
     const sellerTableBody = document.querySelector('#product-table tbody');
     if (sellerTableBody) {
         await renderSellerProducts();
     }
-    
-    // Update last known state after delete
+
     if (USE_CLOUD_STORAGE && !USE_API) {
         const currentProductIds = allProducts.map(p => {
             const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -1044,8 +964,7 @@ async function loadEmbeddedProducts() {
           }
         });
         allProducts = Array.from(mergedMap.values());
-        
-        // Clean up wishlist after products are loaded
+
         cleanupWishlist();
         
         if (!allProducts || allProducts.length === 0) {
@@ -1086,16 +1005,14 @@ function renderProducts(productsToRender) {
         productListContainer.innerHTML = "<p class='text-center w-full'>No products match your criteria.</p>";
         return;
     }
-    
-    // Get wishlist IDs and normalize them
+
     const wishlistIds = getWishlistIds()
         .map(id => {
             const normalized = typeof id === 'string' ? parseInt(id) : id;
             return isNaN(normalized) ? 0 : normalized;
         })
         .filter(id => id > 0);
-    
-    // Clean up wishlist - remove IDs that don't exist in current products
+
     const validProductIds = productsToRender.map(p => {
         const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
         return isNaN(pId) ? 0 : pId;
@@ -1103,7 +1020,7 @@ function renderProducts(productsToRender) {
     
     const validWishlistIds = wishlistIds.filter(id => validProductIds.includes(id));
     if (validWishlistIds.length !== wishlistIds.length) {
-        // Some wishlist items are invalid, clean them up
+        
         saveWishlistIds(validWishlistIds);
     }
     
@@ -1144,9 +1061,9 @@ function renderProducts(productsToRender) {
 }
 
 function initProductControls() {
-    // Clean up wishlist first to remove invalid IDs
+    
     cleanupWishlist();
-    // Then update count with valid items only
+    
     updateWishlistCount(getValidWishlistCount());
     updateCartCount(Object.keys(getCartItems()).length);
     
@@ -1179,14 +1096,13 @@ async function renderSellerProducts() {
     const sellerTableBody = document.querySelector('#product-table tbody');
     if (!sellerTableBody) return;
 
-    // Only sync from cloud if no operation is in progress (prevents race conditions)
     let products = null;
     if (USE_CLOUD_STORAGE && !USE_API && !isOperationInProgress) {
         try {
             products = await syncFromCloudStorage();
-            // syncFromCloudStorage now includes items.json + cloud + local, and updates allProducts
+            
             if (products && Array.isArray(products) && products.length > 0) {
-                allProducts = products; // Use synced products (already filtered and merged)
+                allProducts = products; 
             } else {
                 console.warn('⚠️ Sync returned empty or invalid products, using fallback');
             }
@@ -1194,14 +1110,13 @@ async function renderSellerProducts() {
             console.error('❌ Error syncing from cloud:', err);
         }
     }
-  
-    // If sync didn't return products or we're not using cloud storage, build from local data
+
     if (!products || !Array.isArray(products) || products.length === 0) {
       if (USE_API) {
         products = await fetchProductsFromApi();
         allProducts = products;
       } else {
-        // Fallback: build from local data
+        
         const fileProducts = await fetchProductsFromFile();
         const storageProducts = getProductsFromStorage();
         const deletedIds = getDeletedProductIds();
@@ -1217,8 +1132,7 @@ async function renderSellerProducts() {
         allProducts = products;
       }
     }
-    
-    // Use allProducts (which is now up-to-date) for rendering
+
     products = allProducts;
   
     sellerTableBody.innerHTML = ''; 
@@ -1243,18 +1157,18 @@ async function renderSellerProducts() {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Use currentTarget to get the button element, not the clicked child element
+            
             const buttonElement = e.currentTarget || e.target.closest('.btn-seller-delete');
             const productId = buttonElement ? parseInt(buttonElement.dataset.id) : null;
             if (productId && !isNaN(productId)) {
-                // Find the product to get its name for confirmation
+                
                 const product = allProducts.find(p => {
                     const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     return pId === productId;
                 });
                 
                 if (product) {
-                    // Show confirmation dialog with product name
+                    
                     const productName = product.name || `Product #${productId}`;
                     const confirmDelete = confirm(`Do you want to delete "${productName}"?\n\nClick "OK" to delete or "Cancel" to cancel.`);
                     
@@ -1277,7 +1191,7 @@ async function renderSellerProducts() {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Use currentTarget to get the button element, not the clicked child element
+            
             const buttonElement = e.currentTarget || e.target.closest('.btn-seller-edit');
             const productId = buttonElement ? parseInt(buttonElement.dataset.id) : null;
             if (productId && !isNaN(productId)) {
@@ -1287,8 +1201,7 @@ async function renderSellerProducts() {
             }
         });
     });
-    
-    // Update last known state after render
+
     if (USE_CLOUD_STORAGE && !USE_API) {
         const currentProductIds = allProducts.map(p => {
             const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -1299,25 +1212,21 @@ async function renderSellerProducts() {
     }
 }
 
-// Auto-refresh function to detect changes from other browsers
-// Initialize as empty arrays to ensure type consistency for comparisons
 let lastKnownProductIds = [];
 let lastKnownDeletedIds = [];
-let isCheckingForChanges = false; // Lock to prevent concurrent executions
+let isCheckingForChanges = false; 
 
 async function checkForChanges() {
     if (!USE_CLOUD_STORAGE || USE_API) return;
-    
-    // STRONG race condition prevention: Skip check if ANY operation is in progress OR if already checking
+
     if (isOperationInProgress || isSyncing || isDeleting || isCheckingForChanges) {
         return;
     }
-    
-    // Set lock to prevent concurrent executions
+
     isCheckingForChanges = true;
     
     try {
-        // Get current state from cloud
+        
         const headers = {};
         const apiKey = getJsonBinApiKey();
         if (apiKey) {
@@ -1331,8 +1240,7 @@ async function checkForChanges() {
             const data = await res.json();
             const cloudProducts = data.record?.products || [];
             const cloudDeletedProducts = data.record?.deletedProducts || [];
-            
-            // Normalize IDs for comparison
+
             const currentProductIds = cloudProducts.map(p => {
                 const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                 return isNaN(id) ? 0 : id;
@@ -1342,18 +1250,15 @@ async function checkForChanges() {
                 const normalized = typeof id === 'string' ? parseInt(id) : id;
                 return isNaN(normalized) ? 0 : normalized;
             }).filter(id => id > 0).sort((a, b) => a - b);
-            
-            // Check if anything changed
-            // Ensure both sides are arrays for consistent comparison
+
             const lastProductIds = Array.isArray(lastKnownProductIds) ? lastKnownProductIds : [];
             const lastDeletedIds = Array.isArray(lastKnownDeletedIds) ? lastKnownDeletedIds : [];
             const productIdsChanged = JSON.stringify(currentProductIds) !== JSON.stringify(lastProductIds);
             const deletedIdsChanged = JSON.stringify(currentDeletedIds) !== JSON.stringify(lastDeletedIds);
-            
-            // Also check if product data changed (for edits)
+
             let productDataChanged = false;
             if (cloudProducts.length > 0 && allProducts.length > 0) {
-                // Compare product data, not just IDs
+                
                 const cloudProductMap = new Map();
                 cloudProducts.forEach(p => {
                     const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -1369,8 +1274,7 @@ async function checkForChanges() {
                         currentProductMap.set(id, JSON.stringify(p));
                     }
                 });
-                
-                // Check if any product data changed
+
                 for (const [id, cloudData] of cloudProductMap) {
                     const currentData = currentProductMap.get(id);
                     if (currentData !== cloudData) {
@@ -1381,20 +1285,17 @@ async function checkForChanges() {
             }
             
             if (productIdsChanged || deletedIdsChanged || productDataChanged) {
-                // Update last known state BEFORE re-rendering
+                
                 lastKnownProductIds = currentProductIds;
                 lastKnownDeletedIds = currentDeletedIds;
-                
-                // IMPORTANT: Update local deleted list from cloud BEFORE re-rendering
+
                 localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(currentDeletedIds));
-                
-                // Re-render seller products if on seller page
+
                 const sellerTableBody = document.querySelector('#product-table tbody');
                 if (sellerTableBody) {
                     await renderSellerProducts();
                 }
-                
-                // Re-render user products if on user page
+
                 const userProductContainer = document.getElementById('product-list-container');
                 if (userProductContainer) {
                     await loadEmbeddedProducts();
@@ -1402,39 +1303,34 @@ async function checkForChanges() {
             }
         }
     } catch (err) {
-        // Silently fail - don't spam console with errors
-        // No console output for auto-refresh
+
     } finally {
-        // Always release lock, even if error occurred
+        
         isCheckingForChanges = false;
     }
 }
 
 function startAutoRefresh() {
-    // Start if on seller page OR user page and cloud storage is enabled
+    
     const sellerTableBody = document.querySelector('#product-table tbody');
     const userProductContainer = document.getElementById('product-list-container');
     if ((!sellerTableBody && !userProductContainer) || !USE_CLOUD_STORAGE || USE_API) return;
-    
-    // Clear any existing interval
+
     if (autoRefreshInterval) {
         clearInterval(autoRefreshInterval);
     }
-    
-    // Initialize last known state
+
     const currentProductIds = allProducts.map(p => {
         const id = typeof p.id === 'string' ? parseInt(p.id) : p.id;
         return isNaN(id) ? 0 : id;
     }).filter(id => id > 0).sort((a, b) => a - b);
     lastKnownProductIds = currentProductIds;
     lastKnownDeletedIds = getDeletedProductIds().sort((a, b) => a - b);
-    
-    // Check for changes every 3 seconds (silently)
-    // Use a wrapper function to properly handle async execution and prevent concurrent calls
+
     autoRefreshInterval = setInterval(() => {
-        // Don't await - setInterval doesn't support async, but the lock prevents concurrent executions
+        
         checkForChanges().catch(() => {
-            // Silently handle any errors - checkForChanges already has error handling
+            
         });
     }, 3000);
 }
@@ -1446,7 +1342,6 @@ function stopAutoRefresh() {
     }
 }
 
-// Stop auto-refresh when page is unloaded
 if (typeof window !== 'undefined') {
     window.addEventListener('beforeunload', stopAutoRefresh);
 }
@@ -1480,7 +1375,6 @@ function startEditProduct(productId) {
     stockInput.value = product.stock;
     tagsInput.value = Array.isArray(product.tags) ? product.tags.join(', ') : '';
 
-    // Use normalizedId to ensure type consistency with form submission handler
     editingProductId = normalizedId;
     if (submitButton) submitButton.textContent = 'Save Changes';
     if (formTitle) formTitle.textContent = `✏️ Edit Product #${normalizedId}`;
@@ -1604,10 +1498,9 @@ function saveWishlistIds(ids) {
     updateWishlistCount(ids.length); 
 }
 
-// Clean up wishlist by removing IDs that don't exist in allProducts or are deleted
 function cleanupWishlist() {
     if (!allProducts || allProducts.length === 0) {
-        // If no products loaded yet, just normalize IDs
+        
     let wishlistIds = getWishlistIds();
         wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
         saveWishlistIds(wishlistIds);
@@ -1615,30 +1508,25 @@ function cleanupWishlist() {
     }
     
     let wishlistIds = getWishlistIds();
-    // Normalize all IDs to integers
-    wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
     
-    // Get valid product IDs from allProducts
+    wishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
+
     const validProductIds = new Set(allProducts.map(p => {
         if (!p) return 0;
         const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
         return isNaN(pId) ? 0 : pId;
     }).filter(id => id > 0));
-    
-    // Also check deleted products - remove wishlist items for deleted products
+
     const deletedIds = getDeletedProductIds();
     const deletedSet = new Set(deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did).filter(id => !isNaN(id) && id > 0));
-    
-    // Filter out invalid and deleted product IDs
+
     const cleanedWishlistIds = wishlistIds.filter(id => validProductIds.has(id) && !deletedSet.has(id));
-    
-    // Only save if there were changes
+
     if (cleanedWishlistIds.length !== wishlistIds.length) {
         saveWishlistIds(cleanedWishlistIds);
     }
 }
 
-// Get valid wishlist count (only products that actually exist)
 function getValidWishlistCount() {
     if (!allProducts || allProducts.length === 0) {
         return 0;
@@ -1646,19 +1534,16 @@ function getValidWishlistCount() {
     
     const wishlistIds = getWishlistIds();
     const normalizedWishlistIds = wishlistIds.map(id => typeof id === 'string' ? parseInt(id) : id).filter(id => !isNaN(id) && id > 0);
-    
-    // Get valid product IDs from allProducts
+
     const validProductIds = new Set(allProducts.map(p => {
         if (!p) return 0;
         const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
         return isNaN(pId) ? 0 : pId;
     }).filter(id => id > 0));
-    
-    // Check deleted products
+
     const deletedIds = getDeletedProductIds();
     const deletedSet = new Set(deletedIds.map(did => typeof did === 'string' ? parseInt(did) : did).filter(id => !isNaN(id) && id > 0));
-    
-    // Count only valid, non-deleted products
+
     return normalizedWishlistIds.filter(id => validProductIds.has(id) && !deletedSet.has(id)).length;
 }
 
@@ -1819,7 +1704,7 @@ function viewCart() {
                 return !isNaN(pId) && pId === searchId;
             });
             if (!product) {
-                // Product was deleted, remove it from cart
+                
                 removeProductFromCart(searchId);
                 return '';
             } 
@@ -1975,18 +1860,16 @@ function changeCartQuantity(productId, delta) {
     saveCartItems(cartItems);
 }
 
-// Orders Management Functions
 function getOrders() {
     const ordersJson = localStorage.getItem(ORDERS_KEY);
     return ordersJson ? JSON.parse(ordersJson) : [];
 }
 
 async function saveOrders(orders) {
-    // Save to localStorage FIRST (immediate) - this is JSON format
+    
     try {
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-        
-        // Verify it was saved
+
         const verifyOrders = getOrders();
         if (verifyOrders.length !== orders.length) {
             console.error('⚠️ Order save verification failed! Retrying...');
@@ -1995,10 +1878,9 @@ async function saveOrders(orders) {
         
         console.log('✅ Orders saved to localStorage (JSON format):', orders.length, 'orders');
         console.log('✅ Orders data:', JSON.stringify(orders, null, 2));
-        
-        // Sync orders to cloud storage (JSONBin.io) - saves as JSON in cloud
+
         if (USE_CLOUD_STORAGE && !USE_API) {
-            // Get current products to sync along with orders
+            
             const storageProducts = getProductsFromStorage();
             const syncSuccess = await syncToCloudStorage(storageProducts);
             if (syncSuccess) {
@@ -2013,7 +1895,6 @@ async function saveOrders(orders) {
     }
 }
 
-// Download orders as PDF file with watermark and seal
 function downloadOrdersAsPDFEnglish(orders) {
     try {
         if (typeof window.jspdf === 'undefined') {
@@ -2025,9 +1906,8 @@ function downloadOrdersAsPDFEnglish(orders) {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
-        
-        // Add Codelook watermark across the whole page (diagonal, semi-transparent)
-        doc.setTextColor(200, 200, 200); // Light gray
+
+        doc.setTextColor(200, 200, 200); 
         doc.setFontSize(60);
         doc.setFont(undefined, 'bold');
         doc.text('Codelook', pageWidth / 2, pageHeight / 2, {
@@ -2035,9 +1915,8 @@ function downloadOrdersAsPDFEnglish(orders) {
             align: 'center',
             baseline: 'middle'
         });
-        
-        // Add "Confirmed Payment" red seal/stamp (continuous, appears on every page)
-        doc.setTextColor(220, 53, 69); // Red color
+
+        doc.setTextColor(220, 53, 69); 
         doc.setFontSize(24);
         doc.setFont(undefined, 'bold');
         const sealText = 'CONFIRMED PAYMENT';
@@ -2047,23 +1926,19 @@ function downloadOrdersAsPDFEnglish(orders) {
             angle: 0,
             align: 'right'
         });
-        
-        // Reset text color for content
+
         doc.setTextColor(0, 0, 0);
-        
-        // Title
+
         doc.setFontSize(18);
         doc.setFont(undefined, 'bold');
         doc.text('My Orders', 14, 30);
-        
-        // Date (English format)
+
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
         const generatedDate = new Date();
         const dateStr = `${generatedDate.getFullYear()}-${String(generatedDate.getMonth() + 1).padStart(2, '0')}-${String(generatedDate.getDate()).padStart(2, '0')}`;
         doc.text(`Generated: ${dateStr}`, 14, 40);
-        
-        // Prepare table data (English format)
+
         const tableData = [];
         let grandTotal = 0;
         
@@ -2071,7 +1946,7 @@ function downloadOrdersAsPDFEnglish(orders) {
             if (!order || !order.items || !Array.isArray(order.items)) return;
             
             const orderDate = new Date(order.date);
-            // English date format: YYYY-MM-DD
+            
             const formattedDate = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
             
             order.items.forEach(item => {
@@ -2089,8 +1964,7 @@ function downloadOrdersAsPDFEnglish(orders) {
                 ]);
             });
         });
-        
-        // Add table
+
         doc.autoTable({
             head: [['Product', 'Order #', 'Price', 'Qty', 'Total', 'Date', 'Card']],
             body: tableData,
@@ -2099,7 +1973,7 @@ function downloadOrdersAsPDFEnglish(orders) {
             headStyles: { fillColor: [0, 0, 0] },
             margin: { top: 45 },
             didDrawPage: function (data) {
-                // Add watermark on every page
+                
                 doc.setTextColor(200, 200, 200);
                 doc.setFontSize(60);
                 doc.setFont(undefined, 'bold');
@@ -2108,8 +1982,7 @@ function downloadOrdersAsPDFEnglish(orders) {
                     align: 'center',
                     baseline: 'middle'
                 });
-                
-                // Add red seal on every page
+
                 doc.setTextColor(220, 53, 69);
                 doc.setFontSize(24);
                 doc.setFont(undefined, 'bold');
@@ -2117,20 +1990,17 @@ function downloadOrdersAsPDFEnglish(orders) {
                     angle: 0,
                     align: 'right'
                 });
-                
-                // Reset color
+
                 doc.setTextColor(0, 0, 0);
             }
         });
-        
-        // Add summary (English format)
+
         const finalY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(12);
         doc.setFont(undefined, 'bold');
         doc.text(`Grand Total: ${grandTotal.toLocaleString('en-US')} won`, 14, finalY);
         doc.text(`Total Orders: ${orders.length}`, 14, finalY + 10);
-        
-        // Save PDF
+
         doc.save(`my-orders-${new Date().toISOString().split('T')[0]}.pdf`);
         alert('Orders downloaded as PDF file!');
     } catch (err) {
@@ -2139,20 +2009,17 @@ function downloadOrdersAsPDFEnglish(orders) {
     }
 }
 
-// Download orders as Image file
 function downloadOrdersAsImage(orders) {
     try {
-        // Create a canvas element
+        
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 1200;
         canvas.height = 800;
-        
-        // Fill white background
+
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Add Codelook watermark (diagonal, semi-transparent)
+
         ctx.save();
         ctx.globalAlpha = 0.1;
         ctx.fillStyle = '#cccccc';
@@ -2160,32 +2027,28 @@ function downloadOrdersAsImage(orders) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(-Math.PI / 4); // 45 degrees
+        ctx.rotate(-Math.PI / 4); 
         ctx.fillText('Codelook', 0, 0);
         ctx.restore();
-        
-        // Add "Confirmed Payment" red seal (top right)
+
         ctx.save();
-        ctx.fillStyle = '#dc3545'; // Red
+        ctx.fillStyle = '#dc3545'; 
         ctx.font = 'bold 28px Arial';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'top';
         ctx.fillText('CONFIRMED PAYMENT', canvas.width - 20, 20);
         ctx.restore();
-        
-        // Title
+
         ctx.fillStyle = '#000000';
         ctx.font = 'bold 32px Arial';
         ctx.textAlign = 'left';
         ctx.fillText('My Orders', 20, 60);
-        
-        // Date (English format)
+
         ctx.font = '16px Arial';
         const genDate = new Date();
         const dateString = `${genDate.getFullYear()}-${String(genDate.getMonth() + 1).padStart(2, '0')}-${String(genDate.getDate()).padStart(2, '0')}`;
         ctx.fillText(`Generated: ${dateString}`, 20, 90);
-        
-        // Table header
+
         let yPos = 130;
         ctx.fillStyle = '#000000';
         ctx.font = 'bold 14px Arial';
@@ -2196,16 +2059,14 @@ function downloadOrdersAsImage(orders) {
         ctx.fillText('Total', 600, yPos);
         ctx.fillText('Date', 750, yPos);
         ctx.fillText('Card', 950, yPos);
-        
-        // Draw line under header
+
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(20, yPos + 10);
         ctx.lineTo(canvas.width - 20, yPos + 10);
         ctx.stroke();
-        
-        // Table rows
+
         yPos = 160;
         ctx.font = '12px Arial';
         let grandTotal = 0;
@@ -2214,7 +2075,7 @@ function downloadOrdersAsImage(orders) {
             if (!order || !order.items || !Array.isArray(order.items)) return;
             
             const orderDate = new Date(order.date);
-            // English date format: YYYY-MM-DD
+            
             const formattedDate = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}-${String(orderDate.getDate()).padStart(2, '0')}`;
             
             order.items.forEach(item => {
@@ -2230,21 +2091,18 @@ function downloadOrdersAsImage(orders) {
                 ctx.fillText(`****${order.cardNumber || ''}`, 950, yPos);
                 
                 yPos += 25;
-                
-                // Add page break if needed
+
                 if (yPos > canvas.height - 100) {
-                    // Could add pagination here if needed
+                    
                 }
             });
         });
-        
-        // Summary (English format)
+
         yPos = canvas.height - 80;
         ctx.font = 'bold 18px Arial';
         ctx.fillText(`Grand Total: ${grandTotal.toLocaleString('en-US')} won`, 20, yPos);
         ctx.fillText(`Total Orders: ${orders.length}`, 20, yPos + 30);
-        
-        // Convert canvas to image and download
+
         canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -2262,43 +2120,36 @@ function downloadOrdersAsImage(orders) {
     }
 }
 
-
 function addOrder(order) {
     const orders = getOrders();
-    orders.unshift(order); // Add to beginning (newest first)
-    saveOrders(orders); // Save immediately
+    orders.unshift(order); 
+    saveOrders(orders); 
 }
 
-// Delete selected orders
 async function deleteSelectedOrders(orderIds) {
     if (!orderIds || orderIds.length === 0) {
         alert('Please select at least one order to delete.');
         return;
     }
-    
-    // Confirm deletion
+
     const confirmMessage = `Are you sure you want to delete ${orderIds.length} order(s)?`;
     if (!confirm(confirmMessage)) {
         return;
     }
     
     try {
-        // Get current orders
+        
         let orders = getOrders();
-        
-        // Filter out selected orders
+
         const filteredOrders = orders.filter(order => !orderIds.includes(order.id));
-        
-        // Save updated orders
+
         await saveOrders(filteredOrders);
-        
-        // Sync to cloud storage
+
         if (USE_CLOUD_STORAGE && !USE_API) {
             const storageProducts = getProductsFromStorage();
             await syncToCloudStorage(storageProducts);
         }
-        
-        // Refresh the display
+
         await viewOrders();
         
         alert(`Successfully deleted ${orderIds.length} order(s).`);
@@ -2308,13 +2159,11 @@ async function deleteSelectedOrders(orderIds) {
     }
 }
 
-// Coupon validation function
 function validateCoupon(couponCode) {
     if (!couponCode) return { valid: false, discount: 0, name: '' };
     
     const normalizedCode = couponCode.trim();
-    
-    // Coupon codes: 1111 (20%), 2525 (35%), 2026 (50%)
+
     if (normalizedCode === '1111') {
         return { valid: true, discount: 0.20, name: 'New Membership (20% off)' };
     } else if (normalizedCode === '2525') {
@@ -2326,12 +2175,11 @@ function validateCoupon(couponCode) {
     return { valid: false, discount: 0, name: '' };
 }
 
-// Calculate payment breakdown
 function calculatePaymentBreakdown(subtotal, couponCode) {
     const coupon = validateCoupon(couponCode);
     const discountAmount = coupon.valid ? subtotal * coupon.discount : 0;
     const afterDiscount = subtotal - discountAmount;
-    const taxRate = 0.01; // 1% tax
+    const taxRate = 0.01; 
     const taxAmount = afterDiscount * taxRate;
     const finalTotal = afterDiscount + taxAmount;
     
@@ -2347,7 +2195,6 @@ function calculatePaymentBreakdown(subtotal, couponCode) {
     };
 }
 
-// Payment Modal and Processing
 function showPaymentModal(totalPrice, cartItems) {
     const modal = document.getElementById('app-modal');
     const modalTitle = document.getElementById('modal-title');
@@ -2360,8 +2207,7 @@ function showPaymentModal(totalPrice, cartItems) {
     }
     
     modalTitle.textContent = "Payment";
-    
-    // Initial calculation without coupon
+
     let currentBreakdown = calculatePaymentBreakdown(totalPrice, '');
     
     const updatePaymentSummary = () => {
@@ -2420,11 +2266,9 @@ function showPaymentModal(totalPrice, cartItems) {
     `;
     
     modal.style.display = 'flex';
-    
-    // Initial summary update
+
     updatePaymentSummary();
-    
-    // Coupon code input handler
+
     const couponInput = document.getElementById('coupon-code');
     const applyCouponBtn = document.getElementById('apply-coupon-btn');
     const couponMessage = document.getElementById('coupon-message');
@@ -2461,8 +2305,7 @@ function showPaymentModal(totalPrice, cartItems) {
             }
         });
     }
-    
-    // Format card number with spaces
+
     const cardNumberInput = document.getElementById('card-number');
     if (cardNumberInput) {
         cardNumberInput.addEventListener('input', (e) => {
@@ -2474,16 +2317,14 @@ function showPaymentModal(totalPrice, cartItems) {
             }
         });
     }
-    
-    // Confirm payment button
+
     const confirmBtn = document.getElementById('confirm-payment-btn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async () => {
             const cardNumber = document.getElementById('card-number')?.value.replace(/\s/g, '') || '';
             const cardPassword = document.getElementById('card-password')?.value || '';
             const couponCode = document.getElementById('coupon-code')?.value || '';
-            
-            // Accept any card number and password (no validation)
+
             if (!cardNumber || cardNumber.trim() === '') {
                 alert('Please enter a card number');
                 return;
@@ -2493,16 +2334,13 @@ function showPaymentModal(totalPrice, cartItems) {
                 alert('Please enter a card password');
                 return;
             }
-            
-            // Recalculate breakdown with current coupon
+
             const finalBreakdown = calculatePaymentBreakdown(totalPrice, couponCode);
-            
-            // Process payment with coupon and tax
+
             await processPayment(cartItems, totalPrice, cardNumber, couponCode, finalBreakdown);
         });
     }
-    
-    // Cancel button
+
     const cancelBtn = document.getElementById('cancel-payment-btn');
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
@@ -2520,12 +2358,11 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
     isOperationInProgress = true;
     
     try {
-        // IMPORTANT: Sync from cloud FIRST to get latest stock before processing payment
+        
         if (USE_CLOUD_STORAGE && !USE_API) {
             await syncFromCloudStorage();
         }
-        
-        // Validate all items are still available and in stock
+
         const validItems = [];
         for (const item of cartItems) {
             const product = allProducts.find(p => {
@@ -2559,15 +2396,13 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
             isOperationInProgress = false;
             return;
         }
-        
-        // Calculate breakdown if not provided
+
         if (!breakdown) {
             breakdown = calculatePaymentBreakdown(totalPrice, couponCode);
         }
-        
-        // Create order with coupon and tax information
+
         const order = {
-            id: Date.now(), // Simple ID based on timestamp
+            id: Date.now(), 
             date: new Date().toISOString(),
             items: validItems,
             subtotal: breakdown.subtotal,
@@ -2575,13 +2410,12 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
             couponName: breakdown.couponName,
             discountAmount: breakdown.discountAmount,
             taxAmount: breakdown.taxAmount,
-            totalPrice: breakdown.finalTotal, // Final total including discount and tax
-            cardNumber: cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : cardNumber // Store last 4 digits or full number if shorter
+            totalPrice: breakdown.finalTotal, 
+            cardNumber: cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : cardNumber 
         };
-        
-        // Update stock for all items
+
         if (USE_API) {
-            // Update via API
+            
             for (const item of validItems) {
                 const product = allProducts.find(p => {
                     const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
@@ -2601,24 +2435,22 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
             }
             allProducts = await fetchProductsFromApi();
         } else {
-            // Update in localStorage and cloud
+            
             const fileProducts = await fetchProductsFromFile();
             let storageProducts = getProductsFromStorage();
-            
-            // Update stock for each item
+
             for (const item of validItems) {
                 const normalizedId = typeof item.id === 'string' ? parseInt(item.id) : item.id;
-                
-                // Check if product is from items.json or storage
+
                 const fileProductIndex = fileProducts.findIndex(p => {
                     const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     return pId === normalizedId;
                 });
                 
                 if (fileProductIndex !== -1) {
-                    // Product from items.json - update in storage (create a copy with updated stock)
+                    
                     fileProducts[fileProductIndex].stock = Math.max(0, fileProducts[fileProductIndex].stock - item.quantity);
-                    // Add to storage products if not already there
+                    
                     const existingInStorage = storageProducts.findIndex(p => {
                         const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                         return pId === normalizedId;
@@ -2626,11 +2458,11 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
                     if (existingInStorage !== -1) {
                         storageProducts[existingInStorage].stock = Math.max(0, storageProducts[existingInStorage].stock - item.quantity);
                     } else {
-                        // Create a copy with updated stock
+                        
                         storageProducts.push({ ...fileProducts[fileProductIndex], stock: Math.max(0, fileProducts[fileProductIndex].stock) });
                     }
                 } else {
-                    // Product from storage - update directly
+                    
                     const storageIndex = storageProducts.findIndex(p => {
                         const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                         return pId === normalizedId;
@@ -2639,8 +2471,7 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
                         storageProducts[storageIndex].stock = Math.max(0, storageProducts[storageIndex].stock - item.quantity);
                     }
                 }
-                
-                // Update in allProducts
+
                 const allProductsIndex = allProducts.findIndex(p => {
                     const pId = typeof p.id === 'string' ? parseInt(p.id) : p.id;
                     return pId === normalizedId;
@@ -2649,11 +2480,9 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
                     allProducts[allProductsIndex].stock = Math.max(0, allProducts[allProductsIndex].stock - item.quantity);
                 }
             }
-            
-            // Save updated products
+
             saveProductsToStorage(storageProducts);
-            
-            // Sync to cloud storage (includes products, deletedProducts, and orders)
+
             if (USE_CLOUD_STORAGE) {
                 const syncSuccess = await syncToCloudStorage(storageProducts);
                 if (!syncSuccess) {
@@ -2662,25 +2491,21 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
                 }
             }
         }
-        
-        // Add order (this will also sync orders to cloud via saveOrders)
+
         console.log('💳 Adding order to storage:', order);
         addOrder(order);
-        
-        // Wait a moment for localStorage write to complete
+
         await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Verify order was saved
+
         let savedOrders = getOrders();
         console.log('✅ Order saved. Total orders now:', savedOrders.length);
         console.log('✅ Latest order:', savedOrders[0]);
         console.log('✅ All orders:', savedOrders);
-        
-        // Double-check: if order not found, save again
+
         const orderExists = savedOrders.some(o => o.id === order.id);
         if (!orderExists) {
             console.warn('⚠️ Order not found after save, retrying...');
-            // Get current orders and add the new one
+            
             const currentOrders = getOrders();
             currentOrders.unshift(order);
             await saveOrders(currentOrders);
@@ -2689,18 +2514,15 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
             console.log('✅ After retry, total orders:', savedOrders.length);
             console.log('✅ Order exists now:', savedOrders.some(o => o.id === order.id));
         }
-        
-        // Clear cart
+
         localStorage.setItem(CART_KEY, JSON.stringify({}));
         updateCartCount(0);
-        
-        // Close modal and show success
+
         const modal = document.getElementById('app-modal');
         if (modal) {
             modal.style.display = 'none';
         }
-        
-        // Build success message with breakdown
+
         let successMessage = `Payment successful! Order #${order.id}\n\n`;
         successMessage += `Subtotal: ${breakdown.subtotal.toLocaleString('en-US')} won\n`;
         if (breakdown.couponCode) {
@@ -2711,8 +2533,7 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
         successMessage += `You can view this order in "My Orders".`;
         
         alert(successMessage);
-        
-        // Reload products to show updated stock
+
         await loadEmbeddedProducts();
         
     } catch (err) {
@@ -2723,33 +2544,31 @@ async function processPayment(cartItems, totalPrice, cardNumber, couponCode = ''
     }
 }
 
-// View Orders Function
 async function viewOrders() {
     console.log('🔍 viewOrders() called');
     try {
-        // Get orders directly from localStorage (most reliable)
+        
         let orders = getOrders();
         console.log('📦 Orders from localStorage:', orders.length);
         console.log('📦 Orders data:', JSON.stringify(orders, null, 2));
-        
-        // If no local orders, try syncing from cloud (might have orders from other browsers)
+
         if (orders.length === 0 && USE_CLOUD_STORAGE && !USE_API) {
             console.log('No local orders found, syncing from cloud...');
             try {
                 await syncFromCloudStorage();
-                orders = getOrders(); // Get merged orders after sync
+                orders = getOrders(); 
                 console.log('📦 Orders after cloud sync:', orders.length);
             } catch (err) {
                 console.warn('Cloud sync failed, using local orders:', err);
             }
         } else if (USE_CLOUD_STORAGE && !USE_API) {
-            // Background sync to get any new orders from other browsers (don't wait)
+            
             syncFromCloudStorage().then(() => {
-                // After sync completes, update display if we got more orders
+                
                 const updatedOrders = getOrders();
                 if (updatedOrders.length > orders.length) {
                     console.log('📦 Found more orders after sync, updating display...');
-                    // Re-render with updated orders
+                    
                     displayOrdersInModal(updatedOrders);
                 }
             }).catch(err => {
@@ -2759,8 +2578,7 @@ async function viewOrders() {
         
         console.log('📦 Final orders to display:', orders.length);
         console.log('📦 Final orders:', orders);
-        
-        // Display orders
+
         displayOrdersInModal(orders);
         
     } catch (err) {
@@ -2769,7 +2587,6 @@ async function viewOrders() {
     }
 }
 
-// Helper function to display orders in modal
 function displayOrdersInModal(orders) {
     console.log('🎨 displayOrdersInModal() called with orders:', orders);
     
@@ -2798,8 +2615,7 @@ function displayOrdersInModal(orders) {
         modal.style.display = 'flex';
         return;
     }
-    
-    // Validate orders array
+
     if (!Array.isArray(orders)) {
         console.error('❌ Orders is not an array:', orders);
         modalListContainer.innerHTML = '<p class="p-4 text-center">Error: Invalid orders data.</p>';
@@ -2807,8 +2623,7 @@ function displayOrdersInModal(orders) {
         modal.style.display = 'flex';
         return;
     }
-    
-    // Create table format similar to cart with checkboxes
+
     let allItemsHtml = '';
     let grandTotal = 0;
     const uniqueOrderIds = new Set();
@@ -2828,12 +2643,10 @@ function displayOrdersInModal(orders) {
             hour: '2-digit',
             minute: '2-digit'
         });
-        
-        // Use final total if available (includes discount and tax), otherwise calculate from items
+
         const orderTotal = order.totalPrice || order.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
         grandTotal += orderTotal;
-        
-        // Each item gets its own checkbox
+
         let isFirstItem = true;
         order.items.forEach((item, itemIndex) => {
             const itemTotal = (item.price || 0) * (item.quantity || 0);
@@ -2889,7 +2702,7 @@ function displayOrdersInModal(orders) {
             </tbody>
         </table>
     `;
-    // Calculate totals with coupon and tax breakdown
+    
     let totalSubtotal = 0;
     let totalDiscount = 0;
     let totalTax = 0;
@@ -2900,7 +2713,7 @@ function displayOrdersInModal(orders) {
             totalDiscount += (order.discountAmount || 0);
             totalTax += (order.taxAmount || 0);
         } else {
-            // Fallback for old orders without breakdown
+            
             const orderSubtotal = order.items.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
             totalSubtotal += orderSubtotal;
         }
@@ -2936,8 +2749,7 @@ function displayOrdersInModal(orders) {
         </div>
     `;
     modal.style.display = 'flex';
-    
-    // Update select all checkbox state
+
     function updateSelectAllState() {
         const selectAllCheckbox = document.getElementById('select-all-orders');
         const checkboxes = document.querySelectorAll('.order-checkbox');
@@ -2948,8 +2760,7 @@ function displayOrdersInModal(orders) {
             selectAllCheckbox.indeterminate = someChecked && !allChecked;
         }
     }
-    
-    // Update delete button state
+
     function updateDeleteButtonState() {
         const deleteBtn = document.getElementById('delete-selected-orders-btn-top');
         const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
@@ -2959,13 +2770,12 @@ function displayOrdersInModal(orders) {
             deleteBtn.style.cursor = checkedBoxes.length === 0 ? 'not-allowed' : 'pointer';
         }
     }
-    
-    // Wait a moment for DOM to be ready, then attach event listeners
+
     setTimeout(() => {
-        // Add select all functionality
+        
         const selectAllCheckbox = document.getElementById('select-all-orders');
         if (selectAllCheckbox) {
-            // Remove any existing listeners by cloning
+            
             const newSelectAll = selectAllCheckbox.cloneNode(true);
             selectAllCheckbox.parentNode.replaceChild(newSelectAll, selectAllCheckbox);
             
@@ -2977,11 +2787,10 @@ function displayOrdersInModal(orders) {
                 updateDeleteButtonState();
             });
         }
-        
-        // Add individual checkbox change handlers
+
         const orderCheckboxes = document.querySelectorAll('.order-checkbox');
         orderCheckboxes.forEach(checkbox => {
-            // Remove any existing listeners by cloning
+            
             const newCheckbox = checkbox.cloneNode(true);
             checkbox.parentNode.replaceChild(newCheckbox, checkbox);
             
@@ -2989,13 +2798,12 @@ function displayOrdersInModal(orders) {
                 updateSelectAllState();
                 updateDeleteButtonState();
             });
-            
-            // Also make the entire row clickable
+
             const row = newCheckbox.closest('tr');
             if (row) {
                 row.style.cursor = 'pointer';
                 row.addEventListener('click', (e) => {
-                    // Don't toggle if clicking directly on checkbox
+                    
                     if (e.target !== newCheckbox && e.target.type !== 'checkbox') {
                         newCheckbox.checked = !newCheckbox.checked;
                         updateSelectAllState();
@@ -3004,50 +2812,45 @@ function displayOrdersInModal(orders) {
                 });
             }
         });
-        
-        // Initialize states
+
         updateSelectAllState();
         updateDeleteButtonState();
     }, 100);
-    
-    // Add delete selected orders button functionality (top button)
+
     const deleteSelectedBtnTop = document.getElementById('delete-selected-orders-btn-top');
     if (deleteSelectedBtnTop) {
         deleteSelectedBtnTop.addEventListener('click', async () => {
             const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
-            // Get unique order IDs from selected items
+            
             const selectedOrderIds = new Set();
             checkedBoxes.forEach(cb => {
                 selectedOrderIds.add(parseInt(cb.dataset.orderId));
             });
-            
-            // Delete all orders that have at least one selected item
+
             if (selectedOrderIds.size > 0) {
                 await deleteSelectedOrders(Array.from(selectedOrderIds));
             }
         });
     }
     
-    updateDeleteButtonState(); // Initialize button state
-    
-    // Add download PDF button functionality
+    updateDeleteButtonState(); 
+
     const downloadPdfBtn = document.getElementById('download-orders-pdf-btn');
     if (downloadPdfBtn) {
         const newPdfBtn = downloadPdfBtn.cloneNode(true);
         downloadPdfBtn.parentNode.replaceChild(newPdfBtn, downloadPdfBtn);
         newPdfBtn.addEventListener('click', () => {
-            // Use the original orders that were displayed (not affected by deletions)
+            
             downloadOrdersAsPDFEnglish(orders);
         });
     }
-    
-    // Add download Image button functionality
+
     const downloadImageBtn = document.getElementById('download-orders-image-btn');
     if (downloadImageBtn) {
         const newImageBtn = downloadImageBtn.cloneNode(true);
         downloadImageBtn.parentNode.replaceChild(newImageBtn, downloadImageBtn);
         newImageBtn.addEventListener('click', () => {
-            // Use the original orders that were displayed (not affected by deletions)
+            
             downloadOrdersAsImage(orders);
         });
     }
