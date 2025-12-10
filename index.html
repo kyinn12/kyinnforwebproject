@@ -5,25 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KYAW ZIN WIN's Homepage</title>
     
-    <script src="https:
+    <script src="https://cdn.tailwindcss.com"></script> 
+    
     <style>
         
         body {
             font-family: 'Inter', sans-serif;
         }
         
+        .chapter-link {
+            transition: all 0.3s ease-in-out;
+        }
+        
         .chapter-link:hover {
-            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.4); 
-            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+            transform: translateY(-3px) scale(1.02);
         }
     </style>
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#4f46e5', 
-                        'secondary': '#10b981', 
+                        'primary': '#4f46e5',
+                        'secondary': '#10b981',
                     }
                 }
             }
@@ -32,90 +38,56 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
 
-    <div class="max-w-4xl w-full bg-white shadow-2xl rounded-2xl p-6 sm:p-10 lg:p-12 space-y-8">
+    <main class="max-w-4xl w-full bg-white shadow-2xl rounded-3xl p-6 sm:p-10 lg:p-12 space-y-10">
 
-        <header class="text-center border-b pb-4">
-            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-800 tracking-tight">
+        <header class="text-center border-b border-gray-200 pb-6">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
                 KYAW ZIN WIN's Homepage
             </h1>
-            <p class="mt-2 text-lg text-gray-500 font-medium">
-                student id : 24102630, name : KYAW ZIN WIN (쪄진웬)
+            <p class="mt-3 text-lg text-gray-600 font-medium">
+                Student ID: **24102630** | Name: **KYAW ZIN WIN (쪄진웬)**
             </p>
         </header>
 
         <section class="flex justify-center">
             <a href="html/mainpage.html" 
-               class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-lg font-bold rounded-full shadow-lg 
-                      text-white bg-primary hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 
-                      focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50">
+               class="inline-flex items-center justify-center px-10 py-4 border border-transparent text-xl font-extrabold rounded-full shadow-xl 
+                      text-white bg-primary hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105 
+                      focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-70">
                 🚀 View My PROJECT
             </a>
         </section>
 
         <section class="pt-6">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-l-4 border-secondary pl-3">
-                WEB Programming Summaries
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 border-l-4 border-secondary pl-4">
+                <span role="img" aria-label="Book emoji">📖</span> WEB Programming Summaries
             </h2>
             
             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
                 
-                <a href="WEB Summary/Chapter 1.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
+                <a href="WEB Summary/Chapter 1.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">
                     Ch 1
                 </a>
-                <a href="WEB Summary/Chapter 2.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 2
-                </a>
-                <a href="WEB Summary/Chapter 3.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 3
-                </a>
-                <a href="WEB Summary/Chapter 4.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 4
-                </a>
-                <a href="WEB Summary/Chapter 5.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 5
-                </a>
-                <a href="WEB Summary/Chapter 6.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 6
-                </a>
-                <a href="WEB Summary/Chapter 7.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 7
-                </a>
-                <a href="WEB Summary/Chapter 8.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 8
-                </a>
-                <a href="WEB Summary/Chapter 9.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 9
-                </a>
-                <a href="WEB Summary/Chapter 10.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 10
-                </a>
-                <a href="WEB Summary/Chapter 11.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 11
-                </a>
-                <a href="WEB Summary/Chapter 12.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 12
-                </a>
-                <a href="WEB Summary/Chapter 13.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 13
-                </a>
-                <a href="WEB Summary/Chapter 14.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 14
-                </a>
-                <a href="WEB Summary/Chapter 15.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 15
-                </a>
-                <a href="WEB Summary/Chapter 16.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 16
-                </a>
-                <a href="WEB Summary/Chapter 17.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 17
-                </a>
-                <a href="WEB Summary/Chapter 18.html" class="chapter-link text-center block p-3 rounded-xl bg-secondary text-white font-medium hover:bg-emerald-500 transition duration-300 shadow-md">
-                    Ch 18
-                </a>
+                <a href="WEB Summary/Chapter 2.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 2</a>
+                <a href="WEB Summary/Chapter 3.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 3</a>
+                <a href="WEB Summary/Chapter 4.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 4</a>
+                <a href="WEB Summary/Chapter 5.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 5</a>
+                <a href="WEB Summary/Chapter 6.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 6</a>
+                <a href="WEB Summary/Chapter 7.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 7</a>
+                <a href="WEB Summary/Chapter 8.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 8</a>
+                <a href="WEB Summary/Chapter 9.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 9</a>
+                <a href="WEB Summary/Chapter 10.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 10</a>
+                <a href="WEB Summary/Chapter 11.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 11</a>
+                <a href="WEB Summary/Chapter 12.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 12</a>
+                <a href="WEB Summary/Chapter 13.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 13</a>
+                <a href="WEB Summary/Chapter 14.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 14</a>
+                <a href="WEB Summary/Chapter 15.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 15</a>
+                <a href="WEB Summary/Chapter 16.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 16</a>
+                <a href="WEB Summary/Chapter 17.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 17</a>
+                <a href="WEB Summary/Chapter 18.html" class="chapter-link text-center block p-4 rounded-xl bg-secondary text-white font-semibold hover:bg-emerald-600 transition duration-300 shadow-md">Ch 18</a>
             </div>
         </section>
 
-    </div>
+    </main>
 </body>
 </html>
