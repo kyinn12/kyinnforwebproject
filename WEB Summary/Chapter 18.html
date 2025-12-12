@@ -86,23 +86,23 @@
 
   <h2>1. Understanding Public APIs (공개 API)</h2>
   <ul>
-    [cite_start]<li>A **Public API (Open API)** is an API made publicly available for anyone to use[cite: 2].</li>
-    [cite_start]<li>Examples include map APIs or data APIs provided by major portal sites[cite: 13].</li>
+    <li>A **Public API (Open API)** is an API made publicly available for anyone to use.</li>
+    <li>Examples include map APIs or data APIs provided by major portal sites.</li>
   </ul>
 
   <h3>1.1. Public API Operation Principle</h3>
+  <p>Since the APIs are on a server, you must apply for use and receive an authentication key to access and use them.</p>
   
-  [cite_start]<p>Since the APIs are on a server, you must apply for use and receive an authentication key to access and use them[cite: 4].</p>
   <ul>
-    [cite_start]<li>The **Developer** requests an **Authentication Key (인증키 요청)** [cite: 11] [cite_start]and receives **Authentication Key Approval (인증키 승인)**[cite: 14].</li>
-    [cite_start]<li>This key allows the developer to access the API through a legitimate path and use its functions or properties[cite: 5].</li>
-    [cite_start]<li>The API facilitates communication between the developer's application and the **Server Data** by handling **Requests (요청)** and **Responses (응답)**[cite: 10, 12].</li>
+    <li>The **Developer** requests an **Authentication Key (인증키 요청)** and receives **Authentication Key Approval (인증키 승인)**.</li>
+    <li>This key allows the developer to access the API through a legitimate path and use its functions or properties.</li>
+    <li>The API facilitates communication between the developer's application and the **Server Data** by handling **Requests (요청)** and **Responses (응답)**.</li>
   </ul>
 
   <h3>1.2. Where to Find Public APIs</h3>
   <ul>
-    [cite_start]<li>**Major internet service providers** (e.g., Naver, Kakao, Google, Meta)[cite: 17].</li>
-    [cite_start]<li>**GitHub**: Search using 'public api' or 'open api' to find many repositories[cite: 20].</li>
+    <li>**Major internet service providers** (e.g., Naver, Kakao, Google, Meta).</li>
+    <li>**GitHub**: Search using 'public api' or 'open api' to find many repositories.</li>
   </ul>
 
   <table>
@@ -139,16 +139,16 @@
 
   <h2>2. Utilizing Map APIs (Example: Kakao Map API)</h2>
   <ol>
-    [cite_start]<li>Sign up on the Kakao Developer page[cite: 38].</li>
-    [cite_start]<li>**Add an application (애플리케이션 추가하기)**[cite: 39].</li>
-    [cite_start]<li>**Confirm App Keys**: Check keys like the JavaScript Key and REST API Key[cite: 77, 78].</li>
-    [cite_start]<li>**Configure Platform**: Select 'Web Platform Registration' (Web 플랫폼 등록) [cite: 84] [cite_start]and enter the site domain (e.g., the local host address <code>http://127.0.0.1</code>)[cite: 90, 97].</li>
-    [cite_start]<li>Go to the Kakao Map API site and click **[Web]**[cite: 106].</li>
-    [cite_start]<li>Reference the various sample sources in the **'Sample'** menu for implementation[cite: 117].
+    <li>Sign up on the Kakao Developer page.</li>
+    <li>**Add an application (애플리케이션 추가하기)**.</li>
+    <li>**Confirm App Keys**: Check keys like the JavaScript Key and REST API Key.</li>
+    <li>**Configure Platform**: Select 'Web Platform Registration' (Web 플랫폼 등록) and enter the site domain (e.g., the local host address <code>http://127.0.0.1</code>).</li>
+    <li>Go to the Kakao Map API site and click **[Web]**.</li>
+    <li>Reference the various sample sources in the **'Sample'** menu for implementation.
         <ul>
-            [cite_start]<li>**Getting the API**: Use a <code>&lt;script&gt;</code> tag with the appropriate source URL[cite: 151, 152].</li>
-            [cite_start]<li>**Area for the Map**: Define a <code>&lt;div&gt;</code> element with an ID to hold the map[cite: 142, 147].</li>
-            [cite_start]<li>**Displaying the Map**: Use JavaScript to set coordinates (e.g., <code>new kakao.maps.LatLng(33.450701, 126.570667)</code>) and create the map object[cite: 161, 164, 168].</li>
+            <li>**Getting the API**: Use a <code>&lt;script&gt;</code> tag with the appropriate source URL.</li>
+            <li>**Area for the Map**: Define a <code>&lt;div&gt;</code> element with an ID to hold the map.</li>
+            <li>**Displaying the Map**: Use JavaScript to set coordinates (e.g., <code>new kakao.maps.LatLng(33.450701, 126.570667)</code>) and create the map object.</li>
         </ul>
     </li>
   </ol>
@@ -157,23 +157,23 @@
 
   <h3>3.1. About the Public Data Portal</h3>
   <ul>
-    [cite_start]<li>It is a site run by the government that continuously provides new public data[cite: 181, 182].</li>
-    [cite_start]<li>**Public Data**: Refers to data created by public institutions or official information opened to the public[cite: 183].</li>
-    [cite_start]<li>Anyone can use the data for free after applying[cite: 184].</li>
-    [cite_start]<li>Data is provided as **File Data**, **Open API**, and **Standard Data Set**[cite: 187].
+    <li>It is a site run by the government that continuously provides new public data.</li>
+    <li>**Public Data**: Refers to data created by public institutions or official information opened to the public.</li>
+    <li>Anyone can use the data for free after applying.</li>
+    <li>Data is provided as **File Data**, **Open API**, and **Standard Data Set**.
       <ul>
-        [cite_start]<li>**Open API**: Data is standardized and shared for programming[cite: 189]. [cite_start]It remains **up-to-date** because information can be modified in real-time on the server[cite: 190].</li>
+        <li>**Open API**: Data is standardized and shared for programming. It remains **up-to-date** because information can be modified in real-time on the server.</li>
       </ul>
     </li>
   </ul>
 
   <h3>3.2. Open API Application Process</h3>
   <ol>
-    [cite_start]<li>Search for the required information on the Public Data Portal[cite: 193].</li>
-    [cite_start]<li>Click the **[Open API] tab** in the search results[cite: 194].</li>
-    [cite_start]<li>After reviewing the details, click **[Apply for Utilization] (활용 신청)**[cite: 195].</li>
-    [cite_start]<li>An **'General Authentication Key'** is issued for the applied API[cite: 212].</li>
-    [cite_start]<li>Developers must review the **'Reference Document' (참고문서)** which details API usage[cite: 213].</li>
+    <li>Search for the required information on the Public Data Portal.</li>
+    <li>Click the **[Open API] tab** in the search results.</li>
+    <li>After reviewing the details, click **[Apply for Utilization] (활용 신청)**.</li>
+    <li>An **'General Authentication Key'** is issued for the applied API.</li>
+    <li>Developers must review the **'Reference Document' (참고문서)** which details API usage.</li>
   </ol>
 
   <h3>3.3. Example: Fetching Campground Data and Displaying it on a Map</h3>
@@ -182,21 +182,21 @@
     <li>**Check Request Method**: Refer to the API manual for the server request method.
       <pre><code>// Example URL to request JSON format:
 http://api.visitkorea.or.kr/openapi/service/rest/GoCamping/basedList?ServiceKey=ServiceKey&numOfRows=10&pageNo=1&MobileOS=ETC&MobileApp=TestApp&_type=json</code></pre>
-      * [cite_start]Add <code>&_type=json</code> to the URL to request a JSON response[cite: 272].
+      * Add <code>&_type=json</code> to the URL to request a JSON response.
     </li>
-    [cite_start]<li>**Fetch Data**: Add the App Key (앱키) [cite: 281] [cite_start]to the URL and use <code>fetch</code> to retrieve the data[cite: 277, 283].</li>
-    [cite_start]<li>**Access Content**: Analyze the returned JSON object structure (e.g., in the console) to find the path to the actual data[cite: 290].
+    <li>**Fetch Data**: Add the App Key (앱키) to the URL and use <code>fetch</code> to retrieve the data.</li>
+    <li>**Access Content**: Analyze the returned JSON object structure (e.g., in the console) to find the path to the actual data.
       <pre><code>// Accessing the actual list of items:
-[cite_start]const data = json.response.body.items.item // Stores the actual content from the object. [cite: 336]</code></pre>
+const data = json.response.body.items.item // Stores the actual content from the object.</code></pre>
     </li>
     <li>**Identify Necessary Fields**: To display on a map, the necessary fields are:
       <ul>
-        [cite_start]<li>Campground Name: `facltNm` [cite: 357]</li>
-        [cite_start]<li>Latitude value: `mapY` [cite: 357]</li>
-        [cite_start]<li>Longitude value: `mapX` [cite: 357]</li>
+        <li>Campground Name: `facltNm`</li>
+        <li>Latitude value: `mapY`</li>
+        <li>Longitude value: `mapX`</li>
       </ul>
     </li>
-    [cite_start]<li>**Display on Map**: Use the retrieved data in conjunction with the Kakao Map API to mark the campground locations[cite: 360].</li>
+    <li>**Display on Map**: Use the retrieved data in conjunction with the Kakao Map API to mark the campground locations.</li>
   </ol>
 
   <div class="button-container">
